@@ -14,9 +14,9 @@ import (
 )
 
 func TestStripANSI(t *testing.T) {
-	input := "\x1b[31mred\x1b[0m plain\x1b]0;title\x07"
+	input := "\x1b[31mred\x1b[0m plain\x1b]0;title\x07\x1bPtmux;\x1b\\done"
 	got := StripANSI(input)
-	if strings.Contains(got, "\x1b") || got != "red plain" {
+	if strings.Contains(got, "\x1b") || got != "red plaindone" {
 		t.Fatalf("StripANSI() = %q", got)
 	}
 }
@@ -224,7 +224,7 @@ func TestAttachCommandForcesUTF8Locale(t *testing.T) {
 			environment[parts[0]] = parts[1]
 		}
 	}
-	if environment["TERM"] != "xterm-256color" || environment["LANG"] != "en_US.UTF-8" || environment["LC_ALL"] != "en_US.UTF-8" {
+	if environment["TERM"] != "xterm-256color" || environment["COLORTERM"] != "truecolor" || environment["LANG"] != "en_US.UTF-8" || environment["LC_ALL"] != "en_US.UTF-8" {
 		t.Fatalf("attach environment = %#v", environment)
 	}
 }

@@ -194,15 +194,22 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       setInputWarning(message);
     };
 
+    let lastSentCols = 0;
+    let lastSentRows = 0;
     const sendTerminalResize = () => {
       if (socket?.readyState !== WebSocket.OPEN) return;
+      const cols = Math.max(2, Math.min(500, terminal.cols));
+      const rows = Math.max(1, Math.min(200, terminal.rows));
+      if (cols === lastSentCols && rows === lastSentRows) return;
       socket.send(
         JSON.stringify({
           type: 'resize',
-          cols: terminal.cols,
-          rows: terminal.rows,
+          cols,
+          rows,
         }),
       );
+      lastSentCols = cols;
+      lastSentRows = rows;
     };
 
     const overviewContentSize = () => {
@@ -368,7 +375,8 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       try {
         fitAddon.fit();
       } catch {
-        return;
+        // Keep the last known or default size; a resize is still useful before
+        // the mobile layout has finished settling.
       }
       sendTerminalResize();
     };

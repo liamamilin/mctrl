@@ -37,6 +37,8 @@ unchecked until that external environment is available.
 - [x] FULL overview pans/zooms without changing tmux dimensions
 - [x] FULL overview remains editable through the keyboard control
 - [x] Session disappearance handled
+- [x] raw PTY prevents control sequences from being echoed as `^[` / `^G`
+- [x] OpenCode-style terminal capability replies do not corrupt the mobile input path
 
 ## Security
 

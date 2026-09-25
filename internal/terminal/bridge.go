@@ -5,11 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
+	"os/exec"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/creack/pty"
 	"github.com/gorilla/websocket"
+	"golang.org/x/term"
 
 	"mctrl/internal/tmux"
 )
@@ -105,6 +109,37 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(*http.Request) bool { return true }, // API validates before calling ServeHTTP.
 }
 
+func startRawPTY(cmd *exec.Cmd, size pty.Winsize) (*os.File, error) {
+	ptmx, tty, err := pty.Open()
+	if err != nil {
+		return nil, err
+	}
+	// Configure the slave before the child starts. This closes the race where
+	// terminal capability replies can be echoed by the default line
+	// discipline before tmux puts its own client into raw mode.
+	if _, err := term.MakeRaw(int(tty.Fd())); err != nil {
+		_ = ptmx.Close()
+		_ = tty.Close()
+		return nil, err
+	}
+	if err := pty.Setsize(ptmx, &size); err != nil {
+		_ = ptmx.Close()
+		_ = tty.Close()
+		return nil, err
+	}
+	cmd.Stdin = tty
+	cmd.Stdout = tty
+	cmd.Stderr = tty
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true, Setctty: true}
+	if err := cmd.Start(); err != nil {
+		_ = ptmx.Close()
+		_ = tty.Close()
+		return nil, err
+	}
+	_ = tty.Close()
+	return ptmx, nil
+}
+
 func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, deviceID string) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -158,13 +193,12 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 		_ = writeControl(errorMessage{Type: "error", Code: terminalAttachFailed})
 		return
 	}
-	ptmx, err := pty.Start(cmd)
+	ptmx, err := startRawPTY(cmd, pty.Winsize{Cols: 120, Rows: 40})
 	if err != nil {
 		_ = writeControl(errorMessage{Type: "error", Code: terminalAttachFailed})
 		return
 	}
 	defer ptmx.Close()
-	_ = pty.Setsize(ptmx, &pty.Winsize{Cols: 120, Rows: 40})
 
 	writeBinary := func(data []byte) error {
 		writeMu.Lock()

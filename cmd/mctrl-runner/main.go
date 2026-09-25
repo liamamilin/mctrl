@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/creack/pty"
+	"golang.org/x/term"
 
 	"mctrl/internal/config"
 	"mctrl/internal/power"
@@ -44,7 +45,21 @@ func main() {
 	}
 }
 
+func makeStdinRaw() func() {
+	state, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		// Unit tests and non-interactive launches may not have a TTY on stdin.
+		return func() {}
+	}
+	return func() {
+		_ = term.Restore(int(os.Stdin.Fd()), state)
+	}
+}
+
 func supervise(workFile, expectedAttemptID string) error {
+	restoreStdin := makeStdinRaw()
+	defer restoreStdin()
+
 	data, err := os.ReadFile(workFile)
 	if err != nil {
 		return fmt.Errorf("read launch evidence: %w", err)

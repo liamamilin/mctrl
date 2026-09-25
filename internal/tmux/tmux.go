@@ -409,6 +409,7 @@ func (a *Adapter) AttachCommand(ctx context.Context, id string) (*exec.Cmd, erro
 	cmd := exec.CommandContext(ctx, a.binary, args...)
 	cmd.Env = append(os.Environ(),
 		"TERM=xterm-256color",
+		"COLORTERM=truecolor",
 		"LANG=en_US.UTF-8",
 		"LC_ALL=en_US.UTF-8",
 	)
@@ -469,6 +470,21 @@ func StripANSI(value string) string {
 				}
 			}
 		case ']':
+			index += 2
+			for index < len(value) {
+				if value[index] == 0x07 {
+					index++
+					break
+				}
+				if value[index] == 0x1b && index+1 < len(value) && value[index+1] == '\\' {
+					index += 2
+					break
+				}
+				index++
+			}
+		case 'P', '^', '_', 'X':
+			// DCS/PM/APC/SOS payloads are terminated by ST (ESC \\) or BEL.
+			// Drop the entire payload instead of leaking it into previews.
 			index += 2
 			for index < len(value) {
 				if value[index] == 0x07 {
