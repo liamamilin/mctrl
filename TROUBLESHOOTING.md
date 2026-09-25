@@ -134,7 +134,7 @@ the terminal Work card; the original Project is preselected when it still exists
 `LOCAL` intentionally uses the phone viewport, while tmux keeps the larger desktop
 window authoritative. Use **FULL** to fit the complete pane, pinch to zoom, and use
 one-finger drag to pan the two-dimensional viewport. FULL remains editable through
-the explicit keyboard button; Structured Prompt stays in LOCAL. Exiting FULL
+the explicit **编辑** control after LOCAL; Structured Prompt stays in LOCAL. Exiting FULL
 restores the readable interactive viewport without changing tmux's desktop size.
 
 ## The phone shrinks or changes the desktop tmux layout

@@ -2028,26 +2028,40 @@ button:disabled {
 }
 
 .terminal-keybar {
-  display: flex;
-  min-height: 48px;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 10px;
-  overflow-x: auto;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  overflow: hidden;
+  padding: 7px 8px;
   background: #0c120f;
   border-top: 1px solid var(--border);
-  scrollbar-width: none;
 }
 
-.terminal-keybar::-webkit-scrollbar {
-  display: none;
+.keybar-primary,
+.direction-keys {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  max-width: 520px;
+  justify-self: center;
+  margin: 0 auto;
+  gap: 7px;
+}
+
+.keybar-primary {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.direction-keys {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .terminal-keybar button {
-  min-width: 50px;
-  height: 36px;
-  flex: 0 0 auto;
-  padding: 0 12px;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 8px;
   color: #c2d0c8;
   background: var(--surface-2);
   border: 1px solid var(--border-strong);
@@ -2069,18 +2083,22 @@ button:disabled {
   border-color: var(--accent);
 }
 
-.keybar-divider {
-  width: 1px;
-  height: 24px;
-  flex: 0 0 auto;
-  margin: 0 1px;
-  background: var(--border-strong);
+.terminal-keybar .keyboard-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.68rem;
 }
 
-.terminal-keybar .keyboard-button {
-  min-width: 44px;
-  margin-left: auto;
-  font-size: 1rem;
+.terminal-keybar .keyboard-button > span:first-child {
+  font-size: 0.92rem;
+}
+
+.direction-keys button {
+  height: 40px;
+  color: var(--text);
+  font-size: 1.05rem;
 }
 
 .prompt-dock {
@@ -2299,8 +2317,13 @@ button:disabled {
 
   .terminal-keybar {
     gap: 5px;
-    padding-right: 7px;
-    padding-left: 7px;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .keybar-primary,
+  .direction-keys {
+    gap: 5px;
   }
 
   .pair-console-code-box > div {
@@ -2319,8 +2342,13 @@ button:disabled {
   }
 
   .terminal-keybar button {
-    min-width: 45px;
-    padding: 0 9px;
+    height: 36px;
+    padding: 0 5px;
+    font-size: 0.61rem;
+  }
+
+  .direction-keys button {
+    height: 38px;
   }
 }
 

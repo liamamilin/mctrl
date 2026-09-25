@@ -690,7 +690,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   }, [connection]);
 
   const pressKey = (data: string) => {
-    if (sendRaw.current(data)) controlArmed.current = false;
+    if (!sendRaw.current(data)) return;
+    controlArmed.current = false;
+    setControlArmedState(false);
   };
 
   const toggleControl = () => {
@@ -840,69 +842,101 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           </div>
         )}
 
-        <div class="terminal-keybar" aria-label="Terminal keys">
-          <button
-            type="button"
-            onClick={() => pressKey('\x1b')}
-            disabled={terminalInputDisabled}
+        <div
+          class="terminal-keybar"
+          role="toolbar"
+          aria-label="Terminal keys"
+        >
+          <div
+            class="keybar-primary"
+            role="group"
+            aria-label="Terminal controls"
           >
-            ESC
-          </button>
-          <button
-            type="button"
-            onClick={() => pressKey('\t')}
-            disabled={terminalInputDisabled}
+            <button
+              type="button"
+              onClick={() => pressKey('\x1b')}
+              disabled={terminalInputDisabled}
+            >
+              ESC
+            </button>
+            <button
+              type="button"
+              onClick={() => pressKey('\t')}
+              disabled={terminalInputDisabled}
+            >
+              TAB
+            </button>
+            <button
+              class={controlArmedState ? 'armed' : ''}
+              type="button"
+              aria-pressed={controlArmedState}
+              onClick={toggleControl}
+              disabled={terminalInputDisabled}
+            >
+              CTRL
+            </button>
+            <button
+              class={overview ? 'armed overview-toggle' : 'overview-toggle'}
+              type="button"
+              aria-pressed={overview}
+              onClick={() => toggleOverview.current()}
+              disabled={overviewBusy || (!overview && connection !== 'connected')}
+            >
+              {overviewBusy ? '…' : overview ? 'LOCAL' : 'FULL'}
+            </button>
+            <button
+              class="keyboard-button"
+              type="button"
+              onClick={() =>
+                terminalHost.current
+                  ?.querySelector<HTMLTextAreaElement>('.xterm-helper-textarea')
+                  ?.focus()
+              }
+              disabled={terminalInputDisabled}
+              aria-label="Show terminal keyboard for editing"
+            >
+              <span aria-hidden="true">⌨</span>
+              <span>编辑</span>
+            </button>
+          </div>
+          <div
+            class="direction-keys"
+            role="group"
+            aria-label="Arrow keys"
           >
-            TAB
-          </button>
-          <button
-            class={controlArmedState ? 'armed' : ''}
-            type="button"
-            aria-pressed={controlArmedState}
-            onClick={toggleControl}
-            disabled={terminalInputDisabled}
-          >
-            CTRL
-          </button>
-          <button
-            class={overview ? 'armed overview-toggle' : 'overview-toggle'}
-            type="button"
-            aria-pressed={overview}
-            onClick={() => toggleOverview.current()}
-            disabled={overviewBusy || (!overview && connection !== 'connected')}
-          >
-            {overviewBusy ? '…' : overview ? 'LOCAL' : 'FULL'}
-          </button>
-          <span class="keybar-divider" />
-          <button
-            type="button"
-            onClick={() => pressKey('\x1b[A')}
-            disabled={terminalInputDisabled}
-            aria-label="Arrow up"
-          >
-            ↑
-          </button>
-          <button
-            type="button"
-            onClick={() => pressKey('\x1b[B')}
-            disabled={terminalInputDisabled}
-            aria-label="Arrow down"
-          >
-            ↓
-          </button>
-          <button
-            class="keyboard-button"
-            type="button"
-            onClick={() =>
-              terminalHost.current
-                ?.querySelector<HTMLTextAreaElement>('.xterm-helper-textarea')
-                ?.focus()
-            }
-            disabled={terminalInputDisabled}
-            aria-label="Show terminal keyboard"
-          >
-            ⌨
-          </button>
+            <button
+              type="button"
+              onClick={() => pressKey('\x1b[A')}
+              disabled={terminalInputDisabled}
+              aria-label="Arrow up"
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              onClick={() => pressKey('\x1b[B')}
+              disabled={terminalInputDisabled}
+              aria-label="Arrow down"
+            >
+              ↓
+            </button>
+            <button
+              type="button"
+              onClick={() => pressKey('\x1b[D')}
+              disabled={terminalInputDisabled}
+              aria-label="Arrow left"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              onClick={() => pressKey('\x1b[C')}
+              disabled={terminalInputDisabled}
+              aria-label="Arrow right"
+            >
+              →
+            </button>
+          </div>
         </div>
 
         <form class="prompt-dock" onSubmit={submitPrompt}>

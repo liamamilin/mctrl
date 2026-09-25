@@ -76,7 +76,8 @@ Required:
 - Terminal
 - stale CONNECTING socket is replaced after resume
 - FULL overview fits, zooms and pans with one finger
-- FULL mode can edit through the explicit keyboard control
+- FULL mode can edit through the explicit 编辑 control immediately after LOCAL
+- the terminal keybar exposes working up, down, left and right arrow controls
 - LOCAL mode restores the readable interactive viewport
 - reconnect banner
 - Start Work
@@ -111,7 +112,8 @@ Pair
 → type command
 → enter FULL overview
 → pinch zoom and one-finger pan
-→ edit from FULL with the keyboard button
+→ edit from FULL with the 编辑 control after LOCAL
+→ exercise ↑, ↓, ← and → without leaving the terminal
 → return to LOCAL
 → lock iPhone
 → unlock/reopen
