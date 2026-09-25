@@ -1,0 +1,214 @@
+package terminal
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"sync"
+	"time"
+
+	"github.com/creack/pty"
+	"github.com/gorilla/websocket"
+
+	"mctrl/internal/tmux"
+)
+
+type Bridge struct {
+	tmux *tmux.Adapter
+
+	mu           sync.Mutex
+	nextID       uint64
+	connections  map[uint64]connection
+	deviceActive func(string) bool
+}
+
+type connection struct {
+	deviceID  string
+	sessionID string
+	conn      *websocket.Conn
+}
+
+func NewBridge(adapter *tmux.Adapter, activeCheck ...func(string) bool) *Bridge {
+	bridge := &Bridge{tmux: adapter, connections: make(map[uint64]connection)}
+	if len(activeCheck) > 0 {
+		bridge.deviceActive = activeCheck[0]
+	}
+	return bridge
+}
+
+type resizeMessage struct {
+	Type string `json:"type"`
+	Cols uint16 `json:"cols"`
+	Rows uint16 `json:"rows"`
+}
+
+type errorMessage struct {
+	Type string `json:"type"`
+	Code string `json:"code"`
+}
+
+func (b *Bridge) register(deviceID, sessionID string, conn *websocket.Conn) uint64 {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.connections == nil {
+		b.connections = make(map[uint64]connection)
+	}
+	b.nextID++
+	id := b.nextID
+	b.connections[id] = connection{deviceID: deviceID, sessionID: sessionID, conn: conn}
+	return id
+}
+
+func (b *Bridge) unregister(id uint64) {
+	b.mu.Lock()
+	delete(b.connections, id)
+	b.mu.Unlock()
+}
+
+// CloseDevice terminates only mctrl's disposable terminal attachments. It
+// never asks tmux or a Managed Work runner to stop.
+func (b *Bridge) CloseDevice(deviceID string) {
+	b.mu.Lock()
+	toClose := make([]*websocket.Conn, 0)
+	for _, item := range b.connections {
+		if item.deviceID == deviceID {
+			toClose = append(toClose, item.conn)
+		}
+	}
+	b.mu.Unlock()
+	for _, conn := range toClose {
+		_ = conn.Close()
+	}
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  4096,
+	WriteBufferSize: 4096,
+	CheckOrigin:     func(*http.Request) bool { return true }, // API validates before calling ServeHTTP.
+}
+
+func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, deviceID string) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+	connectionID := b.register(deviceID, sessionID, conn)
+	defer b.unregister(connectionID)
+	conn.SetReadLimit(1 << 20)
+
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+	var writeMu sync.Mutex
+	writeControl := func(value interface{}) error {
+		data, err := json.Marshal(value)
+		if err != nil {
+			return err
+		}
+		writeMu.Lock()
+		defer writeMu.Unlock()
+		return conn.WriteMessage(websocket.TextMessage, data)
+	}
+	if b.deviceActive != nil {
+		go func() {
+			ticker := time.NewTicker(time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-ticker.C:
+					if !b.deviceActive(deviceID) {
+						_ = writeControl(errorMessage{Type: "error", Code: "DEVICE_REVOKED"})
+						_ = conn.Close()
+						cancel()
+						return
+					}
+				}
+			}
+		}()
+	}
+	if err := b.tmux.ApplySizingPolicy(ctx, sessionID); err != nil {
+		_ = writeControl(errorMessage{Type: "error", Code: "TERMINAL_ATTACH_FAILED"})
+		return
+	}
+	cmd, err := b.tmux.AttachCommand(ctx, sessionID)
+	if err != nil {
+		_ = writeControl(errorMessage{Type: "error", Code: "SESSION_GONE"})
+		return
+	}
+	ptmx, err := pty.Start(cmd)
+	if err != nil {
+		_ = writeControl(errorMessage{Type: "error", Code: "TERMINAL_ATTACH_FAILED"})
+		return
+	}
+	defer ptmx.Close()
+	_ = pty.Setsize(ptmx, &pty.Winsize{Cols: 120, Rows: 40})
+
+	writeBinary := func(data []byte) error {
+		writeMu.Lock()
+		defer writeMu.Unlock()
+		return conn.WriteMessage(websocket.BinaryMessage, data)
+	}
+
+	readDone := make(chan struct{})
+	go func() {
+		defer close(readDone)
+		buffer := make([]byte, 32*1024)
+		for {
+			n, readErr := ptmx.Read(buffer)
+			if n > 0 {
+				if err := writeBinary(buffer[:n]); err != nil {
+					return
+				}
+			}
+			if readErr != nil {
+				return
+			}
+		}
+	}()
+
+	go func() {
+		defer cancel()
+		for {
+			if b.deviceActive != nil && !b.deviceActive(deviceID) {
+				_ = writeControl(errorMessage{Type: "error", Code: "DEVICE_REVOKED"})
+				return
+			}
+			messageType, data, readErr := conn.ReadMessage()
+			if readErr != nil {
+				return
+			}
+			if messageType == websocket.BinaryMessage {
+				if _, writeErr := ptmx.Write(data); writeErr != nil {
+					return
+				}
+				continue
+			}
+			if messageType != websocket.TextMessage {
+				continue
+			}
+			var resize resizeMessage
+			if json.Unmarshal(data, &resize) == nil && resize.Type == "resize" && resize.Cols > 0 && resize.Rows > 0 {
+				_ = pty.Setsize(ptmx, &pty.Winsize{Cols: resize.Cols, Rows: resize.Rows})
+			}
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+	case <-readDone:
+		// Distinguish a dead attach process from a genuinely gone Session.
+		// Keep the protocol factual and never kill the Session from here.
+		checkContext, checkCancel := context.WithTimeout(context.Background(), 2*time.Second)
+		exists, checkErr := b.tmux.SessionExists(checkContext, sessionID)
+		checkCancel()
+		code := "SESSION_GONE"
+		if checkErr != nil || exists {
+			code = "TERMINAL_ATTACH_FAILED"
+		}
+		_ = writeControl(errorMessage{Type: "error", Code: code})
+		cancel()
+	}
+	_ = cmd.Wait()
+}

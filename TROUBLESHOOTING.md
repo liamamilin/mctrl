@@ -1,0 +1,164 @@
+# Troubleshooting
+
+Start with:
+
+```sh
+mctrl status
+mctrl doctor
+mctrl logs -n 120
+```
+
+These commands do not stop tmux Sessions or Managed Work.
+
+## The phone cannot reach the daemon
+
+- Confirm `mctrl status` reports the daemon running.
+- Confirm the Mac and phone are on the same reachable network.
+- Remember that the default listener is `127.0.0.1`; use `mctrl setup --lan` only
+  when Trusted-LAN HTTP is intentionally acceptable.
+- On macOS, check the firewall if another local process can connect but the phone
+  cannot.
+
+## The Mac pairing launcher does not open the Pair Console
+
+Run `make mac-launcher`, then double-click `dist/Mctrl Pair.app`. The launcher
+requires an initialized, running daemon:
+
+```sh
+./bin/mctrl setup --lan
+./bin/mctrl status
+```
+
+It intentionally does not enable LAN mode automatically. The equivalent command
+is `./bin/mctrl pair --open`. The bundle is a non-resident launcher, not a
+menu-bar daemon or native management UI. If the phone cannot scan, use the
+visible Pairing code and manual Pair address in the Console.
+
+## The status API belongs to another process
+
+If the port is already occupied, `setup` can report that mctrl started while a
+different daemon answers locally. Confirm with:
+
+```sh
+lsof -nP -iTCP:<port> -sTCP:LISTEN
+curl -i http://127.0.0.1:<port>/healthz
+```
+
+Choose a different port without stopping the existing service, for example:
+
+```sh
+mctrl setup --lan --port 17681
+mctrl status
+```
+
+A real mctrl `/healthz` response contains JSON with `"status":"ok"`.
+
+## Pairing succeeds but the phone is immediately unauthorized
+
+- Run `mctrl devices` and confirm the device is active.
+- If it was revoked, pair again with a new short-lived token.
+- Pairing tokens are one-time and expire; run `mctrl pair` for a new window.
+- In TLS mode, confirm `public_url` is the exact HTTPS origin used by the phone.
+- iOS standalone PWAs and Safari may use separate cookie/storage containers. A
+  PWA can be paired while Safari still shows Pair; pair each browser context once.
+
+## Settings shows a revoked pairing history or repeated login is required
+
+Settings intentionally lists active device records only. Revoked records remain
+available in the collapsed **Pairing history** section, in
+`~/.mctrl/devices.json`, and in `mctrl devices`; they are not counted as active
+paired devices.
+
+A browser normally stays paired for 30 days. Re-pairing the same browser
+installation reuses its device ID and rotates its credentials. If browser storage
+was cleared, the old active cookie may be gone and the new installation cannot be
+proved to be the same context; revoke the old Settings record after pairing the
+new one. Safari and an installed PWA are separate contexts by default.
+
+To use one device record in both contexts, open **Settings → Link another
+browser** in the already paired PWA. Copy the generated two-minute link, paste
+it into Safari, and confirm **Link this browser**. The link is one-time and
+carries the same terminal privilege as pairing, so only create it immediately
+before use.
+
+## TLS mode advertises the wrong pairing URL
+
+Run setup with the browser-facing origin:
+
+```sh
+mctrl setup --transport tls_terminated --public-url https://mctrl.example.internal
+mctrl pair
+```
+
+`public_url` must be an origin such as `https://host[:port]`, without `/pair`.
+
+## `RUNNER_NOT_FOUND` or the Work will not launch
+
+- Run `mctrl doctor` and check that `mctrl-runner` is beside `mctrl`.
+- Build both binaries with `make build`.
+- Codex/OpenCode Work also requires the selected executable to be installed and
+  authenticated.
+- A registered Project path must still exist and be a directory.
+
+## Work reports recovery uncertainty
+
+An uncertain state means mctrl lacks one authoritative exit or identity fact. It
+does not mean the task semantically failed. Inspect the Session and the Work's
+`recovery_status`, `termination_reason`, and `launch_stage`. Do not blindly resend
+a Prompt.
+
+## A Work exited; how do I run it again?
+
+A dead pane is not restarted in place. V1 creates a new Work/attempt/Session for a
+new launch and retains the old Session as evidence. Use **Start another Work** on
+the terminal Work card; the original Project is preselected when it still exists.
+
+## Terminal attachment fails
+
+- Confirm the tmux Session still exists in `mctrl status`.
+- Close other mobile attachments if needed and reconnect from the Session page.
+- `SESSION_GONE` is factual: the target Session no longer exists.
+- Other attach errors leave the tmux Session intact; mctrl never kills it merely to
+  close a phone attachment.
+- If iOS resume leaves a socket in `CONNECTING`, wait for the five-second timeout
+  or tap Reconnect. Returning to the page replaces the stale socket rather than
+  queueing input.
+- If the API reports zero Sessions only under launchd, inspect `mctrl logs`. The
+  macOS adapter uses `/private/tmp/tmux-<uid>/default` by default;
+  `MCTRL_TMUX_SOCKET` can override it for a deliberately custom tmux endpoint.
+- If CJK output is replaced by placeholders, confirm the tmux client flags include
+  `UTF-8`. mctrl forces UTF-8 for phone attachments and for its LaunchAgent.
+
+## A large desktop Session shows only one corner on the phone
+
+`LOCAL` intentionally uses the phone viewport, while tmux keeps the larger desktop
+window authoritative. Use **FULL** to fit the complete pane, pinch to zoom, and use
+one-finger drag to pan the two-dimensional viewport. FULL remains editable through
+the explicit keyboard button; Structured Prompt stays in LOCAL. Exiting FULL
+restores the readable interactive viewport without changing tmux's desktop size.
+
+## The phone shrinks or changes the desktop tmux layout
+
+Disconnect the mobile attachment. mctrl sets tmux's `window-size` policy to
+`largest`, but the final behavior depends on the installed tmux version and the
+desktop client's own settings. Verify with both clients attached before release.
+
+## Remote Ready is false
+
+- `mctrl status` shows the configured availability policy.
+- `on_ac` requires AC power and a live daemon host assertion.
+- `work_only` requires a live Work assertion.
+- `always` uses a daemon-owned assertion.
+- mctrl prevents ordinary idle sleep only; lid close, explicit Sleep, shutdown,
+  thermal and low-power behavior remain outside the guarantee.
+
+## Inspect Work without stopping it
+
+- Session preview: Home or Session detail.
+- Full terminal: Session detail → Open terminal.
+- Persisted facts: `GET /api/v1/work` through the authenticated PWA/API.
+- Runner output: `~/.mctrl/logs/runner/`.
+- Daemon output: `mctrl logs`.
+
+Do not kill `mctrl-runner` merely to make a stuck state disappear. Its disappearance
+before an exit result is recorded is treated as uncertain recovery.

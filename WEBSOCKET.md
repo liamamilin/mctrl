@@ -1,0 +1,101 @@
+# Terminal WebSocket Protocol
+
+Endpoint:
+
+```text
+WS /api/v1/sessions/:id/terminal
+```
+
+## Attachment
+
+Each WebSocket connection owns one ephemeral attach process:
+
+```text
+browser
+   ↕
+WebSocket
+   ↕
+PTY
+   ↕
+tmux attach-session
+```
+
+The attach process is not the Session owner.
+
+## Binary frames
+
+Client → server:
+
+```text
+raw terminal input bytes
+```
+
+Server → client:
+
+```text
+raw terminal output bytes
+```
+
+Do not JSON-wrap terminal byte streams.
+
+## Text control frames
+
+Resize:
+
+```json
+{
+  "type": "resize",
+  "cols": 44,
+  "rows": 22
+}
+```
+
+Error:
+
+```json
+{
+  "type": "error",
+  "code": "SESSION_GONE"
+}
+```
+
+## Raw input semantics
+
+Raw input is:
+
+```text
+at-most-once / no application retry
+```
+
+If delivery is uncertain, do not resend.
+
+## Reconnection
+
+On connection loss:
+
+1. disable input,
+2. show reconnect state,
+3. destroy dead attach resources,
+4. leave tmux untouched,
+5. reconnect with backoff,
+6. create new PTY attachment.
+
+Recommended backoff:
+
+```text
+0.5s → 1s → 2s → 5s → 10s
+```
+
+## Origin and authentication
+
+WebSocket upgrade must enforce:
+
+- authenticated paired device/session,
+- allowed Origin,
+- configured transport policy.
+
+## Size policy
+
+The mobile client must not become the authority that shrinks a larger desktop tmux layout.
+
+See `TMUX_CONTRACT.md`.
