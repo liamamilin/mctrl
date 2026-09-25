@@ -2158,6 +2158,19 @@ button:disabled {
   line-height: 1.35;
 }
 
+.terminal-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  color: #bfe8ce;
+  background: #0d1a13;
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
 .terminal-keybar {
   display: grid;
   min-width: 0;
@@ -2185,7 +2198,7 @@ button:disabled {
 }
 
 .direction-keys {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .terminal-keybar button {
@@ -2230,6 +2243,11 @@ button:disabled {
   height: 40px;
   color: var(--text);
   font-size: 1.05rem;
+}
+
+.direction-keys .return-button {
+  color: var(--accent);
+  border-color: rgba(121, 230, 165, 0.45);
 }
 
 .prompt-dock {

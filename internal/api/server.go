@@ -119,7 +119,7 @@ func newServer(cfg config.Config, stateDir string, adapter *tmux.Adapter) (*Serv
 		staticFS:    embeddedStatic(),
 		started:     time.Now().UTC(),
 	}
-	server.terminal = terminal.NewBridge(adapter, server.devices.IsActive)
+	server.terminal = terminal.NewBridge(adapter, server.sessionHasManagedWork, server.devices.IsActive)
 	if reconcileErr := server.prompts.reconcile(); reconcileErr != nil {
 		server.RecordReconcileError(reconcileErr)
 	}
@@ -173,6 +173,30 @@ func (s *Server) controlError() string {
 	}
 	return s.lastControlErr
 }
+
+// sessionHasManagedWork reports whether a tmux Session identifier or display
+// name still hosts non-terminal Managed Work. Only such a Session's pane is
+// mctrl's to reconfigure; every other terminal belongs to the user.
+func (s *Server) sessionHasManagedWork(sessionID string) bool {
+	if strings.TrimSpace(sessionID) == "" {
+		return false
+	}
+	items, err := s.works.List()
+	if err != nil {
+		s.RecordReconcileError(err)
+		return false
+	}
+	for _, item := range items {
+		if item.Terminal() {
+			continue
+		}
+		if item.SessionID == sessionID || item.SessionName == sessionID {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Server) Close() {
 	s.mu.Lock()
 	if s.stopping {

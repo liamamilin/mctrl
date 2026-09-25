@@ -71,11 +71,15 @@ Show facts:
 │ xterm.js                    │
 ├─────────────────────────────┤
 │ ESC  TAB  CTRL  LOCAL  编辑 │
-│ ↑  ↓  ←  →                 │
+│ ↑   ↓   ←   →    ⏎         │
 ├─────────────────────────────┤
 │ [Prompt textarea]    Send   │
 └─────────────────────────────┘
 ```
+
+**编辑** raises the software keyboard on the terminal itself. **⏎** sends the
+same Return the keyboard sends, so submitting never depends on which Return the
+phone shows.
 
 ## Reconnect
 

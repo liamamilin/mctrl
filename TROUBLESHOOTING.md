@@ -138,6 +138,28 @@ the terminal Work card; the original Project is preselected when it still exists
 - If CJK output is replaced by placeholders, confirm the tmux client flags include
   `UTF-8`. mctrl forces UTF-8 for phone attachments and for its LaunchAgent.
 
+## Typed keys only appear after Return, and Return inserts a line break
+
+The Session's keyboard transport is line-buffered on the Mac. A cooked terminal
+holds keystrokes until Return, rewrites Return into a line feed, and echoes a
+caret-annotated copy of the input over the program's own output.
+
+mctrl repairs this when it attaches to a Session that hosts Managed Work and
+reports `INPUT_MODE_REPAIRED` in the Terminal page. Reconnect the Terminal page
+once after upgrading, or start new Managed Work: a runner started before the fix
+cannot repair its own pane.
+
+To confirm the pane's mode directly:
+
+```sh
+tmux -S /private/tmp/tmux-$(id -u)/default display-message -p -t <session> '#{pane_tty}'
+stty -a -f /dev/ttysNNN
+```
+
+A raw pane shows `-icanon`, `-echo`, and `-icrnl`. mctrl never changes the
+terminal of a Session that does not host Managed Work, because that terminal
+belongs to the user's own desktop client.
+
 ## A large desktop Session shows only one corner on the phone
 
 `LOCAL` intentionally uses the phone viewport, while tmux keeps the larger desktop

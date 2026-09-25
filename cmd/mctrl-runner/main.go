@@ -20,6 +20,7 @@ import (
 	"mctrl/internal/config"
 	"mctrl/internal/power"
 	"mctrl/internal/runner"
+	"mctrl/internal/terminal"
 	"mctrl/internal/version"
 	"mctrl/internal/work"
 )
@@ -45,14 +46,22 @@ func main() {
 	}
 }
 
+// makeStdinRaw puts the tmux pane's line discipline into raw mode and returns a
+// restore function. A cooked pane rewrites the user's typing: keystrokes wait
+// for Return, Return arrives as a line feed, and every delivered line is echoed
+// back over the program's own output.
 func makeStdinRaw() func() {
-	state, err := term.MakeRaw(int(os.Stdin.Fd()))
-	if err != nil {
+	fd := int(os.Stdin.Fd())
+	if _, err := terminal.EnsureRawTransport(fd); err != nil {
 		// Unit tests and non-interactive launches may not have a TTY on stdin.
 		return func() {}
 	}
+	state, err := term.GetState(fd)
+	if err != nil {
+		return func() {}
+	}
 	return func() {
-		_ = term.Restore(int(os.Stdin.Fd()), state)
+		_ = term.Restore(fd, state)
 	}
 }
 
@@ -228,11 +237,30 @@ func supervise(workFile, expectedAttemptID string) error {
 		ticker := time.NewTicker(100 * time.Millisecond)
 		defer ticker.Stop()
 		lastRows, lastCols := initialSize.Rows, initialSize.Cols
+		stdinFD := int(os.Stdin.Fd())
+		rawCheckFailed := false
 		for {
 			select {
 			case <-resizeDone:
 				return
 			case <-ticker.C:
+				// tmux creates a pane with the line discipline it was born
+				// with and does not restore raw mode when a client attaches,
+				// detaches, or resizes. Re-assert it so a drifted pane cannot
+				// silently buffer and rewrite the user's keystrokes. The check
+				// is a single ioctl and writes nothing while the pane is raw.
+				if !rawCheckFailed {
+					repaired, repairErr := terminal.EnsureRawTransport(stdinFD)
+					switch {
+					case repairErr != nil:
+						// Without a TTY on stdin there is nothing left to keep
+						// raw. Report it once instead of on every tick.
+						rawCheckFailed = true
+						fmt.Fprintf(os.Stderr, "warning: keep pane transport raw: %v\n", repairErr)
+					case repaired:
+						fmt.Fprintln(os.Stderr, "restored raw keyboard transport for the Session pane")
+					}
+				}
 				rows, cols, err := pty.Getsize(os.Stdin)
 				if err != nil || rows <= 0 || cols <= 0 || (uint16(rows) == lastRows && uint16(cols) == lastCols) {
 					continue

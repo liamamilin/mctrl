@@ -13,6 +13,7 @@ import (
 
 	"mctrl/internal/auth"
 	"mctrl/internal/config"
+	"mctrl/internal/terminal"
 	"mctrl/internal/tmux"
 	"mctrl/internal/work"
 )
@@ -75,6 +76,244 @@ func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
 		}
 	}
 	t.Fatalf("terminal output did not contain ready marker: %q", output.String())
+}
+
+func TestTerminalWebSocketRepairsManagedWorkTransport(t *testing.T) {
+	adapter, socket := isolateTestTmux(t)
+	root := t.TempDir()
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := newServer(cfg, root, adapter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	name := "mctrl-ws-raw-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	// The pane echoes the bytes it receives with control characters made
+	// visible, so the test observes exactly what the Session's program gets from
+	// the phone: a received Return reads back as ^M, a rewritten line feed does
+	// not.
+	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "printf MCTRL-READY; exec /bin/cat -v"})
+	if err != nil {
+		t.Fatalf("tmux managed session: %v", err)
+	}
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
+	item := work.Work{
+		ID: "work_raw_transport", ProjectID: "project_raw", ProjectPath: t.TempDir(), RunnerID: "shell",
+		RequestID: "request_raw", DeviceID: "device_raw", SessionName: name, SessionID: id,
+		State: work.StateRunning, CreatedAt: time.Now().UTC(), LaunchStage: work.StageChildStarted, PromptDelivery: work.PromptNone,
+	}
+	if err := server.works.Save(item); err != nil {
+		t.Fatal(err)
+	}
+
+	pairing, err := auth.CreatePairing(root, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pairResult, err := auth.NewRegistry(root).Pair(root, pairing.Token, "Raw Transport Phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	httpServer := httptest.NewServer(server)
+	defer httpServer.Close()
+	wsURL := "ws" + strings.TrimPrefix(httpServer.URL, "http") + "/api/v1/sessions/" + id + "/terminal"
+	header := http.Header{}
+	header.Set("Origin", httpServer.URL)
+	header.Set("Cookie", auth.SessionCookieName+"="+pairResult.SessionToken)
+	conn, _, err := (&websocket.Dialer{HandshakeTimeout: 3 * time.Second}).DialContext(ctx, wsURL, header)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+
+	stream := &terminalStream{conn: conn}
+	stream.readUntilContains(t, "MCTRL-READY", 8*time.Second, "the Session program never started")
+	if !stream.sawNotice("INPUT_MODE_REPAIRED") {
+		t.Fatal("the repair was not reported to the client")
+	}
+	transport, err := adapter.PaneTransport(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if raw, rawErr := terminal.TransportIsRawPath(transport.TTY); rawErr != nil {
+		t.Fatal(rawErr)
+	} else if !raw {
+		t.Fatalf("pane transport %s is still line-buffered after the repair notice", transport.TTY)
+	}
+
+	// A single keystroke must arrive without any Return. A cooked line
+	// discipline holds it in the kernel until the user presses Return, which is
+	// exactly the reported symptom.
+	stream.sync(t)
+	stream.roundTrip(t, "z", "z", 4*time.Second, "one keystroke without Return")
+
+	// Return must arrive as Return, exactly once. A cooked line discipline
+	// rewrites it into a line feed, which programs bind to "newline" instead of
+	// "submit", and echoes the line a second time over the program's output.
+	stream.roundTrip(t, "q\r", "q^M", 4*time.Second, "Return")
+}
+
+// sync waits until the attachment stops emitting attach-time noise, so the byte
+// exact assertions that follow only observe the Session program.
+func (s *terminalStream) sync(t *testing.T) {
+	t.Helper()
+	for attempt := 0; attempt < 6; attempt++ {
+		if err := s.conn.WriteMessage(websocket.BinaryMessage, []byte("s\r")); err != nil {
+			t.Fatal(err)
+		}
+		s.readUntilSuffix(t, "s^M", 4*time.Second, "the Session program stopped echoing")
+		if s.take() == "s^M" {
+			return
+		}
+	}
+	t.Fatal("the terminal stream never settled after attaching")
+}
+
+// terminalStream collects the terminal attachment's binary frames and the text
+// control frames mctrl sends alongside them. A read deadline must never expire
+// between assertions: a gorilla WebSocket cannot be read again after one does,
+// so every read is bounded by a positive signal instead of a quiet period.
+type terminalStream struct {
+	conn    *websocket.Conn
+	pending strings.Builder
+	notices strings.Builder
+}
+
+func (s *terminalStream) readUntilContains(t *testing.T, want string, timeout time.Duration, failure string) {
+	t.Helper()
+	s.readUntil(t, want, false, timeout, failure)
+}
+
+func (s *terminalStream) readUntilSuffix(t *testing.T, want string, timeout time.Duration, failure string) {
+	t.Helper()
+	s.readUntil(t, want, true, timeout, failure)
+}
+
+func (s *terminalStream) readUntil(t *testing.T, want string, requireSuffix bool, timeout time.Duration, failure string) {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	for {
+		pending := s.pending.String()
+		if (requireSuffix && strings.HasSuffix(pending, want)) || (!requireSuffix && strings.Contains(pending, want)) {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("%s (stream so far: %q)", failure, pending+s.all())
+		}
+		_ = s.conn.SetReadDeadline(deadline)
+		messageType, data, err := s.conn.ReadMessage()
+		if err != nil {
+			t.Fatalf("%s (stream so far: %q): %v", failure, pending+s.all(), err)
+		}
+		if messageType == websocket.TextMessage {
+			s.notices.Write(data)
+			continue
+		}
+		s.pending.Write(data)
+	}
+}
+
+// roundTrip sends input and requires the Session program to receive exactly the
+// same bytes back, with no line-discipline echo and no rewritten control bytes.
+func (s *terminalStream) roundTrip(t *testing.T, input, want string, timeout time.Duration, failure string) {
+	t.Helper()
+	if err := s.conn.WriteMessage(websocket.BinaryMessage, []byte(input)); err != nil {
+		t.Fatal(err)
+	}
+	s.readUntilSuffix(t, want, timeout, failure+" never reached the Session program")
+	if got := s.take(); got != want {
+		t.Fatalf("%s: Session program received %q, want %q", failure, got, want)
+	}
+}
+
+func (s *terminalStream) take() string {
+	value := s.pending.String()
+	s.pending.Reset()
+	return value
+}
+
+func (s *terminalStream) discard() {
+	s.pending.Reset()
+}
+
+func (s *terminalStream) all() string {
+	return s.notices.String()
+}
+
+func (s *terminalStream) sawNotice(code string) bool {
+	return strings.Contains(s.notices.String(), code)
+}
+
+func TestTerminalWebSocketLeavesExternalTransportUntouched(t *testing.T) {
+	adapter, socket := isolateTestTmux(t)
+	root := t.TempDir()
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := newServer(cfg, root, adapter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	name := "mctrl-ws-external-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "printf ready; sleep 10"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
+
+	pairing, err := auth.CreatePairing(root, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pairResult, err := auth.NewRegistry(root).Pair(root, pairing.Token, "External Transport Phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	httpServer := httptest.NewServer(server)
+	defer httpServer.Close()
+	wsURL := "ws" + strings.TrimPrefix(httpServer.URL, "http") + "/api/v1/sessions/" + id + "/terminal"
+	header := http.Header{}
+	header.Set("Origin", httpServer.URL)
+	header.Set("Cookie", auth.SessionCookieName+"="+pairResult.SessionToken)
+	conn, _, err := (&websocket.Dialer{HandshakeTimeout: 3 * time.Second}).DialContext(ctx, wsURL, header)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	_ = conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	sawNotice := false
+	for {
+		messageType, data, readErr := conn.ReadMessage()
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		if messageType == websocket.TextMessage {
+			if strings.Contains(string(data), "INPUT_MODE_REPAIRED") {
+				sawNotice = true
+			}
+			t.Fatalf("an external Session must not receive control notices: %s", data)
+		}
+		if strings.Contains(string(data), "ready") {
+			break
+		}
+	}
+	transport, err := adapter.PaneTransport(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if raw, rawErr := terminal.TransportIsRawPath(transport.TTY); rawErr != nil {
+		t.Fatal(rawErr)
+	} else if raw {
+		t.Fatalf("mctrl reconfigured a terminal it does not own: %s", transport.TTY)
+	}
+	if sawNotice {
+		t.Fatal("an external Session reported a repair it must not receive")
+	}
 }
 
 func TestCloseSessionRequiresForceForActiveManagedWork(t *testing.T) {

@@ -78,6 +78,7 @@ function clearPendingPrompt(key: string): void {
 export function TerminalPage({ sessionId }: { sessionId: string }) {
   const terminalHost = useRef<HTMLDivElement>(null);
   const sendRaw = useRef<(data: string) => boolean>(() => false);
+  const focusTerminal = useRef<() => void>(() => undefined);
   const toggleOverview = useRef<() => void>(() => undefined);
   const controlArmed = useRef(false);
   const promptStorageKey = runtimeStorageKey(`mctrl-prompt:${sessionId}`);
@@ -89,6 +90,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const [protocolMessage, setProtocolMessage] = useState('');
   const [inputBlocked, setInputBlocked] = useState(false);
   const [inputWarning, setInputWarning] = useState('');
+  const [transportNotice, setTransportNotice] = useState('');
   const [controlArmedState, setControlArmedState] = useState(false);
   const [manualReconnect, setManualReconnect] = useState(0);
   const [overview, setOverview] = useState(false);
@@ -186,6 +188,13 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       throw new Error('Terminal element was not created.');
     }
     terminal.options.disableStdin = true;
+
+    // The 编辑 button must reach the terminal's own hidden input, otherwise iOS
+    // keeps the software keyboard aimed at another field.
+    focusTerminal.current = () => {
+      terminal.focus();
+      terminal.textarea?.focus({ preventScroll: true });
+    };
 
     const blockInput = (message: string) => {
       inputIsBlocked = true;
@@ -485,6 +494,12 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               setProtocolMessage(frame.message || code);
               source.close(1011, code);
             }
+          } else if (frame.type === 'notice') {
+            // The Mac repaired the Session's keyboard transport. Input stays
+            // enabled; the notice only explains why typing starts working.
+            if (frame.code === 'INPUT_MODE_REPAIRED' && frame.message) {
+              setTransportNotice(frame.message);
+            }
           } else {
             setProtocolMessage(
               `Unsupported server control frame: ${frame.type ?? 'unknown'}`,
@@ -545,6 +560,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           setInputBlocked(false);
           setInputWarning('');
           setProtocolMessage('');
+          setTransportNotice('');
           setConnection('connected');
           setRetryIn(0);
           scheduleFit();
@@ -680,6 +696,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       host.removeEventListener('gesturestart', preventOverviewPageZoom);
       host.removeEventListener('gesturechange', preventOverviewPageZoom);
       toggleOverview.current = () => undefined;
+      focusTerminal.current = () => undefined;
       rawDisposable.dispose();
       binaryDisposable.dispose();
       sendRaw.current = () => false;
@@ -851,6 +868,19 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           </div>
         )}
 
+        {transportNotice && connection === 'connected' && (
+          <div class="terminal-notice" role="status">
+            <span>{transportNotice}</span>
+            <button
+              class="text-button"
+              type="button"
+              onClick={() => setTransportNotice('')}
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         <div
           class="terminal-keybar"
           role="toolbar"
@@ -896,11 +926,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             <button
               class="keyboard-button"
               type="button"
-              onClick={() =>
-                terminalHost.current
-                  ?.querySelector<HTMLTextAreaElement>('.xterm-helper-textarea')
-                  ?.focus()
-              }
+              onClick={() => focusTerminal.current()}
               disabled={terminalInputDisabled}
               aria-label="Show terminal keyboard for editing"
             >
@@ -944,6 +970,16 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               aria-label="Arrow right"
             >
               →
+            </button>
+            <button
+              class="return-button"
+              type="button"
+              onClick={() => pressKey('\r')}
+              disabled={terminalInputDisabled}
+              aria-label="Send Return"
+              title="Send Return"
+            >
+              ⏎
             </button>
           </div>
         </div>

@@ -78,6 +78,10 @@ Required:
 - FULL overview fits, zooms and pans with one finger
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls
+- the terminal keybar's ⏎ control sends Return unchanged
+- keys reach a Managed Work program one at a time, without pressing Return first
+- Return submits in the program instead of inserting a line break
+- the input is not echoed twice over the program's own output
 - LOCAL mode restores the readable interactive viewport
 - reconnect banner
 - Start Work

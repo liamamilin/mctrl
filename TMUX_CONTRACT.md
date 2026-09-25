@@ -67,6 +67,32 @@ Use a largest-client-oriented tmux policy or equivalent verified mechanism.
 
 This behavior requires integration tests with two clients.
 
+## Raw keyboard transport
+
+Every terminal transport mctrl controls must be a raw terminal. That includes
+the disposable attach PTY and the tmux pane PTY of a Managed Work Session.
+
+A cooked line discipline silently rewrites the user's typing:
+
+- `ICANON` holds keystrokes in the kernel until Return, so the program sees
+  nothing while the user types.
+- `ICRNL` rewrites Return into a line feed, so a program that binds Return to
+  "submit" inserts a line break instead.
+- `ECHO`/`ECHOCTL` prints a second, caret-annotated copy of the input over the
+  program's own output.
+
+tmux creates a pane with whatever line discipline it was born with and does not
+restore raw mode when a client attaches, detaches, or resizes. Therefore:
+
+- a Managed Work runner must put its pane into raw mode at startup and re-assert
+  it while the Work runs;
+- the terminal attachment must verify the pane's mode on attach, repair it, and
+  report `INPUT_MODE_REPAIRED` when it changed something.
+
+mctrl reconfigures a terminal only when it owns the pane: the Session hosts
+non-terminal Managed Work, or the pane's process is `mctrl-runner`. A terminal
+that belongs to the user's own desktop client keeps that client's settings.
+
 ## Detach semantics
 
 Closing the phone attachment must detach only that client.

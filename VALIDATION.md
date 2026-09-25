@@ -75,9 +75,24 @@ Result: 0 vulnerabilities.
 
 - verified the two-row control layout at 393 px and the 320 px minimum width
 - confirmed `ESC`, `TAB`, `CTRL`, `LOCAL`, and `编辑` remain fully visible
-- confirmed `↑`, `↓`, `←`, and `→` remain fully visible without horizontal scrolling
+- confirmed `↑`, `↓`, `←`, `→`, and `⏎` remain fully visible without horizontal scrolling
 - confirmed the direction controls send the standard terminal sequences for up,
   down, left, and right
+- confirmed `⏎` sends Return unchanged
+
+## Raw keyboard transport validation
+
+- a single keystroke reaches a Managed Work program without any Return, proving
+  the pane is not line-buffered;
+- Return reaches the program as Return (`^M` at the program's own echo), not as a
+  line feed;
+- the delivered line is not echoed a second time over the program's output;
+- the attachment reports `INPUT_MODE_REPAIRED` only when it actually changed a
+  pane;
+- a Session without Managed Work is never reconfigured, and its terminal keeps
+  the desktop client's settings;
+- a runner re-asserts raw mode for its own pane while the Work runs, so client
+  attach, detach, or resize cannot silently reintroduce line buffering
 
 ## Project and Session lifecycle validation
 

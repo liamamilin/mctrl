@@ -425,6 +425,43 @@ func (a *Adapter) SendPrompt(ctx context.Context, sessionID, text string) error 
 	return err
 }
 
+// PaneTransport describes the terminal device behind a Session's active pane
+// and the process that owns it. mctrl uses it to decide whether the pane's
+// line discipline belongs to mctrl (a Managed Work runner) or to the user's own
+// terminal, which mctrl must never reconfigure.
+type PaneTransport struct {
+	TTY     string
+	Command string
+	PID     int
+}
+
+// PaneTransport reports the active pane's terminal device and owning process.
+func (a *Adapter) PaneTransport(ctx context.Context, sessionID string) (PaneTransport, error) {
+	if !a.Available() {
+		return PaneTransport{}, ErrUnavailable
+	}
+	format, delimiter, err := recordFormat([]string{"#{pane_tty}", "#{pane_current_command}", "#{pane_pid}"})
+	if err != nil {
+		return PaneTransport{}, err
+	}
+	output, err := a.run(ctx, "display-message", "-p", "-t", sessionID, format)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "can't find") || strings.Contains(strings.ToLower(err.Error()), "no such") {
+			return PaneTransport{}, ErrSessionNotFound
+		}
+		return PaneTransport{}, err
+	}
+	records, err := parseRecords(output, delimiter, 3)
+	if err != nil {
+		return PaneTransport{}, fmt.Errorf("parse tmux display-message: %w", err)
+	}
+	if len(records) == 0 {
+		return PaneTransport{}, ErrSessionNotFound
+	}
+	pid, _ := strconv.Atoi(records[0][2])
+	return PaneTransport{TTY: records[0][0], Command: records[0][1], PID: pid}, nil
+}
+
 func (a *Adapter) AttachCommand(ctx context.Context, id string) (*exec.Cmd, error) {
 	if !a.Available() {
 		return nil, ErrUnavailable

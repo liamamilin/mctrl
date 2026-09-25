@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -25,6 +27,7 @@ type Bridge struct {
 	nextID       uint64
 	connections  map[uint64]connection
 	deviceActive func(string) bool
+	managedWork  func(string) bool
 }
 
 type connection struct {
@@ -33,8 +36,11 @@ type connection struct {
 	conn      *websocket.Conn
 }
 
-func NewBridge(adapter *tmux.Adapter, activeCheck ...func(string) bool) *Bridge {
-	bridge := &Bridge{tmux: adapter, connections: make(map[uint64]connection)}
+// NewBridge creates the disposable terminal attachment surface. managedWork
+// reports whether a Session hosts non-terminal Managed Work, which is what
+// makes its pane's line discipline mctrl's to maintain.
+func NewBridge(adapter *tmux.Adapter, managedWork func(string) bool, activeCheck ...func(string) bool) *Bridge {
+	bridge := &Bridge{tmux: adapter, connections: make(map[uint64]connection), managedWork: managedWork}
 	if len(activeCheck) > 0 {
 		bridge.deviceActive = activeCheck[0]
 	}
@@ -57,6 +63,36 @@ const (
 	sessionGone          = "SESSION_GONE"
 )
 
+// noticeMessage tells the client that mctrl changed something on the Mac while
+// the attachment was live. It never blocks input and never ends the
+// attachment.
+type noticeMessage struct {
+	Type    string `json:"type"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+const noticeInputModeRepaired = "INPUT_MODE_REPAIRED"
+
+// runnerProcessName is the pane command tmux reports for a Managed Work pane.
+// It is a secondary signal only: the Work record decides, and the command is
+// used when the Work store cannot be read.
+const runnerProcessName = "mctrl-runner"
+
+func ownsRunnerCommand(command string) bool {
+	return strings.TrimSpace(command) == runnerProcessName
+}
+
+// ownsPaneTransport reports whether mctrl, rather than the user's own terminal,
+// is responsible for the pane's line discipline. A pane that belongs to the
+// user's terminal keeps that terminal's settings, always.
+func (b *Bridge) ownsPaneTransport(sessionID string, transport tmux.PaneTransport) bool {
+	if b.managedWork != nil && b.managedWork(sessionID) {
+		return true
+	}
+	return ownsRunnerCommand(transport.Command)
+}
+
 func terminalExitCode(exists bool, err error) string {
 	if errors.Is(err, tmux.ErrNoServer) || (err == nil && !exists) {
 		return sessionGone
@@ -67,6 +103,35 @@ func terminalExitCode(exists bool, err error) string {
 func (b *Bridge) sessionExitCode(ctx context.Context, sessionID string) string {
 	exists, err := b.tmux.SessionExists(ctx, sessionID)
 	return terminalExitCode(exists, err)
+}
+
+// repairManagedWorkTransport returns a notice only when it actually changed a
+// pane that mctrl owns. Every other outcome, including any failure, returns nil:
+// an attachment must never depend on a transport repair.
+func (b *Bridge) repairManagedWorkTransport(ctx context.Context, sessionID string) *noticeMessage {
+	probeCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	transport, err := b.tmux.PaneTransport(probeCtx, sessionID)
+	if err != nil {
+		log.Printf("terminal: pane transport unavailable for %s: %v", sessionID, err)
+		return nil
+	}
+	if !b.ownsPaneTransport(sessionID, transport) {
+		return nil
+	}
+	repaired, err := EnsureRawTransportPath(transport.TTY)
+	if err != nil {
+		log.Printf("terminal: repair pane transport for %s failed: %v", sessionID, err)
+		return nil
+	}
+	if !repaired {
+		return nil
+	}
+	return &noticeMessage{
+		Type:    "notice",
+		Code:    noticeInputModeRepaired,
+		Message: "This Session's keyboard transport was line-buffered on the Mac. mctrl reset it to raw, so keys now reach the program immediately and Return arrives as Return.",
+	}
 }
 
 func (b *Bridge) register(deviceID, sessionID string, conn *websocket.Conn) uint64 {
@@ -199,6 +264,14 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 		return
 	}
 	defer ptmx.Close()
+
+	// A Managed Work runner is responsible for keeping its pane raw, but a
+	// runner that predates that contract cannot repair itself while it is
+	// already running. Repair the transport here and tell the client, instead of
+	// letting a cooked line discipline silently buffer and rewrite keystrokes.
+	if notice := b.repairManagedWorkTransport(ctx, sessionID); notice != nil {
+		_ = writeControl(notice)
+	}
 
 	writeBinary := func(data []byte) error {
 		writeMu.Lock()

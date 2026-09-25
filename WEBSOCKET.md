@@ -59,6 +59,24 @@ Error:
 }
 ```
 
+Notice:
+
+```json
+{
+  "type": "notice",
+  "code": "INPUT_MODE_REPAIRED",
+  "message": "This Session's keyboard transport was line-buffered on the Mac. mctrl reset it to raw, so keys now reach the program immediately and Return arrives as Return."
+}
+```
+
+A notice reports something mctrl changed on the Mac while the attachment was
+live. It never blocks input and never ends the attachment.
+
+`INPUT_MODE_REPAIRED` means the Session's pane keyboard transport was not raw and
+mctrl reset it. See `TMUX_CONTRACT.md`.
+
+A client must treat an unknown `type` as a protocol error, as before.
+
 ## Raw input semantics
 
 Raw input is:
