@@ -48,6 +48,23 @@ type errorMessage struct {
 	Code string `json:"code"`
 }
 
+const (
+	terminalAttachFailed = "TERMINAL_ATTACH_FAILED"
+	sessionGone          = "SESSION_GONE"
+)
+
+func terminalExitCode(exists bool, err error) string {
+	if errors.Is(err, tmux.ErrNoServer) || (err == nil && !exists) {
+		return sessionGone
+	}
+	return terminalAttachFailed
+}
+
+func (b *Bridge) sessionExitCode(ctx context.Context, sessionID string) string {
+	exists, err := b.tmux.SessionExists(ctx, sessionID)
+	return terminalExitCode(exists, err)
+}
+
 func (b *Bridge) register(deviceID, sessionID string, conn *websocket.Conn) uint64 {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -130,17 +147,20 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 		}()
 	}
 	if err := b.tmux.ApplySizingPolicy(ctx, sessionID); err != nil {
-		_ = writeControl(errorMessage{Type: "error", Code: "TERMINAL_ATTACH_FAILED"})
+		checkContext, checkCancel := context.WithTimeout(ctx, 2*time.Second)
+		code := b.sessionExitCode(checkContext, sessionID)
+		checkCancel()
+		_ = writeControl(errorMessage{Type: "error", Code: code})
 		return
 	}
 	cmd, err := b.tmux.AttachCommand(ctx, sessionID)
 	if err != nil {
-		_ = writeControl(errorMessage{Type: "error", Code: "SESSION_GONE"})
+		_ = writeControl(errorMessage{Type: "error", Code: terminalAttachFailed})
 		return
 	}
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
-		_ = writeControl(errorMessage{Type: "error", Code: "TERMINAL_ATTACH_FAILED"})
+		_ = writeControl(errorMessage{Type: "error", Code: terminalAttachFailed})
 		return
 	}
 	defer ptmx.Close()
@@ -202,12 +222,8 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 		// Distinguish a dead attach process from a genuinely gone Session.
 		// Keep the protocol factual and never kill the Session from here.
 		checkContext, checkCancel := context.WithTimeout(context.Background(), 2*time.Second)
-		exists, checkErr := b.tmux.SessionExists(checkContext, sessionID)
+		code := b.sessionExitCode(checkContext, sessionID)
 		checkCancel()
-		code := "SESSION_GONE"
-		if (checkErr != nil && !errors.Is(checkErr, tmux.ErrUnavailable)) || exists {
-			code = "TERMINAL_ATTACH_FAILED"
-		}
 		_ = writeControl(errorMessage{Type: "error", Code: code})
 		cancel()
 	}

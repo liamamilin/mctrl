@@ -48,6 +48,13 @@ type Server struct {
 }
 
 func NewServer(cfg config.Config, stateDir string) (*Server, error) {
+	return newServer(cfg, stateDir, tmux.New())
+}
+
+func newServer(cfg config.Config, stateDir string, adapter *tmux.Adapter) (*Server, error) {
+	if adapter == nil {
+		adapter = tmux.New()
+	}
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
@@ -91,7 +98,6 @@ func NewServer(cfg config.Config, stateDir string) (*Server, error) {
 	if err := auth.NewRegistry(stateDir).Validate(); err != nil {
 		return nil, fmt.Errorf("validate device registry: %w", err)
 	}
-	adapter := tmux.New()
 	server := &Server{
 		cfg:      cfg,
 		stateDir: stateDir,

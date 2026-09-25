@@ -12,20 +12,18 @@ import (
 
 	"mctrl/internal/auth"
 	"mctrl/internal/config"
-	"mctrl/internal/tmux"
 )
 
 func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
-	socket := isolateTestTmux(t)
+	adapter, socket := isolateTestTmux(t)
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
-	server, err := NewServer(cfg, root)
+	server, err := newServer(cfg, root, adapter)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer server.Close()
-	adapter := tmux.New()
 	name := "mctrl-ws-test-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -77,21 +75,35 @@ func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
 }
 
 func TestTerminalWebSocketReportsSessionGone(t *testing.T) {
-	socket := isolateTestTmux(t)
+	testTerminalWebSocketReportsSessionGone(t, false)
+}
+
+func TestTerminalWebSocketReportsSessionGoneWhileServerStaysAlive(t *testing.T) {
+	testTerminalWebSocketReportsSessionGone(t, true)
+}
+
+func testTerminalWebSocketReportsSessionGone(t *testing.T, keepServerAlive bool) {
+	adapter, socket := isolateTestTmux(t)
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
-	server, err := NewServer(cfg, root)
+	server, err := newServer(cfg, root, adapter)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer server.Close()
-	adapter := tmux.New()
 	name := "mctrl-ws-gone-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if _, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "printf ready; sleep 10"}); err != nil {
 		t.Fatal(err)
+	}
+	if keepServerAlive {
+		keepAliveName := "mctrl-ws-keepalive-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+		if _, err := adapter.CreateManagedSession(ctx, keepAliveName, t.TempDir(), []string{"/bin/sh", "-c", "sleep 30"}); err != nil {
+			t.Fatal(err)
+		}
+		defer testTmuxCommand(socket, "kill-session", "-t", keepAliveName).Run()
 	}
 	pairing, err := auth.CreatePairing(root, time.Minute)
 	if err != nil {
@@ -126,28 +138,31 @@ func TestTerminalWebSocketReportsSessionGone(t *testing.T) {
 		t.Fatalf("kill Session: %v %s", err, output)
 	}
 	_ = conn.SetReadDeadline(time.Now().Add(4 * time.Second))
+	lastControl := ""
 	for {
 		messageType, data, readErr := conn.ReadMessage()
 		if readErr != nil {
-			t.Fatalf("Session disappeared without SESSION_GONE control frame: %v", readErr)
+			t.Fatalf("Session disappeared without SESSION_GONE control frame: %v (last control: %q)", readErr, lastControl)
 		}
-		if messageType == websocket.TextMessage && strings.Contains(string(data), "SESSION_GONE") {
-			return
+		if messageType == websocket.TextMessage {
+			lastControl = string(data)
+			if strings.Contains(lastControl, "SESSION_GONE") {
+				return
+			}
 		}
 	}
 }
 
 func TestTerminalWebSocketClosesAfterCLIRevocation(t *testing.T) {
-	socket := isolateTestTmux(t)
+	adapter, socket := isolateTestTmux(t)
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
-	server, err := NewServer(cfg, root)
+	server, err := newServer(cfg, root, adapter)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer server.Close()
-	adapter := tmux.New()
 	name := "mctrl-ws-revoke-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

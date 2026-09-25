@@ -18,6 +18,7 @@ import (
 
 var (
 	ErrUnavailable     = errors.New("tmux unavailable")
+	ErrNoServer        = errors.New("tmux server not running")
 	ErrSessionNotFound = errors.New("tmux session not found")
 )
 
@@ -27,15 +28,21 @@ type Adapter struct {
 }
 
 func New() *Adapter {
-	path, err := exec.LookPath("tmux")
-	if err != nil {
-		path = "tmux"
-	}
 	socket := strings.TrimSpace(os.Getenv("MCTRL_TMUX_SOCKET"))
 	if socket == "" && runtime.GOOS == "darwin" {
 		socket = fmt.Sprintf("/private/tmp/tmux-%d/default", os.Getuid())
 	}
-	return &Adapter{binary: path, socket: socket}
+	return NewWithSocket(socket)
+}
+
+// NewWithSocket creates an adapter for an explicit tmux endpoint. It is used by
+// isolated integration tests; normal production callers should use New.
+func NewWithSocket(socket string) *Adapter {
+	path, err := exec.LookPath("tmux")
+	if err != nil {
+		path = "tmux"
+	}
+	return &Adapter{binary: path, socket: strings.TrimSpace(socket)}
 }
 
 func (a *Adapter) Available() bool {
@@ -91,30 +98,36 @@ func (a *Adapter) ServerAvailable(ctx context.Context) error {
 	if err == nil {
 		return nil
 	}
-	if isServerUnavailable(err) {
-		return ErrUnavailable
+	if isNoServerError(err) {
+		return ErrNoServer
 	}
 	return err
 }
 
-// isServerUnavailable normalizes the platform-specific errors tmux returns
-// before its first server has started. On macOS an absent socket is commonly
-// reported as "error connecting ... (No such file or directory)", while an
-// existing-but-stale socket may report "Connection refused".
-func isServerUnavailable(err error) bool {
+func tmuxErrorText(err error) string {
+	message := strings.ToLower(strings.TrimSpace(err.Error()))
+	if separator := strings.Index(message, ": "); separator >= 0 {
+		return strings.TrimSpace(message[separator+2:])
+	}
+	return message
+}
+
+// isNoServerError recognizes only tmux's server-level output prefixes. Exact
+// prefixes prevent a user-controlled Session name from masquerading as a
+// server-state error.
+func isNoServerError(err error) bool {
 	if err == nil {
 		return false
 	}
-	message := strings.ToLower(err.Error())
-	if strings.Contains(message, "no server running") || strings.Contains(message, "no sessions") {
+	message := tmuxErrorText(err)
+	if strings.HasPrefix(message, "no server running on ") || message == "no sessions" {
 		return true
 	}
-	if !strings.Contains(message, "error connecting to") && !strings.Contains(message, "connection refused") {
+	if !strings.HasPrefix(message, "error connecting to ") {
 		return false
 	}
-	return strings.Contains(message, "no such file or directory") ||
-		strings.Contains(message, "not found") ||
-		strings.Contains(message, "connection refused")
+	return strings.HasSuffix(message, "(no such file or directory)") ||
+		strings.HasSuffix(message, "(connection refused)")
 }
 
 func recordFormat(fields []string) (string, string, error) {
@@ -153,7 +166,8 @@ func (a *Adapter) ListSessions(ctx context.Context) ([]Session, error) {
 	}
 	output, err := a.run(ctx, "list-sessions", "-F", format)
 	if err != nil {
-		if isServerUnavailable(err) {
+		// tmux starts on demand, so a stopped server is a valid empty list.
+		if isNoServerError(err) {
 			return []Session{}, nil
 		}
 		log.Printf("tmux list-sessions failed: %v", err)
@@ -282,18 +296,19 @@ func (a *Adapter) SessionExists(ctx context.Context, id string) (bool, error) {
 	if !a.Available() {
 		return false, ErrUnavailable
 	}
-	_, err := a.run(ctx, "has-session", "-t", id)
-	if err == nil {
-		return true, nil
+	if err := a.ServerAvailable(ctx); err != nil {
+		return false, err
 	}
-	if isServerUnavailable(err) {
-		return false, ErrUnavailable
+	sessions, err := a.ListSessions(ctx)
+	if err != nil {
+		return false, err
 	}
-	message := strings.ToLower(err.Error())
-	if strings.Contains(message, "can't find") || strings.Contains(message, "no such session") {
-		return false, nil
+	for _, session := range sessions {
+		if session.ID == id || session.Name == id {
+			return true, nil
+		}
 	}
-	return false, err
+	return false, nil
 }
 
 func (a *Adapter) SessionMatches(ctx context.Context, id, expectedName string) (bool, error) {

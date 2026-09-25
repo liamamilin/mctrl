@@ -63,12 +63,12 @@ func TestLateSessionEvidenceCannotRegressExitedWork(t *testing.T) {
 }
 
 func TestAcceptedWorkCanResumeLaunchOnIdempotentRetry(t *testing.T) {
-	socket := isolateTestTmux(t)
+	adapter, socket := isolateTestTmux(t)
 	t.Setenv("MCTRL_RUNNER_BINARY", "/usr/bin/true")
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
-	server, err := NewServer(cfg, root)
+	server, err := newServer(cfg, root, adapter)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,12 +125,12 @@ func TestConfirmableShellCommandUsesExactExecutables(t *testing.T) {
 }
 
 func TestLaunchDoesNotRespawnUnrelatedSessionNameCollision(t *testing.T) {
-	socket := isolateTestTmux(t)
+	adapter, socket := isolateTestTmux(t)
 	t.Setenv("MCTRL_RUNNER_BINARY", "/usr/bin/true")
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
-	server, err := NewServer(cfg, root)
+	server, err := newServer(cfg, root, adapter)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +185,7 @@ func TestLaunchDoesNotRespawnUnrelatedSessionNameCollision(t *testing.T) {
 }
 
 func TestIdempotentRetryDoesNotRestartOrRewriteLiveRunnerEvidence(t *testing.T) {
-	socket := isolateTestTmux(t)
+	adapter, socket := isolateTestTmux(t)
 	fakeRunner := filepath.Join(t.TempDir(), "mctrl-runner")
 	if err := os.WriteFile(fakeRunner, []byte("#!/bin/sh\ntrap 'exit 0' INT TERM\nsleep 30 & wait $!\n"), 0700); err != nil {
 		t.Fatal(err)
@@ -194,7 +194,7 @@ func TestIdempotentRetryDoesNotRestartOrRewriteLiveRunnerEvidence(t *testing.T) 
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
-	server, err := NewServer(cfg, root)
+	server, err := newServer(cfg, root, adapter)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,11 +271,11 @@ func TestIdempotentRetryDoesNotRestartOrRewriteLiveRunnerEvidence(t *testing.T) 
 }
 
 func TestStructuredPromptIsIdempotentAndRejectsPayloadReuse(t *testing.T) {
-	socket := isolateTestTmux(t)
+	adapter, socket := isolateTestTmux(t)
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
-	server, err := NewServer(cfg, root)
+	server, err := newServer(cfg, root, adapter)
 	if err != nil {
 		t.Fatal(err)
 	}

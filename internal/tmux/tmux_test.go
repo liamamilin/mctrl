@@ -39,12 +39,46 @@ func TestAbsentTmuxSocketIsEmptyAndUnavailable(t *testing.T) {
 	if err != nil || len(sessions) != 0 {
 		t.Fatalf("initial list sessions = %#v, err=%v", sessions, err)
 	}
-	if err := adapter.ServerAvailable(ctx); !errors.Is(err, ErrUnavailable) {
+	if err := adapter.ServerAvailable(ctx); !errors.Is(err, ErrNoServer) {
 		t.Fatalf("server availability error = %v", err)
 	}
 	exists, err := adapter.SessionExists(ctx, "missing")
-	if exists || !errors.Is(err, ErrUnavailable) {
+	if exists || !errors.Is(err, ErrNoServer) {
 		t.Fatalf("session existence = %v, err=%v", exists, err)
+	}
+}
+
+func TestNoServerErrorClassificationAnchorsTmuxOutput(t *testing.T) {
+	for _, test := range []struct {
+		err   error
+		match bool
+	}{
+		{errors.New("tmux list-sessions: no server running on /private/tmp/tmux.sock"), true},
+		{errors.New("tmux list-sessions: error connecting to /private/tmp/tmux.sock (No such file or directory)"), true},
+		{errors.New("tmux list-sessions: error connecting to /private/tmp/tmux.sock (Connection refused)"), true},
+		{errors.New("tmux has-session: can't find session: no server running"), false},
+		{errors.New("tmux has-session: can't find session: no sessions"), false},
+		{errors.New("tmux has-session: permission denied"), false},
+	} {
+		if got := isNoServerError(test.err); got != test.match {
+			t.Fatalf("isNoServerError(%q) = %v", test.err, got)
+		}
+	}
+}
+
+func TestSessionNamesCannotMasqueradeAsNoServer(t *testing.T) {
+	adapter, _ := newTestAdapter(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	keepAlive := "mctrl-keepalive-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+	if _, err := adapter.CreateManagedSession(ctx, keepAlive, t.TempDir(), []string{"/bin/sh", "-c", "sleep 30"}); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"no server running", "no sessions", "error connecting to /tmp/fake"} {
+		exists, err := adapter.SessionExists(ctx, name)
+		if err != nil || exists {
+			t.Fatalf("Session name %q was misclassified: exists=%v err=%v", name, exists, err)
+		}
 	}
 }
 

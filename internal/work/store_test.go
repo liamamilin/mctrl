@@ -10,8 +10,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	"mctrl/internal/tmux"
 )
 
 func TestWorkDTODoesNotExposeLaunchSecrets(t *testing.T) {
@@ -111,7 +109,7 @@ func TestReconcileLeavesAcceptedWorkRecoverable(t *testing.T) {
 	if err := store.Save(item); err != nil {
 		t.Fatal(err)
 	}
-	if err := Reconcile(context.Background(), store, tmux.New()); err != nil {
+	if err := Reconcile(context.Background(), store, isolatedUnavailableTmux(t)); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Get(item.ID)
@@ -129,7 +127,7 @@ func TestReconcileDoesNotInventExitCode(t *testing.T) {
 	if err := store.Save(item); err != nil {
 		t.Fatal(err)
 	}
-	if err := Reconcile(context.Background(), store, tmux.New()); err != nil {
+	if err := Reconcile(context.Background(), store, isolatedUnavailableTmux(t)); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Get(item.ID)
@@ -151,7 +149,7 @@ func TestReconcileAppliesCanonicalAttemptResult(t *testing.T) {
 	if err := store.WriteResult(Result{WorkID: item.ID, AttemptID: item.AttemptID, ExitCode: intPtr(7), ObservedAt: now, PersistedAt: now, FinishedAt: now, Reason: "child_exit_observed"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := Reconcile(context.Background(), store, tmux.New()); err != nil {
+	if err := Reconcile(context.Background(), store, isolatedUnavailableTmux(t)); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Get(item.ID)
@@ -170,7 +168,7 @@ func TestReconcileMarksMissingTerminalResultWithoutInventingExit(t *testing.T) {
 	if err := store.Save(item); err != nil {
 		t.Fatal(err)
 	}
-	if err := Reconcile(context.Background(), store, tmux.New()); err != nil {
+	if err := Reconcile(context.Background(), store, isolatedUnavailableTmux(t)); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Get(item.ID)
@@ -192,7 +190,7 @@ func TestReconcileRejectsResultFromAnotherAttempt(t *testing.T) {
 	if err := store.WriteResult(Result{WorkID: item.ID, AttemptID: "attempt_old", ExitCode: intPtr(0), ObservedAt: now, PersistedAt: now, FinishedAt: now}); err != nil {
 		t.Fatal(err)
 	}
-	if err := Reconcile(context.Background(), store, tmux.New()); err != nil {
+	if err := Reconcile(context.Background(), store, isolatedUnavailableTmux(t)); err != nil {
 		t.Fatal(err)
 	}
 	got, err := store.Get(item.ID)

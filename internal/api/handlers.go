@@ -937,7 +937,7 @@ func (s *Server) writeTmuxError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusNotFound, "SESSION_NOT_FOUND", "Session was not found", nil)
 		return
 	}
-	if errors.Is(err, tmux.ErrUnavailable) {
+	if errors.Is(err, tmux.ErrUnavailable) || errors.Is(err, tmux.ErrNoServer) {
 		writeError(w, http.StatusServiceUnavailable, "TMUX_UNAVAILABLE", "tmux is unavailable", nil)
 		return
 	}

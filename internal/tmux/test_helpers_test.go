@@ -19,12 +19,11 @@ func newTestAdapter(t *testing.T) (*Adapter, string) {
 		t.Fatal(err)
 	}
 	socket := filepath.Join(dir, "s")
-	t.Setenv("MCTRL_TMUX_SOCKET", socket)
 	t.Cleanup(func() {
 		_ = exec.Command("tmux", "-S", socket, "kill-server").Run()
 		_ = os.RemoveAll(dir)
 	})
-	return New(), socket
+	return NewWithSocket(socket), socket
 }
 
 func testTmuxCommand(socket string, args ...string) *exec.Cmd {
