@@ -91,10 +91,30 @@ func (a *Adapter) ServerAvailable(ctx context.Context) error {
 	if err == nil {
 		return nil
 	}
-	if strings.Contains(strings.ToLower(err.Error()), "no server running") {
+	if isServerUnavailable(err) {
 		return ErrUnavailable
 	}
 	return err
+}
+
+// isServerUnavailable normalizes the platform-specific errors tmux returns
+// before its first server has started. On macOS an absent socket is commonly
+// reported as "error connecting ... (No such file or directory)", while an
+// existing-but-stale socket may report "Connection refused".
+func isServerUnavailable(err error) bool {
+	if err == nil {
+		return false
+	}
+	message := strings.ToLower(err.Error())
+	if strings.Contains(message, "no server running") || strings.Contains(message, "no sessions") {
+		return true
+	}
+	if !strings.Contains(message, "error connecting to") && !strings.Contains(message, "connection refused") {
+		return false
+	}
+	return strings.Contains(message, "no such file or directory") ||
+		strings.Contains(message, "not found") ||
+		strings.Contains(message, "connection refused")
 }
 
 func recordFormat(fields []string) (string, string, error) {
@@ -133,10 +153,10 @@ func (a *Adapter) ListSessions(ctx context.Context) ([]Session, error) {
 	}
 	output, err := a.run(ctx, "list-sessions", "-F", format)
 	if err != nil {
-		log.Printf("tmux list-sessions failed: %v", err)
-		if strings.Contains(strings.ToLower(err.Error()), "no server running") || strings.Contains(strings.ToLower(err.Error()), "no sessions") {
+		if isServerUnavailable(err) {
 			return []Session{}, nil
 		}
+		log.Printf("tmux list-sessions failed: %v", err)
 		return nil, err
 	}
 	records, err := parseRecords(output, delimiter, 4)
@@ -266,10 +286,10 @@ func (a *Adapter) SessionExists(ctx context.Context, id string) (bool, error) {
 	if err == nil {
 		return true, nil
 	}
-	message := strings.ToLower(err.Error())
-	if strings.Contains(message, "no server running") {
+	if isServerUnavailable(err) {
 		return false, ErrUnavailable
 	}
+	message := strings.ToLower(err.Error())
 	if strings.Contains(message, "can't find") || strings.Contains(message, "no such session") {
 		return false, nil
 	}

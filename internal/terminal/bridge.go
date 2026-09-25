@@ -3,6 +3,7 @@ package terminal
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"sync"
 	"time"
@@ -204,7 +205,7 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 		exists, checkErr := b.tmux.SessionExists(checkContext, sessionID)
 		checkCancel()
 		code := "SESSION_GONE"
-		if checkErr != nil || exists {
+		if (checkErr != nil && !errors.Is(checkErr, tmux.ErrUnavailable)) || exists {
 			code = "TERMINAL_ATTACH_FAILED"
 		}
 		_ = writeControl(errorMessage{Type: "error", Code: code})

@@ -2,9 +2,9 @@ package tmux
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -27,6 +27,24 @@ func TestAdapterUsesExplicitTmuxSocket(t *testing.T) {
 	args := adapter.commandArgs("list-sessions")
 	if len(args) != 3 || args[0] != "-S" || args[1] != "/private/tmp/custom-tmux.sock" || args[2] != "list-sessions" {
 		t.Fatalf("tmux command args = %v", args)
+	}
+}
+
+func TestAbsentTmuxSocketIsEmptyAndUnavailable(t *testing.T) {
+	adapter, _ := newTestAdapter(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	sessions, err := adapter.ListSessions(ctx)
+	if err != nil || len(sessions) != 0 {
+		t.Fatalf("initial list sessions = %#v, err=%v", sessions, err)
+	}
+	if err := adapter.ServerAvailable(ctx); !errors.Is(err, ErrUnavailable) {
+		t.Fatalf("server availability error = %v", err)
+	}
+	exists, err := adapter.SessionExists(ctx, "missing")
+	if exists || !errors.Is(err, ErrUnavailable) {
+		t.Fatalf("session existence = %v, err=%v", exists, err)
 	}
 }
 
@@ -74,17 +92,14 @@ func TestErrorsDoNotExposeTerminalArguments(t *testing.T) {
 }
 
 func TestInspectSessionUsesActiveWindowPane(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
-	adapter := New()
+	adapter, socket := newTestAdapter(t)
 	name := "mctrl-pane-test-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if _, err := adapter.run(ctx, "new-session", "-d", "-s", name, "-n", "one", "sleep 5"); err != nil {
 		t.Fatalf("tmux new session: %v", err)
 	}
-	defer exec.Command("tmux", "kill-session", "-t", name).Run()
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
 	if _, err := adapter.run(ctx, "new-window", "-t", name, "-n", "two", "sleep 5"); err != nil {
 		t.Fatal(err)
 	}
@@ -108,15 +123,12 @@ func TestInspectSessionUsesActiveWindowPane(t *testing.T) {
 }
 
 func TestPhoneAttachDoesNotShrinkDesktopLayout(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
-	adapter := New()
+	adapter, socket := newTestAdapter(t)
 	name := "mctrl-size-test-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	_, createErr := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "sleep 30"})
-	defer exec.Command("tmux", "kill-session", "-t", name).Run()
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
 	if createErr != nil {
 		t.Fatal(createErr)
 	}
@@ -166,10 +178,7 @@ func TestPhoneAttachDoesNotShrinkDesktopLayout(t *testing.T) {
 }
 
 func TestAttachCommandForcesUTF8Locale(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
-	adapter := New()
+	adapter, _ := newTestAdapter(t)
 	cmd, err := adapter.AttachCommand(context.Background(), "missing-session-for-env-check")
 	if err != nil {
 		t.Fatal(err)
@@ -187,16 +196,13 @@ func TestAttachCommandForcesUTF8Locale(t *testing.T) {
 }
 
 func TestRealTmuxSessionLifecycle(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
-	adapter := New()
+	adapter, socket := newTestAdapter(t)
 	name := "mctrl-test-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "sleep 1"})
 	defer func() {
-		_ = exec.Command("tmux", "kill-session", "-t", name).Run()
+		_ = testTmuxCommand(socket, "kill-session", "-t", name).Run()
 	}()
 	if err != nil {
 		t.Fatalf("tmux managed session: %v", err)
@@ -214,7 +220,7 @@ func TestRealTmuxSessionLifecycle(t *testing.T) {
 	if err := adapter.ApplySizingPolicy(ctx, id); err != nil {
 		t.Fatalf("apply sizing policy: %v", err)
 	}
-	policy, err := exec.Command("tmux", "show-options", "-v", "-t", id, "window-size").Output()
+	policy, err := testTmuxCommand(socket, "show-options", "-v", "-t", id, "window-size").Output()
 	if err != nil || strings.TrimSpace(string(policy)) != "largest" {
 		t.Fatalf("window-size policy = %q, err=%v", strings.TrimSpace(string(policy)), err)
 	}

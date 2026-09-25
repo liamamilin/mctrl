@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -17,9 +16,7 @@ import (
 )
 
 func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
+	socket := isolateTestTmux(t)
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
@@ -36,7 +33,7 @@ func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tmux managed session: %v", err)
 	}
-	defer exec.Command("tmux", "kill-session", "-t", name).Run()
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
 
 	pairing, err := auth.CreatePairing(root, time.Minute)
 	if err != nil {
@@ -80,9 +77,7 @@ func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
 }
 
 func TestTerminalWebSocketReportsSessionGone(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
+	socket := isolateTestTmux(t)
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
@@ -127,7 +122,7 @@ func TestTerminalWebSocketReportsSessionGone(t *testing.T) {
 			break
 		}
 	}
-	if output, err := exec.Command("tmux", "kill-session", "-t", name).CombinedOutput(); err != nil {
+	if output, err := testTmuxCommand(socket, "kill-session", "-t", name).CombinedOutput(); err != nil {
 		t.Fatalf("kill Session: %v %s", err, output)
 	}
 	_ = conn.SetReadDeadline(time.Now().Add(4 * time.Second))
@@ -143,9 +138,7 @@ func TestTerminalWebSocketReportsSessionGone(t *testing.T) {
 }
 
 func TestTerminalWebSocketClosesAfterCLIRevocation(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
+	socket := isolateTestTmux(t)
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
@@ -161,7 +154,7 @@ func TestTerminalWebSocketClosesAfterCLIRevocation(t *testing.T) {
 	if _, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "printf ready; sleep 10"}); err != nil {
 		t.Fatal(err)
 	}
-	defer exec.Command("tmux", "kill-session", "-t", name).Run()
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
 	pairing, err := auth.CreatePairing(root, time.Minute)
 	if err != nil {
 		t.Fatal(err)

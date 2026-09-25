@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -64,9 +63,7 @@ func TestLateSessionEvidenceCannotRegressExitedWork(t *testing.T) {
 }
 
 func TestAcceptedWorkCanResumeLaunchOnIdempotentRetry(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
+	socket := isolateTestTmux(t)
 	t.Setenv("MCTRL_RUNNER_BINARY", "/usr/bin/true")
 	root := t.TempDir()
 	cfg := config.Default()
@@ -110,7 +107,7 @@ func TestAcceptedWorkCanResumeLaunchOnIdempotentRetry(t *testing.T) {
 	if got.SessionID == "" || got.State != work.StateStarting {
 		t.Fatalf("accepted Work was not resumed: %+v", got)
 	}
-	_ = exec.Command("tmux", "kill-session", "-t", item.SessionName).Run()
+	_ = testTmuxCommand(socket, "kill-session", "-t", item.SessionName).Run()
 }
 
 func TestConfirmableShellCommandUsesExactExecutables(t *testing.T) {
@@ -128,9 +125,7 @@ func TestConfirmableShellCommandUsesExactExecutables(t *testing.T) {
 }
 
 func TestLaunchDoesNotRespawnUnrelatedSessionNameCollision(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
+	socket := isolateTestTmux(t)
 	t.Setenv("MCTRL_RUNNER_BINARY", "/usr/bin/true")
 	root := t.TempDir()
 	cfg := config.Default()
@@ -153,10 +148,10 @@ func TestLaunchDoesNotRespawnUnrelatedSessionNameCollision(t *testing.T) {
 		t.Fatal(err)
 	}
 	sessionName := "mctrl-test-collision-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
-	if output, err := exec.Command("tmux", "new-session", "-d", "-s", sessionName, "sleep 5").CombinedOutput(); err != nil {
+	if output, err := testTmuxCommand(socket, "new-session", "-d", "-s", sessionName, "sleep 5").CombinedOutput(); err != nil {
 		t.Fatalf("create collision session: %v %s", err, output)
 	}
-	defer exec.Command("tmux", "kill-session", "-t", sessionName).Run()
+	defer testTmuxCommand(socket, "kill-session", "-t", sessionName).Run()
 	item := work.Work{
 		ID: "work_collision", RequestID: "request-collision", DeviceID: paired.Device.ID,
 		ProjectID: projectInfo.ID, ProjectPath: projectInfo.Path, RunnerID: "shell",
@@ -190,9 +185,7 @@ func TestLaunchDoesNotRespawnUnrelatedSessionNameCollision(t *testing.T) {
 }
 
 func TestIdempotentRetryDoesNotRestartOrRewriteLiveRunnerEvidence(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
+	socket := isolateTestTmux(t)
 	fakeRunner := filepath.Join(t.TempDir(), "mctrl-runner")
 	if err := os.WriteFile(fakeRunner, []byte("#!/bin/sh\ntrap 'exit 0' INT TERM\nsleep 30 & wait $!\n"), 0700); err != nil {
 		t.Fatal(err)
@@ -227,7 +220,7 @@ func TestIdempotentRetryDoesNotRestartOrRewriteLiveRunnerEvidence(t *testing.T) 
 	if err := server.works.Save(item); err != nil {
 		t.Fatal(err)
 	}
-	defer exec.Command("tmux", "kill-session", "-t", item.SessionName).Run()
+	defer testTmuxCommand(socket, "kill-session", "-t", item.SessionName).Run()
 	body := `{"request_id":"request-live-runner","project_id":"` + projectInfo.ID + `","runner_id":"shell","prompt":"echo live"}`
 	post := func() *httptest.ResponseRecorder {
 		request := httptest.NewRequest(http.MethodPost, "/api/v1/work", strings.NewReader(body))
@@ -278,9 +271,7 @@ func TestIdempotentRetryDoesNotRestartOrRewriteLiveRunnerEvidence(t *testing.T) 
 }
 
 func TestStructuredPromptIsIdempotentAndRejectsPayloadReuse(t *testing.T) {
-	if _, err := exec.LookPath("tmux"); err != nil {
-		t.Skip("tmux is not installed")
-	}
+	socket := isolateTestTmux(t)
 	root := t.TempDir()
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly
@@ -290,10 +281,10 @@ func TestStructuredPromptIsIdempotentAndRejectsPayloadReuse(t *testing.T) {
 	}
 	defer server.Close()
 	name := "mctrl-prompt-test-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
-	if output, err := exec.Command("tmux", "new-session", "-d", "-s", name, "-c", t.TempDir(), "/bin/sh").CombinedOutput(); err != nil {
+	if output, err := testTmuxCommand(socket, "new-session", "-d", "-s", name, "-c", t.TempDir(), "/bin/sh").CombinedOutput(); err != nil {
 		t.Fatalf("create shell session: %v %s", err, output)
 	}
-	defer exec.Command("tmux", "kill-session", "-t", name).Run()
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
 	pairing, err := auth.CreatePairing(root, time.Minute)
 	if err != nil {
 		t.Fatal(err)
