@@ -1,20 +1,33 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import {
   createDeviceLink,
+  createProject,
+  deleteProject,
   getDeviceHistory,
   getDevices,
   getHost,
+  getProjects,
+  getRunners,
   RUNTIME_PROFILE,
   revokeDevice,
 } from '../api';
 import { formatDate } from '../format';
-import type { Host, PairedDevice } from '../types';
+import type { Host, PairedDevice, Project, Runner } from '../types';
 import { ErrorNotice, LoadingBlock, StatusDot, TransportNotice } from '../components/ui';
 
 export function SettingsPage() {
   const [host, setHost] = useState<Host>();
   const [devices, setDevices] = useState<PairedDevice[]>([]);
   const [deviceHistory, setDeviceHistory] = useState<PairedDevice[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [runners, setRunners] = useState<Runner[]>([]);
+  const [projectName, setProjectName] = useState('');
+  const [projectPath, setProjectPath] = useState('');
+  const [projectRunner, setProjectRunner] = useState('shell');
+  const [projectSaving, setProjectSaving] = useState(false);
+  const [projectRemoving, setProjectRemoving] = useState('');
+  const [projectError, setProjectError] = useState('');
+  const [projectNotice, setProjectNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [revoking, setRevoking] = useState('');
@@ -38,17 +51,29 @@ export function SettingsPage() {
     setBrowserLinkSeconds(0);
     setLinkCopied(false);
     setLinkNotice('');
+    setProjectError('');
+    setProjectNotice('');
 
     try {
-      const [nextHost, nextDevices, nextHistory] = await Promise.all([
-        getHost(),
-        getDevices(),
-        getDeviceHistory(),
-      ]);
+      const [nextHost, nextDevices, nextHistory, nextProjects, nextRunners] =
+        await Promise.all([
+          getHost(),
+          getDevices(),
+          getDeviceHistory(),
+          getProjects(),
+          getRunners(),
+        ]);
       if (currentLoad !== loadId.current) return;
       setHost(nextHost);
       setDevices(nextDevices);
       setDeviceHistory(nextHistory);
+      setProjects(nextProjects);
+      setRunners(nextRunners);
+      setProjectRunner((current) =>
+        nextRunners.some((runner) => runner.id === current && runner.available)
+          ? current
+          : nextRunners.find((runner) => runner.available)?.id ?? '',
+      );
     } catch (caught) {
       if (currentLoad !== loadId.current) return;
       setError(
@@ -156,6 +181,63 @@ export function SettingsPage() {
     }
   };
 
+  const addProject = async (event: Event) => {
+    event.preventDefault();
+    const name = projectName.trim();
+    const path = projectPath.trim();
+    if (!name || !path) {
+      setProjectError('Enter both a project name and an absolute Mac path.');
+      return;
+    }
+
+    setProjectSaving(true);
+    setProjectError('');
+    setProjectNotice('');
+    try {
+      const created = await createProject({
+        name,
+        path,
+        ...(projectRunner ? { default_runner: projectRunner } : {}),
+      });
+      setProjects((current) =>
+        [...current, created].sort((left, right) =>
+          left.name.localeCompare(right.name),
+        ),
+      );
+      setProjectName('');
+      setProjectPath('');
+      setProjectNotice(`Registered “${created.name}”. It is now available in Start Work.`);
+    } catch (caught) {
+      setProjectError(
+        caught instanceof Error ? caught.message : 'Could not register the Project.',
+      );
+    } finally {
+      setProjectSaving(false);
+    }
+  };
+
+  const removeProject = async (project: Project) => {
+    const confirmed = window.confirm(
+      `Remove “${project.name}” from the Project registry? Running Work is not stopped.`,
+    );
+    if (!confirmed) return;
+
+    setProjectRemoving(project.id);
+    setProjectError('');
+    setProjectNotice('');
+    try {
+      await deleteProject(project.id);
+      setProjects((current) => current.filter((item) => item.id !== project.id));
+      setProjectNotice(`Removed “${project.name}” from the Project registry.`);
+    } catch (caught) {
+      setProjectError(
+        caught instanceof Error ? caught.message : 'Could not remove the Project.',
+      );
+    } finally {
+      setProjectRemoving('');
+    }
+  };
+
   const browserLinkClock = `${Math.floor(browserLinkSeconds / 60)}:${String(browserLinkSeconds % 60).padStart(2, '0')}`;
 
   return (
@@ -163,7 +245,7 @@ export function SettingsPage() {
       <header class="page-heading">
         <div class="section-kicker">This connection</div>
         <h1>Settings</h1>
-        <p>Transport facts and paired-device access.</p>
+        <p>Transport facts, Project targets, and paired-device access.</p>
       </header>
 
       {loading ? (
@@ -214,6 +296,132 @@ export function SettingsPage() {
               Remote Ready only protects against ordinary idle system sleep
               when the configured policy is active. It does not wake or revive
               an unreachable Mac.
+            </p>
+          </section>
+
+          <section class="settings-section" aria-labelledby="projects-title">
+            <div class="section-heading compact-heading">
+              <div>
+                <h2 id="projects-title">Projects</h2>
+                <p>Only registered Mac paths can be launched from the phone.</p>
+              </div>
+              <button
+                class="icon-button"
+                type="button"
+                onClick={() => void load()}
+                aria-label="Refresh registered Projects"
+              >
+                ↻
+              </button>
+            </div>
+
+            {projectError && (
+              <ErrorNotice title="Project action failed" message={projectError} />
+            )}
+            {projectNotice && (
+              <p class="browser-link-notice" role="status">
+                {projectNotice}
+              </p>
+            )}
+
+            <form class="project-manager card" onSubmit={addProject}>
+              <div class="project-form-grid">
+                <label class="field">
+                  <span>Project name</span>
+                  <input
+                    type="text"
+                    value={projectName}
+                    onInput={(event) => setProjectName(event.currentTarget.value)}
+                    placeholder="My Project"
+                    maxLength={120}
+                    autoCapitalize="sentences"
+                    disabled={projectSaving}
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>Mac path</span>
+                  <input
+                    type="text"
+                    value={projectPath}
+                    onInput={(event) => setProjectPath(event.currentTarget.value)}
+                    placeholder="/Users/you/Projects/my-project"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellcheck={false}
+                    disabled={projectSaving}
+                    required
+                  />
+                </label>
+                <label class="field">
+                  <span>Default runner</span>
+                  <select
+                    value={projectRunner}
+                    onChange={(event) => setProjectRunner(event.currentTarget.value)}
+                    disabled={projectSaving || runners.length === 0}
+                  >
+                    {runners.length === 0 ? (
+                      <option value="">No runner detected</option>
+                    ) : (
+                      runners.map((runner) => (
+                        <option
+                          key={runner.id}
+                          value={runner.id}
+                          disabled={!runner.available}
+                        >
+                          {runner.name}
+                          {runner.available ? '' : ' · unavailable'}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+              </div>
+              <div class="project-form-actions">
+                <small>Use an absolute path that exists on the Mac.</small>
+                <button
+                  class="button button-primary"
+                  type="submit"
+                  disabled={projectSaving}
+                >
+                  {projectSaving ? 'Registering…' : 'Register Project'}
+                </button>
+              </div>
+            </form>
+
+            <div class="project-list">
+              {projects.length === 0 ? (
+                <div class="card empty-copy">
+                  No Projects are registered yet. Add the first target above.
+                </div>
+              ) : (
+                projects.map((project) => (
+                  <article class="project-card card" key={project.id}>
+                    <div class="project-card-content">
+                      <div class="project-card-title-row">
+                        <h3>{project.name}</h3>
+                        {project.default_runner && (
+                          <span class="active-badge">{project.default_runner}</span>
+                        )}
+                      </div>
+                      <code>{project.path}</code>
+                    </div>
+                    <button
+                      class="button button-danger-quiet button-small"
+                      type="button"
+                      onClick={() => void removeProject(project)}
+                      disabled={projectRemoving === project.id}
+                    >
+                      {projectRemoving === project.id ? 'Removing…' : 'Remove'}
+                    </button>
+                  </article>
+                ))
+              )}
+            </div>
+
+            <p class="settings-footnote">
+              Registering a Project does not start a process. It only makes an
+              existing Mac directory available as a launch target.
             </p>
           </section>
 

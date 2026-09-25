@@ -120,6 +120,12 @@ The equivalent CLI is:
 
 ### 4. Register a Project
 
+On the phone, open **Settings → Projects**, enter a display name and the
+absolute path of an existing directory on the Mac, then tap **Register
+Project**. The Start Work page will then show the target.
+
+The Mac CLI remains available for first-time setup or batch registration:
+
 ```sh
 ./bin/mctrl project add /path/to/project --name 'My Project'
 ./bin/mctrl project list

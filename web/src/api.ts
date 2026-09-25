@@ -383,6 +383,24 @@ export async function getProjects(): Promise<Project[]> {
     .filter((project) => project.id.length > 0);
 }
 
+export async function createProject(body: {
+  name: string;
+  path: string;
+  default_runner?: string;
+}): Promise<Project> {
+  const payload = await request<unknown>('/projects', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return normalizeProject(unwrapRecord(payload, 'project'));
+}
+
+export async function deleteProject(projectId: string): Promise<void> {
+  await request<unknown>(`/projects/${encodeURIComponent(projectId)}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function getRunners(): Promise<Runner[]> {
   const payload = await request<unknown>('/runners');
   return (listPayload(payload, ['runners']) ?? [])

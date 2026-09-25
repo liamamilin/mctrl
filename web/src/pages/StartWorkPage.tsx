@@ -255,7 +255,12 @@ export function StartWorkPage() {
       ) : projects.length === 0 ? (
         <EmptyState
           title="No registered Projects"
-          message="Add a Project on the Mac with mctrl project add before launching work."
+          message="Register a Mac directory in Settings before launching work. Only registered paths can be launched."
+          action={
+            <a class="button button-primary" href="#/settings">
+              Register a Project
+            </a>
+          }
         />
       ) : (
         <form class="launch-form" onSubmit={submit}>

@@ -1315,6 +1315,82 @@ button:disabled {
   gap: 13px;
 }
 
+.project-manager {
+  display: grid;
+  gap: 14px;
+  padding: 15px;
+}
+
+.project-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.project-form-grid .field:last-child {
+  grid-column: 1 / -1;
+}
+
+.project-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-form-actions small {
+  max-width: 34ch;
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+.project-list {
+  display: grid;
+  gap: 10px;
+}
+
+.project-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+}
+
+.project-card-content {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.project-card-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-card h3 {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.84rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-card code {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+.project-card > .button {
+  flex: 0 0 auto;
+}
+
 .compact-heading {
   min-height: 42px;
   align-items: center;
@@ -2299,6 +2375,23 @@ button:disabled {
 
   .form-section {
     grid-template-columns: 1fr;
+  }
+
+  .project-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-form-grid .field:last-child {
+    grid-column: auto;
+  }
+
+  .project-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .project-form-actions .button {
+    width: 100%;
   }
 
   .form-section-number {

@@ -13,6 +13,7 @@ unchecked until that external environment is available.
 - [x] Intervene works
 - [x] terminal Work can be relaunched with Project preselection
 - [x] Mac Pair Console supports QR, copyable code and manual phone URL
+- [x] Settings supports registering and removing Projects without the CLI
 
 ## Reliability
 
