@@ -4,6 +4,7 @@ import {
   getDeviceHistory,
   getDevices,
   getHost,
+  RUNTIME_PROFILE,
   revokeDevice,
 } from '../api';
 import { formatDate } from '../format';
@@ -186,9 +187,9 @@ export function SettingsPage() {
                 <strong>{window.location.protocol.replace(':', '').toUpperCase()}</strong>
               </div>
               <div>
-                <span>Configured profile</span>
+                <span>Runtime profile</span>
                 <strong class="mono">
-                  {host?.transport ?? 'Not reported'}
+                  {host?.profile ?? RUNTIME_PROFILE}
                 </strong>
               </div>
               {host?.public_url && (

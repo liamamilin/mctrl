@@ -5,6 +5,7 @@ import {
   getRunners,
   isUncertainOutcome,
   launchWork,
+  runtimeStorageKey,
 } from '../api';
 import { makeRequestId } from '../format';
 import type { LaunchRequest, LaunchResult, Project, Runner } from '../types';
@@ -16,7 +17,7 @@ interface Attempt {
   requestId: string;
 }
 
-const ATTEMPT_STORAGE_KEY = 'mctrl-launch-attempt';
+const ATTEMPT_STORAGE_KEY = runtimeStorageKey('mctrl-launch-attempt');
 
 function readAttempt(): Attempt | undefined {
   try {

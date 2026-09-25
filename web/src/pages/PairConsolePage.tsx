@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { getPairingQR } from '../api';
+import { getPairingQR, RUNTIME_PROFILE } from '../api';
 import { formatDate } from '../format';
 import { TransportNotice } from '../components/ui';
 
@@ -16,7 +16,11 @@ export function PairConsolePage({ initialToken }: { initialToken?: string }) {
   const load = async () => {
     const token = initialToken?.trim() ?? '';
     if (!token) {
-      setError('This Pair Console was opened without a one-time token. Double-click Mctrl Pair.app again.');
+      const appName =
+        RUNTIME_PROFILE === 'v1'
+          ? 'Mctrl Pair.app'
+          : `Mctrl ${RUNTIME_PROFILE.toUpperCase()} Pair.app`;
+      setError(`This Pair Console was opened without a one-time token. Double-click ${appName} again.`);
       setQRDataURL('');
       return;
     }

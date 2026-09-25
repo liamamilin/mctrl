@@ -12,9 +12,18 @@ import type {
 } from './types';
 
 export const API_BASE = '/api/v1';
-export const UNAUTHORIZED_EVENT = 'mctrl:unauthorized';
-const CSRF_COOKIE = 'mctrl_csrf';
-const INSTALLATION_STORAGE_KEY = 'mctrl_device_installation_id';
+const runtimeMeta =
+  typeof document === 'undefined'
+    ? undefined
+    : document.querySelector<HTMLMetaElement>('meta[name="mctrl-runtime"]');
+const runtimeProfile = runtimeMeta?.content.trim().toLowerCase() || 'v1';
+export const RUNTIME_PROFILE = runtimeProfile;
+export const runtimeStorageKey = (key: string): string =>
+  runtimeProfile === 'v1' ? key : `${key}:${runtimeProfile}`;
+export const UNAUTHORIZED_EVENT =
+  runtimeProfile === 'v1' ? 'mctrl:unauthorized' : `mctrl:${runtimeProfile}:unauthorized`;
+const CSRF_COOKIE = runtimeStorageKey('mctrl_csrf');
+const INSTALLATION_STORAGE_KEY = runtimeStorageKey('mctrl_device_installation_id');
 let csrfToken = '';
 let volatileInstallationID = '';
 

@@ -93,3 +93,12 @@ Runner adapters are internal V1 code.
 ## D15 — Product layer is frozen
 
 Implementation discoveries may change implementation details, not product scope, unless the conflict is explicitly documented and approved.
+
+## D16 — Runtime profiles isolate product lines
+
+V1 remains the default stable profile. V2 development uses a separate state
+root, port, LaunchAgent, browser identity, tmux socket, and Pair app. Git tags
+freeze releases; profiles prevent one installed product line from operating on
+another's state. Profile selection is not an automatic V1-to-V2 data migration.
+
+See [`VERSIONING.md`](VERSIONING.md) for the cutover and rollback contract.

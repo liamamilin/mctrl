@@ -141,6 +141,25 @@ mctrl restart                # restart only the daemon
 mctrl uninstall              # stop mctrl without deleting arbitrary tmux Sessions
 ```
 
+## Version Isolation
+
+The stable release and the next development line are isolated at both Git and
+runtime levels:
+
+```sh
+mctrl profile                         # show the active V1 paths
+mctrl --profile v2 profile            # inspect the V2 paths
+mctrl --profile v2 setup --lan        # initialize V2 on port 17682
+mctrl --profile v2 status
+mctrl --profile v2 pair
+```
+
+V1 keeps `~/.mctrl`, its existing launchd service, cookies, Pair app, and tmux
+behavior. V2 uses `~/.mctrl-v2`, port `17682`, a separate launchd service,
+cookies, tmux socket, and `Mctrl V2 Pair.app`. V2 never writes to V1 state by
+default. See [`VERSIONING.md`](VERSIONING.md) for cutover, rollback, and
+side-by-side development.
+
 ## Transport Profiles
 
 ### Trusted-LAN HTTP
@@ -209,10 +228,12 @@ Read [`SECURITY.md`](SECURITY.md) and
 ## Development
 
 ```sh
-make build          # rebuild PWA, embed assets, then build both Go binaries
+make build          # rebuild PWA, embed assets, then build V1 binaries
+make build PROFILE=v2  # build isolated V2 binaries under bin/v2
+make mac-launcher PROFILE=v2  # build Mctrl V2 Pair.app
 make test           # Go tests + vet + strict TypeScript
 make test-race      # race detector, including real tmux integration
-make release-check  # complete deterministic release gate
+make release-check  # complete deterministic V1 release gate
 ```
 
 Frontend development:
@@ -233,6 +254,7 @@ Documentation:
 - [`TEST_PLAN.md`](TEST_PLAN.md)
 - [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md)
 - [`VALIDATION.md`](VALIDATION.md)
+- [`VERSIONING.md`](VERSIONING.md)
 
 ## Repository Layout
 
@@ -253,7 +275,7 @@ scripts/               build and release scripts
 
 ## Current Status
 
-`0.1.0-dev` · V1 Final
+`1.0.0` · V1 stable baseline
 
 The real-iPhone Trusted-LAN path has been exercised. Playwright Chromium/WebKit,
 a final TLS/WSS deployment, and authenticated Codex/OpenCode Runner integration

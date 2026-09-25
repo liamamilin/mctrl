@@ -108,8 +108,8 @@ func (s *Server) handlePair(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	secure := s.cfg.TransportProfile == "tls_terminated" || r.TLS != nil
-	auth.SetSessionCookie(w, result.SessionToken, secure)
-	auth.SetCSRFCookie(w, result.CSRFToken, secure)
+	auth.SetSessionCookieForProfile(w, result.SessionToken, secure, s.profileName)
+	auth.SetCSRFCookieForProfile(w, result.CSRFToken, secure, s.profileName)
 	writeJSON(w, http.StatusCreated, map[string]interface{}{
 		"device": map[string]interface{}{
 			"id":   result.Device.ID,
@@ -151,8 +151,8 @@ func (s *Server) handleDeviceLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	secure := s.cfg.TransportProfile == "tls_terminated" || r.TLS != nil
-	auth.SetSessionCookie(w, result.SessionToken, secure)
-	auth.SetCSRFCookie(w, result.CSRFToken, secure)
+	auth.SetSessionCookieForProfile(w, result.SessionToken, secure, s.profileName)
+	auth.SetCSRFCookieForProfile(w, result.CSRFToken, secure, s.profileName)
 	writeJSON(w, http.StatusCreated, map[string]interface{}{
 		"device": map[string]interface{}{
 			"id":   result.Device.ID,
@@ -181,7 +181,7 @@ func (s *Server) handleDeviceLinkCreate(w http.ResponseWriter, r *http.Request) 
 func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 	principal := principalFrom(r)
 	csrf := ""
-	if cookie, cookieErr := r.Cookie(auth.CSRFCookieName); cookieErr == nil && s.devices.CheckCSRF(principal, cookie.Value) {
+	if cookie, cookieErr := r.Cookie(auth.CSRFCookieNameForProfile(s.profileName)); cookieErr == nil && s.devices.CheckCSRF(principal, cookie.Value) {
 		csrf = cookie.Value
 	} else {
 		var err error
@@ -191,7 +191,7 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	auth.SetCSRFCookie(w, csrf, r.TLS != nil || s.cfg.TransportProfile == "tls_terminated")
+	auth.SetCSRFCookieForProfile(w, csrf, r.TLS != nil || s.cfg.TransportProfile == "tls_terminated", s.profileName)
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"device": map[string]interface{}{
 			"id":   principal.Device.ID,
@@ -211,6 +211,7 @@ func (s *Server) handleHost(w http.ResponseWriter, _ *http.Request) {
 		"transport":    s.cfg.TransportProfile,
 		"public_url":   s.cfg.PublicURL,
 		"version":      version.Version,
+		"profile":      s.profileName,
 	})
 }
 
@@ -990,7 +991,12 @@ func managedSessionName(projectID string) string {
 	if len(base) > 36 {
 		base = base[:36]
 	}
-	return "mctrl-" + base + "-" + strings.ToLower(work.NewRequestID()[:8])
+	profile, _ := config.ActiveProfile()
+	prefix := "mctrl"
+	if profile.Name != "" && profile.Name != "v1" {
+		prefix += "-" + profile.Name
+	}
+	return prefix + "-" + base + "-" + strings.ToLower(work.NewRequestID()[:8])
 }
 
 func mctrlRunnerBinary() (string, error) {

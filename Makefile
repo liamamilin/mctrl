@@ -1,7 +1,18 @@
 GO ?= $(shell if [ -x "$(CURDIR)/.tools/go1.27.1/bin/go" ]; then printf '%s' "$(CURDIR)/.tools/go1.27.1/bin/go"; else command -v go; fi)
 NPM ?= npm
 NODE ?= node
-VERSION ?= 0.1.0-dev
+PROFILE ?= v1
+ifeq ($(PROFILE),v1)
+  BIN_DIR := bin
+  APP_NAME := Mctrl Pair
+  PROFILE_VERSION := 1.0.0
+else
+  BIN_DIR := bin/$(PROFILE)
+  APP_NAME := Mctrl $(shell printf '%s' '$(PROFILE)' | tr '[:lower:]' '[:upper:]') Pair
+  PROFILE_VERSION := $(subst v,,$(PROFILE)).0.0-dev
+endif
+APP_PATH := dist/$(APP_NAME).app
+VERSION ?= $(PROFILE_VERSION)
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || printf none)
 BUILD_TIME ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 GO_LDFLAGS := -X mctrl/internal/version.Version=$(VERSION) -X mctrl/internal/version.Commit=$(COMMIT) -X mctrl/internal/version.BuildTime=$(BUILD_TIME)
@@ -19,9 +30,9 @@ build: verify-assets
 # Go embeds internal/api/assets. Never compile before the current web build has
 # been copied into that directory.
 build-go: build-web
-	mkdir -p bin
-	$(GO) build -trimpath -ldflags "$(GO_LDFLAGS)" -o bin/mctrl ./cmd/mctrl
-	$(GO) build -trimpath -ldflags "$(GO_LDFLAGS)" -o bin/mctrl-runner ./cmd/mctrl-runner
+	mkdir -p "$(BIN_DIR)"
+	$(GO) build -trimpath -ldflags "$(GO_LDFLAGS)" -o "$(BIN_DIR)/mctrl" ./cmd/mctrl
+	$(GO) build -trimpath -ldflags "$(GO_LDFLAGS)" -o "$(BIN_DIR)/mctrl-runner" ./cmd/mctrl-runner
 
 build-web: web-deps
 	cd web && $(NPM) run build
@@ -70,26 +81,35 @@ smoke-cli:
 		root=$$(mktemp -d "$${TMPDIR:-/private/tmp}/mctrl-release-smoke.XXXXXX"); \
 		trap 'rm -rf "$$root"' EXIT; \
 		mkdir -p "$$root/project"; \
-		MCTRL_HOME="$$root" ./bin/mctrl version >/dev/null; \
-		./bin/mctrl-runner --version >/dev/null; \
-		MCTRL_HOME="$$root" ./bin/mctrl setup --no-start >/dev/null; \
-		MCTRL_HOME="$$root" ./bin/mctrl status >/dev/null; \
-		MCTRL_HOME="$$root" ./bin/mctrl doctor >/dev/null; \
-		MCTRL_HOME="$$root" ./bin/mctrl pair >/dev/null; \
-		MCTRL_HOME="$$root" ./bin/mctrl project add "$$root/project" --name smoke >/dev/null; \
-		MCTRL_HOME="$$root" ./bin/mctrl project list >/dev/null
+		MCTRL_PROFILE="$(PROFILE)" MCTRL_HOME="$$root" ./$(BIN_DIR)/mctrl version >/dev/null; \
+		MCTRL_PROFILE="$(PROFILE)" ./$(BIN_DIR)/mctrl-runner --version >/dev/null; \
+		MCTRL_PROFILE="$(PROFILE)" MCTRL_HOME="$$root" ./$(BIN_DIR)/mctrl setup --no-start >/dev/null; \
+		MCTRL_PROFILE="$(PROFILE)" MCTRL_HOME="$$root" ./$(BIN_DIR)/mctrl status >/dev/null; \
+		MCTRL_PROFILE="$(PROFILE)" MCTRL_HOME="$$root" ./$(BIN_DIR)/mctrl doctor >/dev/null; \
+		MCTRL_PROFILE="$(PROFILE)" MCTRL_HOME="$$root" ./$(BIN_DIR)/mctrl pair >/dev/null; \
+		MCTRL_PROFILE="$(PROFILE)" MCTRL_HOME="$$root" ./$(BIN_DIR)/mctrl project add "$$root/project" --name smoke >/dev/null; \
+		MCTRL_PROFILE="$(PROFILE)" MCTRL_HOME="$$root" ./$(BIN_DIR)/mctrl project list >/dev/null
 
 mac-launcher: build
-	@scripts/build-mac-pair-launcher.sh
+	@PROFILE="$(PROFILE)" APP_VERSION="$(VERSION)" scripts/build-mac-pair-launcher.sh
 
 smoke-launcher:
-	@scripts/build-mac-pair-launcher.sh >/dev/null
-	@test -x 'dist/Mctrl Pair.app/Contents/MacOS/mctrl-pair-launcher'
-	@test -x 'dist/Mctrl Pair.app/Contents/Resources/mctrl'
-	@test -x 'dist/Mctrl Pair.app/Contents/Resources/mctrl-runner'
-	@test -s 'dist/Mctrl Pair.app/Contents/Resources/AppIcon.icns'
-	@test "$$(plutil -extract CFBundleIconFile raw 'dist/Mctrl Pair.app/Contents/Info.plist')" = 'AppIcon'
-	@codesign --verify --deep --strict 'dist/Mctrl Pair.app'
+	@PROFILE="$(PROFILE)" APP_VERSION="$(VERSION)" scripts/build-mac-pair-launcher.sh >/dev/null
+	@test -x '$(APP_PATH)/Contents/MacOS/mctrl-pair-launcher'
+	@test -x '$(APP_PATH)/Contents/Resources/mctrl'
+	@test -x '$(APP_PATH)/Contents/Resources/mctrl-runner'
+	@test -s '$(APP_PATH)/Contents/Resources/AppIcon.icns'
+	@test "$$(plutil -extract CFBundleIconFile raw '$(APP_PATH)/Contents/Info.plist')" = 'AppIcon'
+	@codesign --verify --deep --strict '$(APP_PATH)'
+ifeq ($(PROFILE),v1)
+	@test "$$(plutil -extract CFBundleShortVersionString raw '$(APP_PATH)/Contents/Info.plist')" = '$(VERSION)'
+	@test "$$(plutil -extract CFBundleIdentifier raw '$(APP_PATH)/Contents/Info.plist')" = 'com.mctrl.pair-launcher'
+	@grep -q -- '--profile v1' '$(APP_PATH)/Contents/MacOS/mctrl-pair-launcher'
+else
+	@test "$$(plutil -extract CFBundleShortVersionString raw '$(APP_PATH)/Contents/Info.plist')" = '$(VERSION)'
+	@test "$$(plutil -extract CFBundleIdentifier raw '$(APP_PATH)/Contents/Info.plist')" = 'com.mctrl.$(PROFILE).pair-launcher'
+	@grep -q -- '--profile $(PROFILE)' '$(APP_PATH)/Contents/MacOS/mctrl-pair-launcher'
+endif
 
 release-check: check-release-deps
 	GOTOOLCHAIN=local $(GO) mod download
@@ -99,4 +119,4 @@ release-check: check-release-deps
 	$(MAKE) test-race
 	$(MAKE) smoke-cli
 	$(MAKE) smoke-launcher
-	cd bin && shasum -a 256 mctrl mctrl-runner > SHA256SUMS
+	cd "$(BIN_DIR)" && shasum -a 256 mctrl mctrl-runner > SHA256SUMS

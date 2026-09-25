@@ -2,7 +2,7 @@
   "project": "mctrl",
   "spec_version": "V1-Final",
   "status": "product-frozen-engineering-hardened",
-  "document_count": 27,
+  "document_count": 28,
   "documents": [
     "AGENT_GUIDE.md",
     "API.md",
@@ -30,6 +30,7 @@
     "TROUBLESHOOTING.md",
     "UX.md",
     "VALIDATION.md",
+    "VERSIONING.md",
     "WEBSOCKET.md"
   ]
 }

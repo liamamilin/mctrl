@@ -21,8 +21,10 @@ These commands do not stop tmux Sessions or Managed Work.
 
 ## The Mac pairing launcher does not open the Pair Console
 
-Run `make mac-launcher`, then double-click `dist/Mctrl Pair.app`. The launcher
-requires an initialized, running daemon:
+Run `make mac-launcher`, then double-click `dist/Mctrl Pair.app`. For V2, run
+`make mac-launcher PROFILE=v2` and use `dist/Mctrl V2 Pair.app`; it invokes
+`mctrl --profile v2 pair --open`. The launcher requires an initialized, running
+profile-specific daemon:
 
 ```sh
 ./bin/mctrl setup --lan
@@ -51,7 +53,14 @@ mctrl setup --lan --port 17681
 mctrl status
 ```
 
-A real mctrl `/healthz` response contains JSON with `"status":"ok"`.
+A real mctrl `/healthz` response contains JSON with `"status":"ok"` and a
+`"profile"` identity. `mctrl status` rejects a reachable daemon from another
+profile. For V2, inspect `mctrl --profile v2 status` and use port `17682` unless
+an explicit port override was configured.
+
+V2 uses a separate tmux socket, so it does not list V1/default desktop Sessions
+during development. This is intentional. At cutover, stop V1 before explicitly
+pointing V2 at the V1 socket; never run both writers against one socket.
 
 ## Pairing succeeds but the phone is immediately unauthorized
 

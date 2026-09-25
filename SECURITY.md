@@ -65,6 +65,12 @@ expires. Revoking the shared device invalidates all linked browser sessions.
 
 In Trusted-LAN HTTP mode, the implementation must not pretend a cookie is protected from network interception.
 
+Runtime profiles use separate session/CSRF cookie names (`mctrl_*` for V1 and
+`mctrl_v2_*` for V2), separate state roots, and separate launchd services. A
+profile mismatch is rejected rather than falling back to another installation.
+Profile selection is not a migration or a security boundary against an operator
+who explicitly shares credentials or a tmux socket.
+
 The Mac Pair Console's QR endpoint is available only to a loopback remote
 address with a valid same-origin browser request and the current one-time token.
 It renders the existing phone Pair URL and never consumes or bypasses pairing.

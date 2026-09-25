@@ -19,6 +19,14 @@ mctrl revoke <device-id>
 
 mctrl restart
 mctrl uninstall
+mctrl profile [--json]
+```
+
+All commands accept the global selector:
+
+```sh
+mctrl --profile v2 status
+MCTRL_PROFILE=v2 mctrl status
 ```
 
 ## setup
@@ -47,6 +55,12 @@ Projects     3
 Devices      1
 RemoteReady  on_ac
 ```
+
+## profile
+
+`mctrl profile` reports the selected profile, state directory, config path,
+LaunchAgent label, tmux socket, Pair app name, and bundle identifier. V1 is the
+backward-compatible default; V2 uses port `17682` and isolated state by default.
 
 ## pair
 

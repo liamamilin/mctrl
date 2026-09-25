@@ -40,6 +40,23 @@ npm run dev
 The Vite development server can proxy `/api` to the local daemon with
 `VITE_DEV_API_TARGET`.
 
+For an isolated V2 build and Pair app:
+
+```sh
+make build PROFILE=v2
+make mac-launcher PROFILE=v2
+```
+
+V2 binaries are written under `bin/v2/`; the V1 `bin/` outputs are not replaced.
+Run the matching profile explicitly:
+
+```sh
+./bin/v2/mctrl --profile v2 setup --lan
+./bin/v2/mctrl --profile v2 status
+```
+
+Runtime profile details and cutover rules are in [`VERSIONING.md`](VERSIONING.md).
+
 ## Test
 
 ```sh

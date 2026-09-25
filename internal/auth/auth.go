@@ -785,7 +785,33 @@ func (r *Registry) Revoke(id string) error {
 	})
 }
 
+func SessionCookieNameForProfile(profile string) string {
+	if suffix := profileCookieSuffix(profile); suffix != "" {
+		return "mctrl_" + suffix + "_session"
+	}
+	return SessionCookieName
+}
+
+func CSRFCookieNameForProfile(profile string) string {
+	if suffix := profileCookieSuffix(profile); suffix != "" {
+		return "mctrl_" + suffix + "_csrf"
+	}
+	return CSRFCookieName
+}
+
+func profileCookieSuffix(profile string) string {
+	profile = strings.ToLower(strings.TrimSpace(profile))
+	if profile == "" || profile == "v1" {
+		return ""
+	}
+	return profile
+}
+
 func RequestCredentialWithSource(r *http.Request) (string, bool) {
+	return RequestCredentialWithSourceForProfile(r, "")
+}
+
+func RequestCredentialWithSourceForProfile(r *http.Request, profile string) (string, bool) {
 	if value := strings.TrimSpace(r.Header.Get("Authorization")); value != "" {
 		parts := strings.Fields(value)
 		if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
@@ -793,7 +819,7 @@ func RequestCredentialWithSource(r *http.Request) (string, bool) {
 		}
 		return "", false
 	}
-	if cookie, err := r.Cookie(SessionCookieName); err == nil {
+	if cookie, err := r.Cookie(SessionCookieNameForProfile(profile)); err == nil {
 		return cookie.Value, true
 	}
 	return "", false
@@ -805,8 +831,12 @@ func RequestCredential(r *http.Request) string {
 }
 
 func SetSessionCookie(w http.ResponseWriter, token string, secure bool) {
+	SetSessionCookieForProfile(w, token, secure, "")
+}
+
+func SetSessionCookieForProfile(w http.ResponseWriter, token string, secure bool, profile string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     SessionCookieName,
+		Name:     SessionCookieNameForProfile(profile),
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
@@ -817,8 +847,12 @@ func SetSessionCookie(w http.ResponseWriter, token string, secure bool) {
 }
 
 func SetCSRFCookie(w http.ResponseWriter, token string, secure bool) {
+	SetCSRFCookieForProfile(w, token, secure, "")
+}
+
+func SetCSRFCookieForProfile(w http.ResponseWriter, token string, secure bool, profile string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     CSRFCookieName,
+		Name:     CSRFCookieNameForProfile(profile),
 		Value:    token,
 		Path:     "/",
 		HttpOnly: false,
@@ -829,8 +863,12 @@ func SetCSRFCookie(w http.ResponseWriter, token string, secure bool) {
 }
 
 func ClearSessionCookie(w http.ResponseWriter, secure bool) {
+	ClearSessionCookieForProfile(w, secure, "")
+}
+
+func ClearSessionCookieForProfile(w http.ResponseWriter, secure bool, profile string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     SessionCookieName,
+		Name:     SessionCookieNameForProfile(profile),
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,

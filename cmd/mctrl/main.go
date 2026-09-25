@@ -37,13 +37,32 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	args, profileFlag, err := extractProfileFlag(os.Args[1:])
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "mctrl:", err)
+		os.Exit(2)
+	}
+	if profileFlag != "" {
+		if err := os.Setenv(config.ProfileEnv, profileFlag); err != nil {
+			fmt.Fprintln(os.Stderr, "mctrl:", err)
+			os.Exit(1)
+		}
+	}
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "mctrl:", err)
+		os.Exit(2)
+	}
+	if err := profile.ApplyEnvironment(); err != nil {
+		fmt.Fprintln(os.Stderr, "mctrl:", err)
+		os.Exit(1)
+	}
+	if len(args) < 1 {
 		usage()
 		os.Exit(2)
 	}
-	command := os.Args[1]
-	args := os.Args[2:]
-	var err error
+	command := args[0]
+	args = args[1:]
 	switch command {
 	case "serve":
 		err = runServe(args)
@@ -67,6 +86,8 @@ func main() {
 		err = runRestart(args)
 	case "uninstall":
 		err = runUninstall(args)
+	case "profile":
+		err = runProfile(args)
 	case "help", "-h", "--help":
 		usage()
 		return
@@ -86,6 +107,9 @@ func main() {
 func usage() {
 	fmt.Println(`mctrl - mobile control surface for terminal work
 
+Global options:
+  --profile <v1|v2|v3|...>  select an isolated installation profile
+
 Commands:
   mctrl version     print build version
   mctrl setup       initialize state and start the daemon
@@ -98,9 +122,83 @@ Commands:
   mctrl revoke      revoke a paired device
   mctrl restart     restart only the daemon
   mctrl uninstall   stop mctrl without destroying arbitrary tmux sessions
+  mctrl profile     show the active isolation profile and paths
 
 Internal:
   mctrl serve       run the daemon in the foreground`)
+}
+
+func extractProfileFlag(args []string) ([]string, string, error) {
+	rest := make([]string, 0, len(args))
+	profile := ""
+	for index := 0; index < len(args); index++ {
+		arg := args[index]
+		if arg == "--profile" {
+			if index+1 >= len(args) || strings.TrimSpace(args[index+1]) == "" {
+				return nil, "", errors.New("--profile requires a value")
+			}
+			profile = args[index+1]
+			index++
+			continue
+		}
+		if strings.HasPrefix(arg, "--profile=") {
+			profile = strings.TrimSpace(strings.TrimPrefix(arg, "--profile="))
+			if profile == "" {
+				return nil, "", errors.New("--profile requires a value")
+			}
+			continue
+		}
+		rest = append(rest, arg)
+	}
+	return rest, profile, nil
+}
+
+func runProfile(args []string) error {
+	fs := flagSet("profile")
+	jsonOutput := fs.Bool("json", false, "print profile details as JSON")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if fs.NArg() != 0 {
+		return errors.New("usage: mctrl profile [--json]")
+	}
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return err
+	}
+	stateDir, err := config.StateDir()
+	if err != nil {
+		return err
+	}
+	tmuxSocket := strings.TrimSpace(os.Getenv("MCTRL_TMUX_SOCKET"))
+	if tmuxSocket == "" {
+		tmuxSocket = profile.DefaultTmuxSocket
+	}
+	if tmuxSocket == "" {
+		tmuxSocket = "default macOS tmux socket"
+	}
+	details := map[string]string{
+		"profile":           profile.Name,
+		"state_dir":         stateDir,
+		"config":            filepath.Join(stateDir, "config.json"),
+		"default_port":      strconv.Itoa(profile.DefaultPort),
+		"launch_agent":      profile.LaunchAgentLabel,
+		"tmux_socket":       tmuxSocket,
+		"pair_app":          profile.PairAppName + ".app",
+		"bundle_identifier": profile.BundleIdentifier,
+	}
+	if *jsonOutput {
+		return json.NewEncoder(os.Stdout).Encode(details)
+	}
+	fmt.Printf("Profile:      %s\n", details["profile"])
+	fmt.Printf("State dir:    %s\n", details["state_dir"])
+	fmt.Printf("Config:       %s\n", details["config"])
+	fmt.Printf("Default port: %s\n", details["default_port"])
+	fmt.Printf("LaunchAgent:  %s\n", details["launch_agent"])
+	fmt.Printf("tmux socket:  %s\n", details["tmux_socket"])
+	fmt.Printf("Pair app:     %s\n", details["pair_app"])
+	fmt.Printf("Bundle ID:    %s\n", details["bundle_identifier"])
+	return nil
 }
 
 func runServe(_ []string) error {
@@ -214,9 +312,16 @@ func runSetup(args []string) error {
 		return err
 	}
 	cfgPath := filepath.Join(stateDir, "config.json")
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return err
+	}
 	cfg, err := config.Load(cfgPath)
 	if errors.Is(err, os.ErrNotExist) {
-		cfg = config.Default()
+		cfg, err = config.DefaultForProfile(profile.Name)
+		if err != nil {
+			return err
+		}
 	} else if err != nil {
 		return err
 	}
@@ -258,6 +363,7 @@ func runSetup(args []string) error {
 			fmt.Fprintf(os.Stderr, "warning: mctrl-runner is not next to mctrl (%s); build/install both binaries before launching Work\n", runnerPath)
 		}
 	}
+	fmt.Printf("Profile: %s\n", profile.Name)
 	fmt.Printf("State directory: %s\n", stateDir)
 	fmt.Printf("Address: %s\n", strings.TrimSuffix(advertisedPairURL(cfg), "/pair"))
 	if cfg.TransportProfile == config.TransportTrustedLANHTTP {
@@ -287,7 +393,11 @@ func runSetup(args []string) error {
 			fmt.Println("Daemon: started in background (login LaunchAgent disabled)")
 		}
 	}
-	fmt.Println("Next: run `mctrl pair` and open the printed pairing URL on the phone.")
+	nextCommand := "mctrl pair"
+	if profile.Name != config.DefaultProfileName {
+		nextCommand = "mctrl --profile " + profile.Name + " pair"
+	}
+	fmt.Printf("Next: run `%s` and open the printed pairing URL on the phone.\n", nextCommand)
 	return nil
 }
 
@@ -385,20 +495,31 @@ func runStatus(_ []string) error {
 	serverStatus := "stopped"
 	if err == nil {
 		var health struct {
-			Status string `json:"status"`
+			Status  string `json:"status"`
+			Profile string `json:"profile"`
 		}
 		_ = json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&health)
 		_ = response.Body.Close()
 		if response.StatusCode == http.StatusOK {
-			serverStatus = "running"
-			if health.Status == "degraded" {
-				serverStatus = "degraded"
+			expectedProfile, _ := config.ActiveProfile()
+			profileMatches := health.Profile == "" && expectedProfile.Name == "v1" || health.Profile == expectedProfile.Name
+			if profileMatches {
+				serverStatus = "running"
+				if health.Status == "degraded" {
+					serverStatus = "degraded"
+				}
+			} else {
+				serverStatus = "wrong-profile"
 			}
 		}
 	}
 	sessions, sessionErr := tmux.New().ListSessions(context.Background())
 	projects, projectErr := project.NewStore(stateDir).List()
 	devices, deviceErr := auth.NewRegistry(stateDir).List()
+	profile, _ := config.ActiveProfile()
+	fmt.Printf("Profile      %s\n", profile.Name)
+	fmt.Printf("State        %s\n", stateDir)
+	fmt.Printf("LaunchAgent  %s\n", profile.LaunchAgentLabel)
 	fmt.Printf("Server       %s\n", serverStatus)
 	fmt.Printf("Address      http://%s\n", cfg.Address())
 	fmt.Printf("Transport    %s\n", transportLabel(cfg.TransportProfile))
@@ -473,6 +594,8 @@ func runPair(args []string) error {
 		return err
 	}
 	pairURL := advertisedPairURL(cfg) + "#token=" + url.QueryEscape(pairing.Token)
+	profile, _ := config.ActiveProfile()
+	fmt.Printf("Profile:       %s\n", profile.Name)
 	fmt.Printf("Pairing token: %s\n", pairing.Token)
 	fmt.Printf("Expires:       %s\n", pairing.ExpiresAt.Format(time.RFC3339))
 	fmt.Printf("Open:          %s\n", pairURL)
@@ -495,10 +618,17 @@ func runPair(args []string) error {
 }
 
 func runDoctor(_ []string) error {
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return err
+	}
 	stateDir, err := config.StateDir()
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Profile:      %s\n", profile.Name)
+	fmt.Printf("State dir:    %s\n", stateDir)
+	fmt.Printf("LaunchAgent:  %s\n", profile.LaunchAgentLabel)
 	fmt.Printf("Platform:     %s/%s\n", runtime.GOOS, runtime.GOARCH)
 	if hostname, hostnameErr := os.Hostname(); hostnameErr == nil {
 		fmt.Printf("Hostname:     %s\n", hostname)
@@ -527,11 +657,16 @@ func runDoctor(_ []string) error {
 			client := http.Client{Timeout: 2 * time.Second}
 			if response, requestErr := client.Get("http://" + localAddress(cfg) + "/healthz"); requestErr == nil {
 				var health struct {
-					Status string `json:"status"`
+					Status  string `json:"status"`
+					Profile string `json:"profile"`
 				}
 				_ = json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&health)
 				_ = response.Body.Close()
-				fmt.Printf("API:           reachable (HTTP %d, %s)\n", response.StatusCode, health.Status)
+				if health.Profile != "" && health.Profile != profile.Name {
+					fmt.Printf("API:           wrong profile (HTTP %d, %s, expected %s)\n", response.StatusCode, health.Profile, profile.Name)
+				} else {
+					fmt.Printf("API:           reachable (HTTP %d, %s, profile %s)\n", response.StatusCode, health.Status, profile.Name)
+				}
 			} else {
 				fmt.Printf("API:           unreachable (%v)\n", requestErr)
 			}
@@ -757,6 +892,13 @@ func runUninstall(args []string) error {
 	if err != nil {
 		return err
 	}
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return err
+	}
+	if err := config.ValidateRuntimeIdentity(stateDir, profile.Name); err != nil {
+		return err
+	}
 	if err := removeLaunchAgent(); err != nil {
 		return fmt.Errorf("remove LaunchAgent: %w", err)
 	}
@@ -776,17 +918,40 @@ func runUninstall(args []string) error {
 }
 
 func loadConfig(stateDir string) (config.Config, error) {
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return config.Config{}, err
+	}
+	if err := config.ValidateRuntimeIdentity(stateDir, profile.Name); err != nil {
+		return config.Config{}, err
+	}
 	return config.Load(filepath.Join(stateDir, "config.json"))
 }
 
 func daemonReachable(cfg config.Config) bool {
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return false
+	}
 	client := http.Client{Timeout: 500 * time.Millisecond}
 	response, err := client.Get("http://" + localAddress(cfg) + "/healthz")
 	if err != nil {
 		return false
 	}
-	_ = response.Body.Close()
-	return response.StatusCode == http.StatusOK
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return false
+	}
+	var health struct {
+		Profile string `json:"profile"`
+	}
+	if err := json.NewDecoder(io.LimitReader(response.Body, 64<<10)).Decode(&health); err != nil {
+		return profile.Name == "v1"
+	}
+	if health.Profile == "" {
+		return profile.Name == "v1"
+	}
+	return health.Profile == profile.Name
 }
 
 func waitForDaemon(cfg config.Config, timeout time.Duration) error {
@@ -842,8 +1007,16 @@ func transportLabel(profile config.TransportProfile) string {
 
 const launchAgentLabel = "com.mctrl.daemon"
 
+func activeLaunchAgentLabel() string {
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return launchAgentLabel
+	}
+	return profile.LaunchAgentLabel
+}
+
 func launchctlDomain() string        { return fmt.Sprintf("gui/%d", os.Getuid()) }
-func launchctlServiceTarget() string { return launchctlDomain() + "/" + launchAgentLabel }
+func launchctlServiceTarget() string { return launchctlDomain() + "/" + activeLaunchAgentLabel() }
 
 func launchAgentLoaded() bool {
 	return exec.Command("launchctl", "print", launchctlServiceTarget()).Run() == nil
@@ -873,10 +1046,48 @@ func launchAgentPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, "Library", "LaunchAgents", "com.mctrl.daemon.plist"), nil
+	return filepath.Join(home, "Library", "LaunchAgents", activeLaunchAgentLabel()+".plist"), nil
+}
+
+func renderLaunchAgent(profile config.Profile, executable, stateDir, pathEnv, tmuxSocket string) string {
+	if tmuxSocket == "" {
+		tmuxSocket = profile.DefaultTmuxSocket
+	}
+	tmuxEnvironment := ""
+	if tmuxSocket != "" {
+		tmuxEnvironment = "    <key>MCTRL_TMUX_SOCKET</key><string>" + html.EscapeString(tmuxSocket) + "</string>\n"
+	}
+	return fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>%s</string>
+  <key>ProgramArguments</key>
+  <array><string>%s</string><string>serve</string></array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>MCTRL_PROFILE</key><string>%s</string>
+    <key>MCTRL_HOME</key><string>%s</string>
+%s    <key>PATH</key><string>%s</string>
+    <key>TMUX_TMPDIR</key><string>/private/tmp</string>
+    <key>LANG</key><string>en_US.UTF-8</string>
+    <key>LC_ALL</key><string>en_US.UTF-8</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ProcessType</key><string>Interactive</string>
+  <key>StandardOutPath</key><string>%s</string>
+  <key>StandardErrorPath</key><string>%s</string>
+</dict>
+</plist>
+`, html.EscapeString(profile.LaunchAgentLabel), html.EscapeString(executable), html.EscapeString(profile.Name), html.EscapeString(stateDir), tmuxEnvironment, html.EscapeString(pathEnv), html.EscapeString(filepath.Join(stateDir, "logs", "mctrl.log")), html.EscapeString(filepath.Join(stateDir, "logs", "mctrl.log")))
 }
 
 func installLaunchAgent() error {
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return err
+	}
 	path, err := launchAgentPath()
 	if err != nil {
 		return err
@@ -896,29 +1107,7 @@ func installLaunchAgent() error {
 	if pathEnv == "" {
 		pathEnv = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 	}
-	plist := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key><string>`+launchAgentLabel+`</string>
-  <key>ProgramArguments</key>
-  <array><string>%s</string><string>serve</string></array>
-  <key>EnvironmentVariables</key>
-  <dict>
-    <key>MCTRL_HOME</key><string>%s</string>
-    <key>PATH</key><string>%s</string>
-    <key>TMUX_TMPDIR</key><string>/private/tmp</string>
-    <key>LANG</key><string>en_US.UTF-8</string>
-    <key>LC_ALL</key><string>en_US.UTF-8</string>
-  </dict>
-  <key>RunAtLoad</key><true/>
-  <key>KeepAlive</key><true/>
-  <key>ProcessType</key><string>Interactive</string>
-  <key>StandardOutPath</key><string>%s</string>
-  <key>StandardErrorPath</key><string>%s</string>
-</dict>
-</plist>
-`, html.EscapeString(executable), html.EscapeString(stateDir), html.EscapeString(pathEnv), html.EscapeString(filepath.Join(stateDir, "logs", "mctrl.log")), html.EscapeString(filepath.Join(stateDir, "logs", "mctrl.log")))
+	plist := renderLaunchAgent(profile, executable, stateDir, pathEnv, os.Getenv("MCTRL_TMUX_SOCKET"))
 	if err := os.WriteFile(path, []byte(plist), 0600); err != nil {
 		return err
 	}
@@ -934,6 +1123,10 @@ func installLaunchAgent() error {
 }
 
 func startBackground() error {
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return err
+	}
 	stateDir, err := config.StateDir()
 	if err != nil {
 		return err
@@ -955,7 +1148,7 @@ func startBackground() error {
 		return err
 	}
 	command := exec.Command(executable, "serve")
-	command.Env = append(os.Environ(), "MCTRL_HOME="+stateDir)
+	command.Env = append(os.Environ(), "MCTRL_PROFILE="+profile.Name, "MCTRL_HOME="+stateDir)
 	command.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	command.Stdout = logFile
 	command.Stderr = logFile

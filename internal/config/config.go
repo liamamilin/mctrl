@@ -200,13 +200,21 @@ func lanAddress() string {
 
 func StateDir() (string, error) {
 	if value := strings.TrimSpace(os.Getenv("MCTRL_HOME")); value != "" {
-		return filepath.Clean(value), nil
+		absolute, err := filepath.Abs(value)
+		if err != nil {
+			return "", fmt.Errorf("resolve MCTRL_HOME: %w", err)
+		}
+		return absolute, nil
+	}
+	profile, err := ActiveProfile()
+	if err != nil {
+		return "", err
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("find home directory: %w", err)
 	}
-	return filepath.Join(home, ".mctrl"), nil
+	return profile.StateDir(home), nil
 }
 
 func EnsureStateDir() (string, error) {
@@ -218,6 +226,23 @@ func EnsureStateDir() (string, error) {
 		if err := os.MkdirAll(filepath.Join(dir, subdir), 0700); err != nil {
 			return "", fmt.Errorf("create state directory: %w", err)
 		}
+	}
+	profile, err := ActiveProfile()
+	if err != nil {
+		return "", err
+	}
+	if profile.Name != DefaultProfileName {
+		_, markerErr := os.Stat(filepath.Join(dir, runtimeIdentityFile))
+		_, configErr := os.Stat(filepath.Join(dir, "config.json"))
+		if errors.Is(markerErr, os.ErrNotExist) && configErr == nil {
+			return "", fmt.Errorf("refusing unmarked profile state directory: %s", dir)
+		}
+		if markerErr != nil && !errors.Is(markerErr, os.ErrNotExist) {
+			return "", markerErr
+		}
+	}
+	if err := EnsureRuntimeIdentity(dir, profile.Name); err != nil {
+		return "", err
 	}
 	return dir, nil
 }

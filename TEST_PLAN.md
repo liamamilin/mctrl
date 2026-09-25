@@ -84,6 +84,9 @@ Required:
 - terminal Work card offers Start another Work with Project preselection
 - duplicate POST
 - device revoke
+- V1 and V2 profiles keep state, ports, LaunchAgents, cookies, Pair apps, and tmux sockets separate
+- V2 refuses to open a V1-marked state root
+- V1/V2 Pair apps coexist and V2 invokes `--profile v2`
 
 ## Transport tests
 

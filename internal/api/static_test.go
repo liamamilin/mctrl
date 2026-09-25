@@ -82,6 +82,43 @@ func TestEmbeddedPWAHasSecurityAndCachePolicy(t *testing.T) {
 	}
 }
 
+func TestV2ProfileNamespacesPWAIdentity(t *testing.T) {
+	t.Setenv(config.ProfileEnv, "v2")
+	root := t.TempDir()
+	if err := config.EnsureRuntimeIdentity(root, "v2"); err != nil {
+		t.Fatal(err)
+	}
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := NewServer(cfg, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	handler := server.Handler()
+
+	index := httptest.NewRecorder()
+	handler.ServeHTTP(index, httptest.NewRequest(http.MethodGet, "/", nil))
+	if !strings.Contains(index.Body.String(), `name="mctrl-runtime" content="v2"`) {
+		t.Fatalf("runtime meta was not rendered: %s", index.Body.String())
+	}
+	worker := httptest.NewRecorder()
+	handler.ServeHTTP(worker, httptest.NewRequest(http.MethodGet, "/sw.js", nil))
+	if !strings.Contains(worker.Body.String(), "mctrl-shell-v2-") {
+		t.Fatalf("v2 service worker cache was not namespaced: %s", worker.Body.String())
+	}
+	manifest := httptest.NewRecorder()
+	handler.ServeHTTP(manifest, httptest.NewRequest(http.MethodGet, "/manifest.webmanifest", nil))
+	if !strings.Contains(manifest.Body.String(), `"name": "mctrl V2"`) {
+		t.Fatalf("v2 manifest name was not namespaced: %s", manifest.Body.String())
+	}
+	health := httptest.NewRecorder()
+	handler.ServeHTTP(health, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+	if !strings.Contains(health.Body.String(), `"profile":"v2"`) {
+		t.Fatalf("health identity missing: %s", health.Body.String())
+	}
+}
+
 func TestEmbeddedHashedAssetsAreImmutable(t *testing.T) {
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly

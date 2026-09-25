@@ -8,6 +8,7 @@ export interface Host {
   transport?: string;
   public_url?: string;
   version?: string;
+  profile?: string;
 }
 
 export interface Project {

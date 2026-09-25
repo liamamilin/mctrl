@@ -7,6 +7,7 @@ import {
   ApiError,
   getSession,
   isUncertainOutcome,
+  runtimeStorageKey,
   sendSessionPrompt,
 } from '../api';
 import { makeRequestId } from '../format';
@@ -79,7 +80,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const sendRaw = useRef<(data: string) => boolean>(() => false);
   const toggleOverview = useRef<() => void>(() => undefined);
   const controlArmed = useRef(false);
-  const promptStorageKey = `mctrl-prompt:${sessionId}`;
+  const promptStorageKey = runtimeStorageKey(`mctrl-prompt:${sessionId}`);
   const initialPromptRequest = readPendingPrompt(promptStorageKey);
   const promptRequest = useRef<string | undefined>(initialPromptRequest);
   const [connection, setConnection] =

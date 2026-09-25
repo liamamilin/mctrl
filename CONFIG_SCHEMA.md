@@ -3,13 +3,20 @@
 Root:
 
 ```text
-~/.mctrl/
+~/.mctrl/                 # V1
+~/.mctrl-v2/              # V2 development profile
 ```
+
+The active runtime profile is selected with `--profile` or `MCTRL_PROFILE`.
+`MCTRL_HOME` remains an explicit state-root override. Each state root has a
+`runtime.json` marker after initialization; a V2 profile refuses to open a
+marked V1 root and V1 continues to accept legacy roots without a marker.
 
 Layout:
 
 ```text
 ~/.mctrl/
+├── runtime.json                 # profile marker; legacy V1 roots may omit it
 ├── config.json
 ├── projects.json
 ├── devices.json
@@ -23,6 +30,21 @@ Layout:
     ├── mctrl.log
     └── runner/
 ```
+
+## runtime.json
+
+After initialization, a profile-aware state root contains:
+
+```json
+{
+  "schema_version": 1,
+  "profile": "v1"
+}
+```
+
+A missing marker is treated as a legacy V1 root. A V2 profile refuses to open a
+marked V1 root, and a V1 root with a different marker is rejected. This marker
+identifies the runtime profile; it is not a data migration manifest.
 
 ## config.json
 
@@ -45,6 +67,13 @@ Example:
 
 The example shows an explicitly selected LAN listener. The V1 implementation default
 is `127.0.0.1`; `0.0.0.0` must be opted into through setup or configuration.
+
+## Runtime profiles
+
+The V1 defaults are frozen for compatibility. V2 uses port `17682`, a separate
+LaunchAgent, separate cookies, and a separate tmux socket. Profile selection does
+not change the persistence schema version; it changes the state root and service
+identity. See [`VERSIONING.md`](VERSIONING.md).
 
 `transport_profile` values:
 

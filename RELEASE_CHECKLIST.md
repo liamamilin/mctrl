@@ -89,6 +89,15 @@ unchecked until that external environment is available.
 - [x] `mctrl doctor`
 - [x] lightweight macOS Pair launcher and multi-resolution app icon release-verified
 
+## Version isolation
+
+- [x] V1 defaults remain backward compatible
+- [x] V2 state, port, LaunchAgent, cookies, tmux socket, and Pair app are distinct
+- [x] V2 refuses a V1-marked state root
+- [x] V1/V2 service-worker and browser storage identities are separated
+- [x] V2 Pair launcher invokes `--profile v2`
+- [ ] V1 and V2 have been exercised simultaneously on a real iPhone
+
 ## Required local gate
 
 ```sh

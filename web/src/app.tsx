@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
-import { bindDeviceInstallation, getMe, UNAUTHORIZED_EVENT } from './api';
+import {
+  bindDeviceInstallation,
+  getMe,
+  RUNTIME_PROFILE,
+  UNAUTHORIZED_EVENT,
+} from './api';
 import { AppFrame } from './components/ui';
 import { HomePage } from './pages/HomePage';
 import { LinkBrowserPage } from './pages/LinkBrowserPage';
@@ -53,17 +58,21 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    const brand =
+      RUNTIME_PROFILE === 'v1'
+        ? 'mctrl'
+        : `mctrl ${RUNTIME_PROFILE.toUpperCase()}`;
     const titles: Record<string, string> = {
-      home: 'mctrl',
-      pair: 'Pair device · mctrl',
-      'pair-console': 'Pair phone · mctrl',
-      link: 'Link browser · mctrl',
-      start: 'Start Work · mctrl',
-      settings: 'Settings · mctrl',
-      session: 'Session · mctrl',
-      terminal: 'Terminal · mctrl',
+      home: brand,
+      pair: `Pair device · ${brand}`,
+      'pair-console': `Pair phone · ${brand}`,
+      link: `Link browser · ${brand}`,
+      start: `Start Work · ${brand}`,
+      settings: `Settings · ${brand}`,
+      session: `Session · ${brand}`,
+      terminal: `Terminal · ${brand}`,
     };
-    document.title = titles[route.name] ?? 'mctrl';
+    document.title = titles[route.name] ?? brand;
   }, [route.name]);
 
   if (route.name === 'pair') {

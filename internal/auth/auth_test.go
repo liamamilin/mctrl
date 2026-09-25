@@ -30,6 +30,26 @@ func TestBrowserOriginRequiresOriginAndMatchingTransport(t *testing.T) {
 	}
 }
 
+func TestProfileCookieNamesKeepV1AndSeparateV2(t *testing.T) {
+	if SessionCookieNameForProfile("v1") != SessionCookieName || CSRFCookieNameForProfile("v1") != CSRFCookieName {
+		t.Fatal("v1 cookie names changed")
+	}
+	if SessionCookieNameForProfile("v2") != "mctrl_v2_session" || CSRFCookieNameForProfile("v2") != "mctrl_v2_csrf" {
+		t.Fatal("v2 cookie names are not isolated")
+	}
+	request := httptest.NewRequest(http.MethodGet, "http://example.test/", nil)
+	request.AddCookie(&http.Cookie{Name: SessionCookieName, Value: "v1-token"})
+	request.AddCookie(&http.Cookie{Name: SessionCookieNameForProfile("v2"), Value: "v2-token"})
+	credential, viaCookie := RequestCredentialWithSourceForProfile(request, "v2")
+	if credential != "v2-token" || !viaCookie {
+		t.Fatalf("v2 credential = %q viaCookie=%v", credential, viaCookie)
+	}
+	credential, viaCookie = RequestCredentialWithSourceForProfile(request, "v1")
+	if credential != "v1-token" || !viaCookie {
+		t.Fatalf("v1 credential = %q viaCookie=%v", credential, viaCookie)
+	}
+}
+
 func TestMalformedAuthorizationDoesNotFallBackToCookie(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "http://example.test/", nil)
 	request.AddCookie(&http.Cookie{Name: SessionCookieName, Value: "cookie-session"})

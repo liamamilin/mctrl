@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -8,6 +9,81 @@ import (
 
 	"mctrl/internal/config"
 )
+
+func TestExtractProfileFlagSupportsGlobalForms(t *testing.T) {
+	args, profile, err := extractProfileFlag([]string{"--profile", "v2", "status", "--profile=v3"})
+	if err != nil || profile != "v3" || strings.Join(args, " ") != "status" {
+		t.Fatalf("profile extraction = args=%v profile=%q err=%v", args, profile, err)
+	}
+	if _, _, err := extractProfileFlag([]string{"status", "--profile"}); err == nil {
+		t.Fatal("profile flag without a value was accepted")
+	}
+}
+
+func TestV2SetupUsesIsolatedPortAndStateIdentity(t *testing.T) {
+	if _, err := exec.LookPath("tmux"); err != nil {
+		t.Skip("tmux is not installed")
+	}
+	t.Setenv(config.ProfileEnv, "v2")
+	t.Setenv("MCTRL_HOME", t.TempDir())
+	t.Setenv("MCTRL_TMUX_SOCKET", "")
+	if err := runSetup([]string{"--no-start"}); err != nil {
+		t.Fatal(err)
+	}
+	stateDir := os.Getenv("MCTRL_HOME")
+	cfg, err := config.Load(filepath.Join(stateDir, "config.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Port != 17682 {
+		t.Fatalf("v2 setup port = %d, want 17682", cfg.Port)
+	}
+	if err := config.ValidateRuntimeIdentity(stateDir, "v2"); err != nil {
+		t.Fatal(err)
+	}
+	if activeLaunchAgentLabel() != "com.mctrl.v2.daemon" {
+		t.Fatalf("v2 launch label = %q", activeLaunchAgentLabel())
+	}
+}
+
+func TestV1AndV2LaunchTargetsAreDistinct(t *testing.T) {
+	t.Setenv(config.ProfileEnv, "v1")
+	v1Target := launchctlServiceTarget()
+	v1Path, err := launchAgentPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv(config.ProfileEnv, "v2")
+	v2Target := launchctlServiceTarget()
+	v2Path, err := launchAgentPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v1Target == v2Target || v1Path == v2Path || !strings.HasSuffix(v1Path, "com.mctrl.daemon.plist") || !strings.HasSuffix(v2Path, "com.mctrl.v2.daemon.plist") {
+		t.Fatalf("launch targets overlap: v1=%s/%s v2=%s/%s", v1Target, v1Path, v2Target, v2Path)
+	}
+}
+
+func TestRenderedLaunchAgentsCarryProfileIsolation(t *testing.T) {
+	v1, err := config.ProfileForName("v1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	v2, err := config.ProfileForName("v2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	v1Plist := renderLaunchAgent(v1, "/tmp/mctrl", "/tmp/state-v1", "/usr/bin", "")
+	if !strings.Contains(v1Plist, "<string>com.mctrl.daemon</string>") || !strings.Contains(v1Plist, "<string>/tmp/state-v1</string>") || strings.Contains(v1Plist, "MCTRL_TMUX_SOCKET") {
+		t.Fatalf("v1 plist identity changed: %s", v1Plist)
+	}
+	v2Plist := renderLaunchAgent(v2, "/tmp/mctrl-v2", "/tmp/state-v2", "/usr/bin", v2.DefaultTmuxSocket)
+	for _, expected := range []string{"com.mctrl.v2.daemon", "/tmp/state-v2", "MCTRL_TMUX_SOCKET", v2.DefaultTmuxSocket} {
+		if !strings.Contains(v2Plist, expected) {
+			t.Fatalf("v2 plist missing %q: %s", expected, v2Plist)
+		}
+	}
+}
 
 func TestAdvertisedPairURLUsesConfiguredPublicOrigin(t *testing.T) {
 	cfg := config.Default()
@@ -44,6 +120,7 @@ func TestPairOpenRequiresRunningDaemon(t *testing.T) {
 }
 
 func TestLaunchctlDomainAndServiceTargetsAreDistinct(t *testing.T) {
+	t.Setenv(config.ProfileEnv, "v1")
 	domain := launchctlDomain()
 	service := launchctlServiceTarget()
 	if !strings.HasPrefix(domain, "gui/") || !strings.HasSuffix(service, "/"+launchAgentLabel) {

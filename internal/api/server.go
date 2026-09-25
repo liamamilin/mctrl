@@ -28,17 +28,18 @@ import (
 )
 
 type Server struct {
-	cfg       config.Config
-	stateDir  string
-	projects  *project.Store
-	devices   *auth.Registry
-	works     *work.Store
-	prompts   *promptStore
-	tmux      *tmux.Adapter
-	runners   *runner.Registry
-	terminal  *terminal.Bridge
-	staticFS  fs.FS
-	hostPower *power.Assertion
+	cfg         config.Config
+	stateDir    string
+	projects    *project.Store
+	devices     *auth.Registry
+	works       *work.Store
+	prompts     *promptStore
+	tmux        *tmux.Adapter
+	runners     *runner.Registry
+	terminal    *terminal.Bridge
+	staticFS    fs.FS
+	hostPower   *power.Assertion
+	profileName string
 
 	mu               sync.RWMutex
 	started          time.Time
@@ -82,6 +83,13 @@ func newServer(cfg config.Config, stateDir string, adapter *tmux.Adapter) (*Serv
 			return nil, err
 		}
 	}
+	profile, err := config.ActiveProfile()
+	if err != nil {
+		return nil, err
+	}
+	if err := config.ValidateRuntimeIdentity(stateDir, profile.Name); err != nil {
+		return nil, err
+	}
 	for _, subdir := range []string{"", "work", "logs", filepath.Join("logs", "runner")} {
 		if err := os.MkdirAll(filepath.Join(stateDir, subdir), 0700); err != nil {
 			return nil, err
@@ -99,16 +107,17 @@ func newServer(cfg config.Config, stateDir string, adapter *tmux.Adapter) (*Serv
 		return nil, fmt.Errorf("validate device registry: %w", err)
 	}
 	server := &Server{
-		cfg:      cfg,
-		stateDir: stateDir,
-		projects: projects,
-		devices:  auth.NewRegistry(stateDir),
-		works:    works,
-		prompts:  newPromptStore(stateDir),
-		tmux:     adapter,
-		runners:  runner.NewRegistry(),
-		staticFS: embeddedStatic(),
-		started:  time.Now().UTC(),
+		cfg:         cfg,
+		stateDir:    stateDir,
+		profileName: profile.Name,
+		projects:    projects,
+		devices:     auth.NewRegistry(stateDir),
+		works:       works,
+		prompts:     newPromptStore(stateDir),
+		tmux:        adapter,
+		runners:     runner.NewRegistry(),
+		staticFS:    embeddedStatic(),
+		started:     time.Now().UTC(),
 	}
 	server.terminal = terminal.NewBridge(adapter, server.devices.IsActive)
 	if reconcileErr := server.prompts.reconcile(); reconcileErr != nil {
@@ -219,7 +228,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	status := "ok"
-	payload := map[string]interface{}{"time": time.Now().UTC()}
+	payload := map[string]interface{}{"time": time.Now().UTC(), "profile": s.profileName}
 	if s.controlError() != "" {
 		status = "degraded"
 		payload["degraded"] = true
@@ -323,7 +332,7 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) authenticate(r *http.Request) (auth.Principal, error) {
-	credential, viaCookie := auth.RequestCredentialWithSource(r)
+	credential, viaCookie := auth.RequestCredentialWithSourceForProfile(r, s.profileName)
 	if credential == "" {
 		return auth.Principal{}, auth.ErrUnauthorized
 	}

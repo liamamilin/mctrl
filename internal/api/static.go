@@ -33,10 +33,34 @@ func (s *Server) serveStatic(w http.ResponseWriter, r *http.Request) {
 		_ = file.Close()
 		switch {
 		case requestPath == "manifest.webmanifest":
+			data, readErr := fs.ReadFile(s.staticFS, requestPath)
+			if readErr != nil {
+				http.NotFound(w, r)
+				return
+			}
+			text := string(data)
+			if s.profileName != "" && s.profileName != "v1" {
+				label := "mctrl " + strings.ToUpper(s.profileName)
+				text = strings.ReplaceAll(text, `"name": "mctrl"`, `"name": "`+label+`"`)
+				text = strings.ReplaceAll(text, `"short_name": "mctrl"`, `"short_name": "`+label+`"`)
+			}
 			w.Header().Set("Content-Type", "application/manifest+json")
 			w.Header().Set("Cache-Control", "no-cache")
+			_, _ = w.Write([]byte(text))
+			return
 		case requestPath == "sw.js":
+			data, readErr := fs.ReadFile(s.staticFS, requestPath)
+			if readErr != nil {
+				http.NotFound(w, r)
+				return
+			}
+			text := string(data)
+			if s.profileName != "" && s.profileName != "v1" {
+				text = strings.ReplaceAll(text, "mctrl-shell-", "mctrl-shell-"+s.profileName+"-")
+			}
 			w.Header().Set("Cache-Control", "no-cache")
+			_, _ = w.Write([]byte(text))
+			return
 		case strings.HasPrefix(requestPath, "assets/"):
 			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		default:
@@ -55,6 +79,13 @@ func (s *Server) serveIndex(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		http.Error(w, "web assets unavailable", http.StatusInternalServerError)
 		return
+	}
+	runtimeName := s.profileName
+	if runtimeName == "" {
+		runtimeName = "v1"
+	}
+	if runtimeName != "v1" {
+		data = []byte(strings.ReplaceAll(string(data), `content="v1"`, `content="`+runtimeName+`"`))
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache")
