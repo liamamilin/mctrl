@@ -25,6 +25,9 @@ function SessionCard({
       <div class="session-card-topline">
         <div>
           <h3>{session.name}</h3>
+          <p className="session-origin-badge compact">
+            {session.managed_work ? 'Managed' : 'External tmux'}
+          </p>
           {cwd && <p class="session-path">{cwd}</p>}
         </div>
         <span class="chevron" aria-hidden="true">

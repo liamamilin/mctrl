@@ -322,6 +322,30 @@ func (a *Adapter) SessionMatches(ctx context.Context, id, expectedName string) (
 	return strings.TrimSpace(expectedName) == "" || session.Name == expectedName, nil
 }
 
+func isSessionNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+	message := strings.ToLower(tmuxErrorText(err))
+	return strings.Contains(message, "can't find session") ||
+		strings.Contains(message, "session not found") ||
+		strings.Contains(message, "no such session")
+}
+
+func (a *Adapter) CloseSession(ctx context.Context, id string) error {
+	session, err := a.InspectSession(ctx, id)
+	if err != nil {
+		return err
+	}
+	if _, err := a.run(ctx, "kill-session", "-t", session.ID); err != nil {
+		if isSessionNotFoundError(err) {
+			return ErrSessionNotFound
+		}
+		return err
+	}
+	return nil
+}
+
 func (a *Adapter) CreateManagedSession(ctx context.Context, name, cwd string, command []string) (string, error) {
 	if !a.Available() {
 		return "", ErrUnavailable

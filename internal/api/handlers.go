@@ -252,16 +252,49 @@ func (s *Server) handleProjectCreate(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, item)
 }
 
+func (s *Server) activeWorkForProject(projectID string) ([]work.Work, error) {
+	items, err := s.works.List()
+	if err != nil {
+		return nil, err
+	}
+	active := make([]work.Work, 0)
+	for _, item := range items {
+		if item.ProjectID == projectID && !item.Terminal() {
+			active = append(active, item)
+		}
+	}
+	return active, nil
+}
+
 func (s *Server) handleProjectDelete(w http.ResponseWriter, _ *http.Request, id string) {
+	if _, err := s.projects.Get(id); err != nil {
+		if errors.Is(err, project.ErrNotFound) {
+			writeError(w, http.StatusNotFound, "PROJECT_NOT_FOUND", "Project was not found", nil)
+		} else {
+			writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Could not load Project", nil)
+		}
+		return
+	}
+	active, err := s.activeWorkForProject(id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Could not inspect active Work", nil)
+		return
+	}
+	if len(active) > 0 {
+		writeError(w, http.StatusConflict, "PROJECT_IN_USE", "Project has active Managed Work; close or finish the Work before unregistering it", map[string]interface{}{
+			"active_work_count": len(active),
+		})
+		return
+	}
 	if err := s.projects.Remove(id); err != nil {
 		if errors.Is(err, project.ErrNotFound) {
 			writeError(w, http.StatusNotFound, "PROJECT_NOT_FOUND", "Project was not found", nil)
 		} else {
-			writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Could not remove Project", nil)
+			writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Could not unregister Project", nil)
 		}
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{"status": "removed"})
+	writeJSON(w, http.StatusOK, map[string]string{"status": "unregistered"})
 }
 
 func (s *Server) handleRunners(w http.ResponseWriter, _ *http.Request) {
@@ -299,15 +332,72 @@ func (s *Server) handleSession(w http.ResponseWriter, r *http.Request, id string
 	writeJSON(w, http.StatusOK, session)
 }
 
+type closeSessionRequest struct {
+	Force bool `json:"force"`
+}
+
+func (s *Server) handleSessionClose(w http.ResponseWriter, r *http.Request, id string) {
+	var request closeSessionRequest
+	if err := readJSONBody(r, &request); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error(), nil)
+		return
+	}
+	session, err := s.tmux.InspectSession(r.Context(), id)
+	if errors.Is(err, tmux.ErrSessionNotFound) || errors.Is(err, tmux.ErrNoServer) {
+		writeJSON(w, http.StatusOK, map[string]string{"status": "gone", "session_id": id})
+		return
+	}
+	if err != nil {
+		s.writeTmuxError(w, err)
+		return
+	}
+	associated, associatedOK := s.workForSession(session.ID, session.Name)
+	if associatedOK && !associated.Terminal() && !request.Force {
+		writeError(w, http.StatusConflict, "WORK_RUNNING", "This Session has active Managed Work; confirm termination before closing it", map[string]interface{}{
+			"work": associated.DTO(),
+		})
+		return
+	}
+	if err := s.tmux.CloseSession(r.Context(), session.ID); err != nil {
+		if errors.Is(err, tmux.ErrSessionNotFound) || errors.Is(err, tmux.ErrNoServer) {
+			writeJSON(w, http.StatusOK, map[string]string{"status": "gone", "session_id": session.ID})
+			return
+		}
+		s.writeTmuxError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"status":      "closed",
+		"session_id":  session.ID,
+		"was_managed": associatedOK,
+	})
+}
+
 func (s *Server) workForSession(sessionID, sessionName string) (work.Work, bool) {
+	if strings.TrimSpace(sessionID) == "" && strings.TrimSpace(sessionName) == "" {
+		return work.Work{}, false
+	}
 	items, err := s.works.List()
 	if err != nil {
 		return work.Work{}, false
 	}
-	for _, item := range items {
-		if (sessionID != "" && item.SessionID == sessionID) || (sessionName != "" && item.SessionName == sessionName) {
+	var terminal *work.Work
+	for index := range items {
+		item := items[index]
+		if (sessionID != "" && item.SessionID != sessionID) &&
+			(sessionName == "" || item.SessionName != sessionName) {
+			continue
+		}
+		if !item.Terminal() {
 			return item, true
 		}
+		if terminal == nil {
+			candidate := item
+			terminal = &candidate
+		}
+	}
+	if terminal != nil {
+		return *terminal, true
 	}
 	return work.Work{}, false
 }

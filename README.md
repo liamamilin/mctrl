@@ -121,8 +121,13 @@ The equivalent CLI is:
 ### 4. Register a Project
 
 On the phone, open **Settings → Projects**, enter a display name and the
-absolute path of an existing directory on the Mac, then tap **Register
-Project**. The Start Work page will then show the target.
+absolute path of an existing directory on the Mac (or `~` for the Mac user's
+home directory), then tap **Register Project**. The Start Work page will then
+show the target.
+
+A Project is only a future launch target. It can have multiple Sessions, and
+unregistering it does not close them. To terminate a Session and its processes,
+open the Session detail page and use **Close Session** explicitly.
 
 The Mac CLI remains available for first-time setup or batch registration:
 

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import {
+  closeSession,
   getSession,
   getSessionPreview,
   getWork,
 } from '../api';
 import { displayValue, formatDate, stateLabel } from '../format';
 import type { ManagedWork, Preview, Session } from '../types';
-import { sessionPath } from '../router';
+import { navigate, sessionPath } from '../router';
 import { ErrorNotice, LoadingBlock } from '../components/ui';
 
 function Fact({
@@ -84,6 +85,9 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [previewError, setPreviewError] = useState('');
+  const [closeConfirm, setCloseConfirm] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [closeError, setCloseError] = useState('');
   const loadId = useRef(0);
 
   const load = useCallback(async (background = false) => {
@@ -91,6 +95,8 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
     if (!background) {
       setLoading(true);
       setPreviewError('');
+      setCloseConfirm(false);
+      setCloseError('');
     }
     setError('');
 
@@ -150,6 +156,31 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
 
   const command = session?.active_command || session?.active_pane?.command;
   const cwd = session?.cwd || session?.active_pane?.cwd;
+  const activeWork = Boolean(work && !['EXITED', 'LAUNCH_FAILED'].includes(work.state));
+  const closeDescription = activeWork
+    ? 'This Session has active Managed Work. Closing it will terminate the Work, shell, and all child processes.'
+    : session?.attached
+      ? 'This Session is currently attached. Closing it will disconnect every client and terminate its shell and child processes.'
+      : work
+        ? 'This will terminate the remaining tmux processes in this Session.'
+        : 'This is an external tmux Session. Closing it will terminate its shell and all child processes.';
+
+  const performClose = async (force: boolean) => {
+    if (!session || closing) return;
+    setClosing(true);
+    setCloseError('');
+    try {
+      await closeSession(session.id, force);
+      navigate('/');
+    } catch (caught) {
+      setCloseError(
+        caught instanceof Error ? caught.message : 'Could not close this Session.',
+      );
+      setCloseConfirm(true);
+    } finally {
+      setClosing(false);
+    }
+  };
 
   return (
     <div class="page-stack">
@@ -181,6 +212,9 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
       ) : session ? (
         <>
           <section class="card session-facts-card">
+            <p class={`session-origin-badge ${work ? 'managed' : 'external'}`}>
+              {work ? 'Managed Work Session' : 'External tmux Session'}
+            </p>
             <div class="fact-grid">
               <Fact label="Session name" value={session.name} />
               <Fact label="Active command" value={command || 'Unavailable'} mono />
@@ -196,6 +230,42 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
               Open Terminal
               <span aria-hidden="true">›</span>
             </a>
+            <button
+              class="button button-danger-quiet button-full close-session-button"
+              type="button"
+              onClick={() => setCloseConfirm(true)}
+              disabled={closing}
+            >
+              {closing ? 'Closing Session…' : 'Close Session'}
+            </button>
+            {closeError && (
+              <ErrorNotice title="Could not close Session" message={closeError} />
+            )}
+            {closeConfirm && (
+              <section class="session-close-confirm card" role="alert">
+                <div class="section-kicker">Destructive action</div>
+                <h2>Close this Session?</h2>
+                <p>{closeDescription}</p>
+                <div class="button-stack">
+                  <button
+                    class="button button-danger-quiet button-full"
+                    type="button"
+                    onClick={() => void performClose(activeWork)}
+                    disabled={closing}
+                  >
+                    {activeWork ? 'Terminate Work & Close Session' : 'Close Session'}
+                  </button>
+                  <button
+                    class="button button-secondary button-full"
+                    type="button"
+                    onClick={() => setCloseConfirm(false)}
+                    disabled={closing}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </section>
+            )}
           </section>
 
           {work && <WorkFacts work={work} />}

@@ -122,12 +122,27 @@ func (s *Store) Get(id string) (Project, error) {
 	return Project{}, ErrNotFound
 }
 
+func expandPath(value string) (string, error) {
+	value = strings.TrimSpace(value)
+	if value == "~" || strings.HasPrefix(value, "~/") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("resolve home directory: %w", err)
+		}
+		if value == "~" {
+			return filepath.Clean(home), nil
+		}
+		return filepath.Abs(filepath.Join(home, strings.TrimPrefix(value, "~/")))
+	}
+	return filepath.Abs(value)
+}
+
 func (s *Store) Add(name, path, defaultRunner string) (Project, error) {
 	name = strings.TrimSpace(name)
 	if strings.TrimSpace(path) == "" {
 		return Project{}, fmt.Errorf("project path is required")
 	}
-	clean, err := filepath.Abs(path)
+	clean, err := expandPath(path)
 	if err != nil {
 		return Project{}, fmt.Errorf("resolve project path: %w", err)
 	}

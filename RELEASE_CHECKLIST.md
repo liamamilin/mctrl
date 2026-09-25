@@ -14,6 +14,9 @@ unchecked until that external environment is available.
 - [x] terminal Work can be relaunched with Project preselection
 - [x] Mac Pair Console supports QR, copyable code and manual phone URL
 - [x] Settings supports registering and removing Projects without the CLI
+- [x] Project paths expand `~` and do not alter existing Session cwd
+- [x] Project unregister never closes Sessions and blocks active Managed Work
+- [x] Close Session is explicit, confirmed, and independent of Project removal
 
 ## Reliability
 

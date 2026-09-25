@@ -32,6 +32,98 @@ func TestIdempotencyFingerprintRejectsPayloadReuse(t *testing.T) {
 	}
 }
 
+func TestWorkForSessionPrefersActiveWork(t *testing.T) {
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := NewServer(cfg, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	finished := time.Now().UTC()
+	for _, item := range []work.Work{
+		{ID: "work_old", SessionID: "$1", SessionName: "session", State: work.StateExited, CreatedAt: finished, FinishedAt: &finished},
+		{ID: "work_active", SessionID: "$1", SessionName: "session", State: work.StateRunning, CreatedAt: finished.Add(time.Second)},
+	} {
+		if err := server.works.Save(item); err != nil {
+			t.Fatal(err)
+		}
+	}
+	item, ok := server.workForSession("$1", "session")
+	if !ok || item.ID != "work_active" {
+		t.Fatalf("session Work = %+v, ok=%v", item, ok)
+	}
+}
+
+func TestProjectDeleteRejectsActiveWork(t *testing.T) {
+	root := t.TempDir()
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := NewServer(cfg, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	projectInfo, err := server.projects.Add("Protected", t.TempDir(), "shell")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := server.works.Save(work.Work{
+		ID: "work_project_in_use", ProjectID: projectInfo.ID, State: work.StateRunning,
+		RequestID: "request_project_in_use", CreatedAt: time.Now().UTC(),
+	}); err != nil {
+		t.Fatal(err)
+	}
+	pairing, err := auth.CreatePairing(root, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := auth.NewRegistry(root).Pair(root, pairing.Token, "Project Test Phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := httptest.NewRequest(http.MethodDelete, "/api/v1/projects/"+projectInfo.ID, nil)
+	request.Header.Set("Cookie", auth.SessionCookieName+"="+result.SessionToken)
+	request.Header.Set("Origin", "http://example.com")
+	request.Header.Set(auth.CSRFHeaderName, result.CSRFToken)
+	recorder := httptest.NewRecorder()
+	server.Handler().ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusConflict || !strings.Contains(recorder.Body.String(), "PROJECT_IN_USE") {
+		t.Fatalf("active Project delete response = %d %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestActiveWorkForProjectOnlyReturnsNonTerminalWork(t *testing.T) {
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := NewServer(cfg, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	projectInfo, err := server.projects.Add("Test", t.TempDir(), "shell")
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now().UTC()
+	finished := now
+	for _, item := range []work.Work{
+		{ID: "work_running", ProjectID: projectInfo.ID, State: work.StateRunning, CreatedAt: now},
+		{ID: "work_exited", ProjectID: projectInfo.ID, State: work.StateExited, CreatedAt: now, FinishedAt: &finished},
+	} {
+		if err := server.works.Save(item); err != nil {
+			t.Fatal(err)
+		}
+	}
+	active, err := server.activeWorkForProject(projectInfo.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(active) != 1 || active[0].ID != "work_running" {
+		t.Fatalf("active Work = %+v", active)
+	}
+}
+
 func TestLateSessionEvidenceCannotRegressExitedWork(t *testing.T) {
 	cfg := config.Default()
 	cfg.RemoteAvailability = config.AvailabilityWorkOnly

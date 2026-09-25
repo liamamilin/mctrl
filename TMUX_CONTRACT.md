@@ -30,6 +30,7 @@ API may expose both:
 - attach session
 - verify session existence
 - apply/verify size policy
+- close a Session only through an explicit, confirmed destructive action
 
 ## Session creation naming
 
@@ -76,6 +77,16 @@ It must not:
 - kill window,
 - kill session,
 - send unintended EOF to the user's durable shell.
+
+## Close semantics
+
+Leaving the phone Terminal page detaches only the phone client. It must never
+kill a pane, window, or Session.
+
+`Close Session` is a separate explicit action. It may terminate the Session and
+its child processes, including external tmux Sessions, but it must not be
+triggered by Project unregistration or daemon uninstall. Active Managed Work
+requires an additional force/confirmation step.
 
 ## Session disappearance
 

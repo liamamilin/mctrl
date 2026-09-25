@@ -22,7 +22,7 @@ export function SettingsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [runners, setRunners] = useState<Runner[]>([]);
   const [projectName, setProjectName] = useState('');
-  const [projectPath, setProjectPath] = useState('');
+  const [projectPath, setProjectPath] = useState('~');
   const [projectRunner, setProjectRunner] = useState('shell');
   const [projectSaving, setProjectSaving] = useState(false);
   const [projectRemoving, setProjectRemoving] = useState('');
@@ -205,7 +205,7 @@ export function SettingsPage() {
         ),
       );
       setProjectName('');
-      setProjectPath('');
+      setProjectPath('~');
       setProjectNotice(`Registered “${created.name}”. It is now available in Start Work.`);
     } catch (caught) {
       setProjectError(
@@ -216,9 +216,9 @@ export function SettingsPage() {
     }
   };
 
-  const removeProject = async (project: Project) => {
+  const unregisterProject = async (project: Project) => {
     const confirmed = window.confirm(
-      `Remove “${project.name}” from the Project registry? Running Work is not stopped.`,
+      `Unregister “${project.name}”? It will no longer be available for new Work. Existing Sessions and Work will continue.`,
     );
     if (!confirmed) return;
 
@@ -228,7 +228,7 @@ export function SettingsPage() {
     try {
       await deleteProject(project.id);
       setProjects((current) => current.filter((item) => item.id !== project.id));
-      setProjectNotice(`Removed “${project.name}” from the Project registry.`);
+      setProjectNotice(`Unregistered “${project.name}”. Existing Sessions were not changed.`);
     } catch (caught) {
       setProjectError(
         caught instanceof Error ? caught.message : 'Could not remove the Project.',
@@ -345,7 +345,7 @@ export function SettingsPage() {
                     type="text"
                     value={projectPath}
                     onInput={(event) => setProjectPath(event.currentTarget.value)}
-                    placeholder="/Users/you/Projects/my-project"
+                    placeholder="~ or /Users/you/Projects/my-project"
                     autoCapitalize="off"
                     autoCorrect="off"
                     spellcheck={false}
@@ -378,7 +378,10 @@ export function SettingsPage() {
                 </label>
               </div>
               <div class="project-form-actions">
-                <small>Use an absolute path that exists on the Mac.</small>
+                <small>
+                  Use an absolute path or ~. The Mac expands ~ to your home
+                  directory; existing Sessions keep their own cwd.
+                </small>
                 <button
                   class="button button-primary"
                   type="submit"
@@ -405,14 +408,19 @@ export function SettingsPage() {
                         )}
                       </div>
                       <code>{project.path}</code>
+                      {project.path === '/' && (
+                        <span class="project-path-warning">
+                          This is the Mac root. Consider a narrower directory.
+                        </span>
+                      )}
                     </div>
                     <button
                       class="button button-danger-quiet button-small"
                       type="button"
-                      onClick={() => void removeProject(project)}
+                      onClick={() => void unregisterProject(project)}
                       disabled={projectRemoving === project.id}
                     >
-                      {projectRemoving === project.id ? 'Removing…' : 'Remove'}
+                      {projectRemoving === project.id ? 'Unregistering…' : 'Unregister'}
                     </button>
                   </article>
                 ))
@@ -420,8 +428,9 @@ export function SettingsPage() {
             </div>
 
             <p class="settings-footnote">
-              Registering a Project does not start a process. It only makes an
-              existing Mac directory available as a launch target.
+              Registering a Project does not start a process. Unregistering it
+              only removes the future launch target; existing Sessions and Work
+              remain untouched.
             </p>
           </section>
 

@@ -415,6 +415,24 @@ export async function getSessions(): Promise<Session[]> {
     .filter((session) => session.id.length > 0);
 }
 
+export async function closeSession(
+  sessionId: string,
+  force = false,
+): Promise<{ status: string; session_id: string }> {
+  const payload = await request<unknown>(
+    `/sessions/${encodeURIComponent(sessionId)}/close`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ force }),
+    },
+  );
+  const record = isRecord(payload) ? payload : {};
+  return {
+    status: asString(record.status, 'UNKNOWN'),
+    session_id: asString(record.session_id, sessionId),
+  };
+}
+
 export async function getSession(sessionId: string): Promise<Session> {
   const payload = await request<unknown>(
     `/sessions/${encodeURIComponent(sessionId)}`,

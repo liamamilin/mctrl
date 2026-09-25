@@ -1242,6 +1242,55 @@ button:disabled {
   justify-content: space-between;
 }
 
+.close-session-button {
+  margin-top: 10px;
+}
+
+.session-close-confirm {
+  margin-top: 14px;
+  padding: 15px;
+  border-color: rgba(255, 129, 124, 0.24);
+}
+
+.session-close-confirm h2 {
+  margin: 4px 0 8px;
+  font-size: 0.98rem;
+}
+
+.session-close-confirm p {
+  margin-bottom: 0;
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.session-origin-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 7px;
+  padding: 4px 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  background: var(--surface-2);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.session-origin-badge.managed {
+  color: var(--accent-bright);
+  background: var(--accent-dim);
+  border-color: rgba(114, 226, 156, 0.16);
+}
+
+.session-origin-badge.compact {
+  margin: 4px 0 5px;
+  padding: 3px 6px;
+  font-size: 0.55rem;
+}
+
 .card-title-row {
   display: flex;
   align-items: flex-start;
@@ -1384,6 +1433,12 @@ button:disabled {
   overflow-wrap: anywhere;
   color: var(--muted);
   font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+.project-path-warning {
+  color: var(--warning);
+  font-size: 0.63rem;
   line-height: 1.4;
 }
 

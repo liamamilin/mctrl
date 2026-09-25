@@ -306,6 +306,8 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 		s.handleSession(w, r, mustUnescape(parts[1]))
 	case len(parts) == 3 && parts[0] == "sessions" && parts[2] == "preview" && r.Method == http.MethodGet:
 		s.handlePreview(w, r, mustUnescape(parts[1]))
+	case len(parts) == 3 && parts[0] == "sessions" && parts[2] == "close" && r.Method == http.MethodPost:
+		s.handleSessionClose(w, r, mustUnescape(parts[1]))
 	case len(parts) == 3 && parts[0] == "sessions" && parts[2] == "terminal" && r.Method == http.MethodGet:
 		s.handleTerminal(w, r, mustUnescape(parts[1]))
 	case len(parts) == 3 && parts[0] == "sessions" && parts[2] == "prompt" && r.Method == http.MethodPost:

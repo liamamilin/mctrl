@@ -101,4 +101,12 @@ root, port, LaunchAgent, browser identity, tmux socket, and Pair app. Git tags
 freeze releases; profiles prevent one installed product line from operating on
 another's state. Profile selection is not an automatic V1-to-V2 data migration.
 
-See [`VERSIONING.md`](VERSIONING.md) for the cutover and rollback contract.
+## D17 — Project and Session lifecycles are separate
+
+A Project is a launch target and may have zero, one, or many Sessions. A
+Session may also be external to mctrl. Unregistering a Project never closes a
+Session. Closing a Session is an explicit destructive action; active Managed
+Work requires an additional force-confirmed step.
+
+Project paths may use `~` and are resolved to an absolute Mac directory. An
+existing Session keeps its own current working directory.

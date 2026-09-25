@@ -33,6 +33,21 @@ func TestAddNormalizesAndDeduplicatesProjects(t *testing.T) {
 	}
 }
 
+func TestAddExpandsTildeToHome(t *testing.T) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	store := NewStore(t.TempDir())
+	item, err := store.Add("Home", "~", "shell")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.Path != filepath.Clean(home) {
+		t.Fatalf("tilde path = %q, want %q", item.Path, home)
+	}
+}
+
 func TestAddRejectsMissingPathsAndUnknownRunners(t *testing.T) {
 	store := NewStore(t.TempDir())
 	if _, err := store.Add("Missing", filepath.Join(t.TempDir(), "missing"), "shell"); err == nil {

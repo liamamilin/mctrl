@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,6 +13,8 @@ import (
 
 	"mctrl/internal/auth"
 	"mctrl/internal/config"
+	"mctrl/internal/tmux"
+	"mctrl/internal/work"
 )
 
 func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
@@ -72,6 +75,112 @@ func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
 		}
 	}
 	t.Fatalf("terminal output did not contain ready marker: %q", output.String())
+}
+
+func TestCloseSessionRequiresForceForActiveManagedWork(t *testing.T) {
+	adapter, socket := isolateTestTmux(t)
+	root := t.TempDir()
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := newServer(cfg, root, adapter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	name := "mctrl-close-test-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "sleep 10"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
+	item := work.Work{
+		ID: "work_close_test", ProjectID: "project_close", ProjectPath: t.TempDir(), RunnerID: "shell",
+		RequestID: "request_close", DeviceID: "device_close", SessionName: name, SessionID: id,
+		State: work.StateRunning, CreatedAt: time.Now().UTC(), LaunchStage: work.StageChildStarted, PromptDelivery: work.PromptConfirmed,
+	}
+	if err := server.works.Save(item); err != nil {
+		t.Fatal(err)
+	}
+
+	pairing, err := auth.CreatePairing(root, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pairResult, err := auth.NewRegistry(root).Pair(root, pairing.Token, "Close Test Phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	httpServer := httptest.NewServer(server)
+	defer httpServer.Close()
+	closeURL := httpServer.URL + "/api/v1/sessions/" + id + "/close"
+	request := httptest.NewRequest(http.MethodPost, closeURL, strings.NewReader(`{"force":false}`))
+	request.Header.Set("Cookie", auth.SessionCookieName+"="+pairResult.SessionToken)
+	request.Header.Set("Origin", httpServer.URL)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set(auth.CSRFHeaderName, pairResult.CSRFToken)
+	blocked := httptest.NewRecorder()
+	server.Handler().ServeHTTP(blocked, request)
+	if blocked.Code != http.StatusConflict || !strings.Contains(blocked.Body.String(), "WORK_RUNNING") {
+		t.Fatalf("active Work close response = %d %s", blocked.Code, blocked.Body.String())
+	}
+
+	forcedRequest := httptest.NewRequest(http.MethodPost, closeURL, strings.NewReader(`{"force":true}`))
+	forcedRequest.Header.Set("Cookie", auth.SessionCookieName+"="+pairResult.SessionToken)
+	forcedRequest.Header.Set("Origin", httpServer.URL)
+	forcedRequest.Header.Set("Content-Type", "application/json")
+	forcedRequest.Header.Set(auth.CSRFHeaderName, pairResult.CSRFToken)
+	closed := httptest.NewRecorder()
+	server.Handler().ServeHTTP(closed, forcedRequest)
+	if closed.Code != http.StatusOK || !strings.Contains(closed.Body.String(), `"status":"closed"`) {
+		t.Fatalf("forced close response = %d %s", closed.Code, closed.Body.String())
+	}
+	if exists, existsErr := adapter.SessionExists(context.Background(), id); exists || (existsErr != nil && !errors.Is(existsErr, tmux.ErrNoServer)) {
+		t.Fatalf("closed Session still exists: exists=%v err=%v", exists, existsErr)
+	}
+}
+
+func TestCloseExternalSessionIsAllowedWithoutForce(t *testing.T) {
+	adapter, socket := isolateTestTmux(t)
+	root := t.TempDir()
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := newServer(cfg, root, adapter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	name := "mctrl-external-close-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "sleep 10"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
+
+	pairing, err := auth.CreatePairing(root, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pairResult, err := auth.NewRegistry(root).Pair(root, pairing.Token, "External Close Phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	httpServer := httptest.NewServer(server)
+	defer httpServer.Close()
+	closeURL := httpServer.URL + "/api/v1/sessions/" + id + "/close"
+	request := httptest.NewRequest(http.MethodPost, closeURL, strings.NewReader(`{"force":false}`))
+	request.Header.Set("Cookie", auth.SessionCookieName+"="+pairResult.SessionToken)
+	request.Header.Set("Origin", httpServer.URL)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set(auth.CSRFHeaderName, pairResult.CSRFToken)
+	closed := httptest.NewRecorder()
+	server.Handler().ServeHTTP(closed, request)
+	if closed.Code != http.StatusOK || !strings.Contains(closed.Body.String(), `"status":"closed"`) {
+		t.Fatalf("external close response = %d %s", closed.Code, closed.Body.String())
+	}
 }
 
 func TestTerminalWebSocketReportsSessionGone(t *testing.T) {

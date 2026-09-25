@@ -34,6 +34,17 @@ Base:
 
 ### GET /projects
 
+### POST /projects
+
+`path` is the initial working directory for new Work. The Mac expands `~` to
+the user's home directory and stores the resolved absolute path.
+
+### DELETE /projects/:id
+
+Unregisters a Project from future launches. Existing Sessions and Work are not
+closed. If the Project still has non-terminal Managed Work, the request returns
+`409 PROJECT_IN_USE` and nothing is removed.
+
 ## Runners
 
 ### GET /runners
@@ -51,6 +62,21 @@ Base:
 ### GET /sessions
 
 ### GET /sessions/:id
+
+### POST /sessions/:id/close
+
+Closes one tmux Session and terminates its windows, panes, and child processes.
+This is an explicit destructive action; it does not delete Project or Work
+history.
+
+```json
+{ "force": false }
+```
+
+External Sessions may be closed without `force`. If the Session has active
+Managed Work, `force: false` returns `409 WORK_RUNNING`; the caller must
+repeat with `force: true` after explicit user confirmation. Repeating the
+request after the Session is already gone is treated as an idempotent success.
 
 ### GET /sessions/:id/preview?lines=50
 

@@ -11,7 +11,7 @@ mctrl doctor
 mctrl logs
 
 mctrl project add <path> [--name <name>] [--runner <id>]
-mctrl project remove <id>
+mctrl project remove <id>                         # unregister; never closes Sessions
 mctrl project list
 
 mctrl devices
@@ -42,7 +42,15 @@ MCTRL_PROFILE=v2 mctrl status
 - honor `start_after_login` / login LaunchAgent policy
 - optionally begin pairing
 
-## status
+## project
+
+`project add` accepts `~` as the Mac user's home directory and stores the
+resolved absolute path. A Project is a launch target, not an owner of tmux
+Sessions.
+
+`project remove` unregisters a Project only. It does not close Sessions or stop
+Work. Active Managed Work must finish before the Project can be unregistered.
+
 
 Example:
 

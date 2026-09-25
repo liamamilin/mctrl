@@ -806,10 +806,20 @@ func runProject(args []string) error {
 		if len(args) != 2 {
 			return fmt.Errorf("usage: mctrl project remove <id>")
 		}
+		works := work.NewStore(stateDir)
+		items, listErr := works.List()
+		if listErr != nil {
+			return listErr
+		}
+		for _, item := range items {
+			if item.ProjectID == args[1] && !item.Terminal() {
+				return fmt.Errorf("project has active Managed Work (%s); close or finish it before unregistering", item.ID)
+			}
+		}
 		if err := store.Remove(args[1]); err != nil {
 			return err
 		}
-		fmt.Println("Removed", args[1])
+		fmt.Println("Unregistered", args[1])
 		return nil
 	default:
 		return fmt.Errorf("unknown project command %q", args[0])
