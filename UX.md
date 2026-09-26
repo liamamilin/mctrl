@@ -99,7 +99,9 @@ type a digit.
 derive it from xterm's source were both wrong on the real phone: reading a
 library's control flow says what a browser would *do* with an event, not what iOS
 *delivers*. A temporary `⌦ trace` control over the canvas records the real event
-stream, and it is to be removed once that stream is read. Until then, treat
+stream, grouped per keypress and reduced to one verdict per key, because the
+phone cannot copy a recording out and a screenshot of raw events is unreadable
+at phone size. It is to be removed once that stream is read. Until then, treat
 `mctrl`'s handling of a Chinese keyboard's punctuation as unknown rather than
 fixed.
 

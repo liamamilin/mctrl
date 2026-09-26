@@ -132,7 +132,12 @@ recording: reading a library's control flow tells you what a browser *would* do
 with an event, not what iOS *delivers*. The next step is a recording, not another
 inference. A temporary `⌦ trace` control on the terminal page captures the real
 `keydown` / `beforeinput` / `input` / `composition*` stream for the helper
-textarea, and it is to be removed once the stream is known.
+textarea, grouped per keypress and reduced to one of three verdicts — carries
+text, delivered without text, or nothing delivered. Grouping and the verdict
+exist because the phone cannot copy the recording out: iOS blocks paste from a
+plain-HTTP page and the async clipboard API needs a secure context, which Trusted
+LAN HTTP deliberately is not. The control is to be removed once the stream is
+read.
 
 ## Raw keyboard transport validation
 

@@ -221,10 +221,20 @@ page now carries a temporary input diagnostic: the `⌦ trace` button over the
 canvas records the real `keydown` / `beforeinput` / `input` / `composition*`
 stream that iOS delivers to xterm's helper textarea.
 
-To use it: reload, open a terminal, tap **编辑**, tap the keys in question, then
-tap **⌦ trace** and paste the recorded lines. The recording answers the only
-question that matters — whether any event carries the character at all. If none
-does, the page is never told, and no interception can help.
+To use it: reload, open a terminal, tap **编辑**, press one key at a time
+(`a`, then `，`, then `1`), then tap **⌦ trace** and read the verdict for each
+key. The page reduces the recording to one of three words per key:
+
+- **CARRIES TEXT** — an event delivered the character, so an interception point
+  exists and the defect is recoverable in the page.
+- **DELIVERED, NO TEXT** — events arrived but none carried the character.
+- **NOTHING DELIVERED** — only a keydown happened. The page is never told, and no
+  interception can help.
+
+Copying the raw recording out of the phone is not possible: iOS blocks
+copy/paste from a plain-HTTP page and the async clipboard API needs a secure
+context, which Trusted LAN HTTP deliberately is not. That is why the recording is
+reduced to a verdict and sized to be read in a screenshot.
 
 To confirm the full-width conversion is what you are seeing, set
 `mctrl-terminal-half-width` to `off` in the page's `localStorage` and reload; the

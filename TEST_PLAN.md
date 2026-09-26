@@ -87,9 +87,9 @@ Required:
 - an armed CTRL still modifies a character typed on the software keyboard
 - the digits of a Chinese keyboard select candidates and never reach the
   terminal; the same digits on a Latin keyboard arrive as `1`–`9`
-- the temporary `⌦ trace` control records the event stream iOS delivers for a
-  letter, for `，`, and for `1`, and the recording is pasted back before the
-  Chinese-keyboard punctuation work continues
+- the temporary `⌦ trace` control records a verdict for a letter, for `，`, and
+  for `1`, and the three verdicts are read back before the Chinese-keyboard
+  punctuation work continues
 - scrolling back shows the ↓ lines-back control, and one tap returns to the tail
 - the software keyboard does not cover the terminal, and the keybar stays above it
 - the FULL hint stays on one line

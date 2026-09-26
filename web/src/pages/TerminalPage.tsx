@@ -114,6 +114,10 @@ function halfWidthEnabled(): boolean {
 // failed on the real phone, so this records the events iOS actually delivers to
 // xterm's helper textarea. The answer is only in there: if no event carries the
 // character, the page is never told about it and no interception can help.
+//
+// The recording is grouped per keypress and reduced to a verdict, because the
+// phone cannot copy it out and a screenshot of forty raw lines cannot be read at
+// any usable size. One word per key is enough to decide where the fix goes.
 const INPUT_TRACE_EVENTS = [
   'keydown',
   'beforeinput',
@@ -121,26 +125,46 @@ const INPUT_TRACE_EVENTS = [
   'compositionstart',
   'compositionupdate',
   'compositionend',
-  'keyup',
 ] as const;
 
-const INPUT_TRACE_LIMIT = 40;
+const INPUT_TRACE_LIMIT = 10;
+
+type InputTraceGroup = {
+  key: string;
+  events: string[];
+};
 
 function describeInputEvent(event: Event): string {
   const anyEvent = event as KeyboardEvent & InputEvent & CompositionEvent;
-  if (event.type === 'keydown' || event.type === 'keyup') {
-    return `key=${JSON.stringify(anyEvent.key)} code=${JSON.stringify(
+  if (event.type === 'keydown') {
+    return `keydown key=${JSON.stringify(anyEvent.key)} code=${JSON.stringify(
       anyEvent.code,
     )} keyCode=${anyEvent.keyCode}`;
   }
   if (event.type === 'beforeinput' || event.type === 'input') {
-    return `inputType=${JSON.stringify(anyEvent.inputType)} data=${JSON.stringify(
-      anyEvent.data,
-    )} composed=${anyEvent.composed} isComposing=${anyEvent.isComposing} cancelable=${anyEvent.cancelable} prevented=${anyEvent.defaultPrevented} value=${JSON.stringify(
-      (event.target as HTMLTextAreaElement | null)?.value ?? '',
-    )}`;
+    return `${event.type} type=${JSON.stringify(
+      anyEvent.inputType,
+    )} data=${JSON.stringify(anyEvent.data)} composed=${
+      anyEvent.composed ? 1 : 0
+    } composing=${anyEvent.isComposing ? 1 : 0} prevented=${
+      anyEvent.defaultPrevented ? 1 : 0
+    }`;
   }
-  return `composition data=${JSON.stringify(anyEvent.data)}`;
+  return `${event.type} data=${JSON.stringify(anyEvent.data)}`;
+}
+
+// The only question that matters: did any delivered event carry text?
+function inputTraceVerdict(group: InputTraceGroup): string {
+  const delivered = group.events.some(
+    (line) => !line.startsWith('keydown '),
+  );
+  if (!delivered) return 'NOTHING DELIVERED — the page is never told';
+  const carried = group.events.some(
+    (line) => !/data=""( |$)/.test(line) && !line.startsWith('composition'),
+  );
+  return carried
+    ? 'CARRIES TEXT — an interception point exists'
+    : 'DELIVERED, NO TEXT — the character is lost in the event';
 }
 
 type ConnectionState =
@@ -234,7 +258,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const [scrolledBack, setScrolledBack] = useState(0);
   const [keyboardInset, setKeyboardInset] = useState(0);
   // TEMPORARY INPUT DIAGNOSTIC — remove with the recorder and the keybar button.
-  const [inputTrace, setInputTrace] = useState<string[]>([]);
+  const [inputTrace, setInputTrace] = useState<InputTraceGroup[]>([]);
   const [traceOpen, setTraceOpen] = useState(false);
   // Read once per mount: it is an escape hatch, not a preference the user is
   // expected to flip while typing.
@@ -365,12 +389,26 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     // shows no event carrying the character at all, no amount of interception
     // can help and the answer is that the page is never told.
     const helperTextarea = terminal.textarea;
+    // One group per keypress, so a verdict can be read per key instead of
+    // decoding a flat event list on a phone screen.
     const recordInputEvent = (event: Event) => {
-      setInputTrace((current) =>
-        [...current, `${event.type} ${describeInputEvent(event)}`].slice(
-          -INPUT_TRACE_LIMIT,
-        ),
-      );
+      const line = describeInputEvent(event);
+      setInputTrace((current) => {
+        const groups = [...current];
+        let last = groups[groups.length - 1];
+        if (event.type === 'keydown' || !last) {
+          last = {
+            key:
+              event.type === 'keydown'
+                ? String((event as KeyboardEvent).key)
+                : '(no keydown)',
+            events: [],
+          };
+          groups.push(last);
+        }
+        last.events.push(line);
+        return groups.slice(-INPUT_TRACE_LIMIT);
+      });
     };
     if (helperTextarea) {
       for (const name of INPUT_TRACE_EVENTS) {
@@ -1187,25 +1225,34 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           aria-label="Terminal keys"
         >
           {/* TEMPORARY INPUT DIAGNOSTIC — remove once the iOS event stream is
-              known. It records what the phone delivers so the Chinese-keyboard
-              failure can be read instead of guessed. */}
+              known. One group and one verdict per keypress, because the phone
+              cannot copy the recording out and a screenshot of raw events at
+              phone size is unreadable. */}
           {traceOpen && (
             <div class="input-trace">
-              <textarea
-                readOnly
-                rows={6}
-                value={
-                  inputTrace.length
-                    ? inputTrace.join('\n')
-                    : 'No events recorded yet. Tap 编辑, then the keys, then reopen.'
-                }
-                aria-label="Recorded input events"
-              />
+              <p class="input-trace-hint">
+                Tap 编辑, press one key at a time, then read the verdict here.
+              </p>
+              <ol class="input-trace-list">
+                {inputTrace.length === 0 && (
+                  <li class="input-trace-empty">
+                    Nothing recorded yet.
+                  </li>
+                )}
+                {inputTrace.map((group, index) => (
+                  <li key={`${index}-${group.key}`}>
+                    <strong>key {group.key}</strong>
+                    <span class="input-trace-verdict">
+                      {inputTraceVerdict(group)}
+                    </span>
+                    <span class="input-trace-events">
+                      {group.events.join('  ·  ')}
+                    </span>
+                  </li>
+                ))}
+              </ol>
               <div class="input-trace-actions">
-                <button
-                  type="button"
-                  onClick={() => setInputTrace([])}
-                >
+                <button type="button" onClick={() => setInputTrace([])}>
                   Clear
                 </button>
                 <button type="button" onClick={() => setTraceOpen(false)}>
