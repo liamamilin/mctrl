@@ -260,6 +260,7 @@ export function SettingsPage() {
       setBrowserLinkSeconds(0);
       setLinkNotice('');
       setDevices((current) => current.filter((item) => item.id !== device.id));
+      setConfirmAction(undefined);
       setDeviceHistory((current) => [
         revoked,
         ...current.filter((item) => item.id !== device.id),
@@ -308,6 +309,9 @@ export function SettingsPage() {
     }
   };
 
+  // On failure the confirmation stays open and states the reason, because that
+  // block is the only feedback next to the button. Rendering the error at the top
+  // of the section put it off-screen on a phone, which read as "nothing happened".
   const unregisterProject = async (project: Project) => {
     setProjectRemoving(project.id);
     setProjectError('');
@@ -315,6 +319,7 @@ export function SettingsPage() {
     try {
       await deleteProject(project.id);
       setProjects((current) => current.filter((item) => item.id !== project.id));
+      setConfirmAction(undefined);
       setProjectNotice(`Unregistered “${project.name}”. Existing Sessions were not changed.`);
     } catch (caught) {
       setProjectError(
@@ -641,17 +646,20 @@ export function SettingsPage() {
                     class="button button-danger button-small"
                     type="button"
                     disabled={projectRemoving === confirmAction.project.id}
-                    onClick={() => {
-                      const project = confirmAction.project;
-                      setConfirmAction(undefined);
-                      void unregisterProject(project);
-                    }}
+                    onClick={() => void unregisterProject(confirmAction.project)}
                   >
                     {projectRemoving === confirmAction.project.id
                       ? 'Unregistering…'
                       : 'Unregister Project'}
                   </button>
                 </div>
+                {/* Stays open after a refusal so the reason is where the
+                    decision is being made. */}
+                {projectError && (
+                  <p class="inline-confirm-error" role="alert">
+                    {projectError}
+                  </p>
+                )}
               </div>
             )}
           </section>
@@ -793,17 +801,18 @@ export function SettingsPage() {
                     class="button button-danger button-small"
                     type="button"
                     disabled={revoking === confirmAction.device.id}
-                    onClick={() => {
-                      const device = confirmAction.device;
-                      setConfirmAction(undefined);
-                      void revoke(device);
-                    }}
+                    onClick={() => void revoke(confirmAction.device)}
                   >
                     {revoking === confirmAction.device.id
                       ? 'Revoking…'
                       : 'Revoke device'}
                   </button>
                 </div>
+                {actionError && (
+                  <p class="inline-confirm-error" role="alert">
+                    {actionError}
+                  </p>
+                )}
               </div>
             )}
 
