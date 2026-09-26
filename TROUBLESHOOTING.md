@@ -258,23 +258,35 @@ lifts the keybar above the keyboard. If the keyboard still covers the terminal:
 
 ## Earlier output cannot be found
 
-On attach the Mac replays the pane's tmux history into the phone's scrollback, up
-to 500 lines, and the terminal itself keeps 5000. So a shell session's earlier
-commands and output are reachable by scrolling, and `↓ N lines back` returns to
-the live tail.
+Three different things get called "history", and each needs its own answer.
 
-Two things it cannot do:
+**Shell output** — reachable. The terminal keeps 5000 lines and the Mac replays
+the pane's tmux history on attach, up to 500 lines. `↓ N lines back` returns to
+the live tail. To go further back, raise tmux's limit and re-attach:
 
-- **A full-screen TUI has no transcript.** tmux holds many near-identical
-  repainted frames, so scrolling back shows the same screen repeatedly. That
-  history lives in the program; use the app's own scrollback.
-- **History older than the replay is gone from the phone's reach.** tmux keeps
-  2000 lines per pane and only the last 500 are replayed. Raise it with
-  `tmux set-option -g history-limit` if a Session genuinely needs more, and
-  re-attach to pick up the larger replay.
+```sh
+tmux set-option -g history-limit 5000
+```
 
-If scrolling shows nothing at all after a reload, check the Session is not a
-TUI before suspecting mctrl.
+**A TUI's conversation** — not in the terminal at all. A full-screen program
+repaints the same rows, so its history never enters the terminal's scrollback.
+Use the program's own keys: **PgUp** and **PgDn** on mctrl's keybar send
+`ESC [ 5 ~` and `ESC [ 6 ~`, which is what OpenCode binds to
+`messages_page_up` / `messages_page_down`. If the program binds scrolling to
+something else, it is that program's keybind configuration, not mctrl.
+
+**The complete transcript** — in the agent's store, not the terminal:
+
+```sh
+cd <project> && opencode session list
+cd <project> && opencode session export <session-id> > /tmp/session.json
+```
+
+This is the only way to read a conversation end to end, and the only way past
+what the program's own scrollback holds.
+
+If scrolling a shell shows nothing after a reload, check the Session is not a TUI
+before suspecting mctrl.
 
 ## Remote Ready is false
 

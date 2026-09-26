@@ -1239,6 +1239,31 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             >
               ⏎
             </button>
+            {/* PageUp and PageDown are how full-screen programs scroll their own
+                view — OpenCode binds them to "scroll messages up/down one page"
+                — and the keybar could not send either, so a TUI's history was
+                unreachable from the phone no matter how much scrollback the
+                terminal held. */}
+            <button
+              class="page-button"
+              type="button"
+              onClick={() => pressKey('\x1b[5~')}
+              disabled={terminalInputDisabled}
+              aria-label="Page Up"
+              title="Page Up"
+            >
+              PgUp
+            </button>
+            <button
+              class="page-button"
+              type="button"
+              onClick={() => pressKey('\x1b[6~')}
+              disabled={terminalInputDisabled}
+              aria-label="Page Down"
+              title="Page Down"
+            >
+              PgDn
+            </button>
           </div>
         </div>
 

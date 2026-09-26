@@ -79,6 +79,8 @@ Required:
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls
 - the terminal keybar's ⏎ control sends Return unchanged
+- the terminal keybar's PgUp and PgDn send `ESC [ 5 ~` and `ESC [ 6 ~`, and a
+  full-screen program's own history pages with them from the phone
 - a Chinese keyboard delivers letters and Return and delivers nothing for the
   digit row or for punctuation, while an English keyboard delivers `1` and `,`;
   measured at the daemon, not inferred

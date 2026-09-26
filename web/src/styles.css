@@ -2224,7 +2224,7 @@ button:disabled {
 }
 
 .direction-keys {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .terminal-keybar button {
@@ -2274,6 +2274,14 @@ button:disabled {
 .direction-keys .return-button {
   color: var(--accent);
   border-color: rgba(121, 230, 165, 0.45);
+}
+
+/* PgUp and PgDn share the arrow row with seven columns, so they carry the
+   keybar's label size rather than the arrow glyph size. */
+.direction-keys .page-button {
+  color: var(--text-soft);
+  font-size: 0.56rem;
+  letter-spacing: -0.01em;
 }
 
 /* Floating action over the terminal. It stays out of the grid so the canvas

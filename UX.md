@@ -71,7 +71,7 @@ Show facts:
 │ xterm.js        [↓ 120 back] │
 ├─────────────────────────────┤
 │ ESC  TAB  CTRL  LOCAL  编辑 │
-│ ↑   ↓   ←   →    ⏎         │
+│ ↑   ↓   ←   →   ⏎  PgUp PgDn│
 ├─────────────────────────────┤
 │ [Prompt textarea]    Send   │
 └─────────────────────────────┘
@@ -81,8 +81,9 @@ Show facts:
 same Return the keyboard sends, so submitting never depends on which Return the
 phone shows.
 
-The keybar order is `LOCAL` → **编辑** → `↑ ↓ ← →`, and nothing else is added:
-the phone's own keyboard already carries digits and symbols.
+The keybar order is `LOCAL` → **编辑** → `↑ ↓ ← →`, and nothing is inserted into
+it. **PgUp** and **PgDn** follow the arrows because they are not cursor movement:
+they page whatever view the running program keeps for itself.
 
 ### What a Chinese keyboard can and cannot send
 
@@ -134,24 +135,37 @@ Prompt. It is unconditional; to send the raw bytes, set
 
 ### Reaching earlier output
 
-The terminal keeps 5000 lines of scrollback, and on attach the Mac replays the
-pane's own history into it, up to 500 lines. Without that replay the phone could
-only ever scroll to output the phone itself caused, because a fresh attach carries
-the visible grid alone — which is why the Mac could scroll and the phone could
-not, even though both were looking at the same tmux pane.
+There are three different kinds of "earlier output", and they need three
+different mechanisms. Confusing them is why this felt broken.
 
-When the viewport leaves the live tail, a **↓ N lines back** button appears over
-the canvas; one tap returns to the tail. `FULL` does not need it: it shows the
-whole Session at once.
+**1. Terminal scrollback — for shell output.** The terminal keeps 5000 lines, and
+on attach the Mac replays the pane's own tmux history into it, up to 500 lines.
+Without that replay the phone could only ever scroll to output the phone itself
+caused, because a fresh attach carries the visible grid alone — which is why the
+Mac could scroll and the phone could not, even though looking at the same pane.
+When the viewport leaves the live tail, a **↓ N lines back** button appears; one
+tap returns to the tail. `FULL` does not need it.
 
-What the replay can and cannot give you:
+**2. The program's own view — for a TUI's conversation.** A full-screen program
+repaints the same rows, so its own history never reaches the terminal's
+scrollback at all. No amount of replay or scrollback will show it. The program
+keeps that history itself and pages through it with **PgUp** / **PgDn** — which is
+why those keys are on the keybar. OpenCode, for example, binds
+`messages_page_up` to `pageup` and `messages_page_down` to `pagedown`; without
+them the phone simply could not ask for a TUI's history, however much the terminal
+was holding.
 
-- **Shell sessions** — real output. Commands, results and directory listings that
-  ran before the phone connected.
-- **Full-screen TUIs** — tmux holds many near-identical repainted frames rather
-  than a transcript, so scrolling back shows the same screen over and over. The
-  replay is faithful to what tmux has; it is not a conversation log. For an
-  agent's own history, use the app.
+**3. The application's store — for everything, in full.** An agent's complete
+transcript is not in the terminal at all. It is in the agent's own session store
+and can be read directly:
+
+```sh
+cd <project> && opencode session list
+cd <project> && opencode session export <session-id> > /tmp/session.json
+```
+
+This is the only way to read a conversation end to end, and the only way to reach
+anything older than the program's own scrollback.
 
 tmux keeps 2000 lines per pane, so 500 is a deliberate cap for what a phone can
 usefully scroll, not a limit of the Session. See TMUX_CONTRACT.md.

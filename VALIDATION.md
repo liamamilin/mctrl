@@ -104,6 +104,9 @@ package has no test runner, so nothing here is covered by an automated test yet.
   that output in the phone's scrollback, including lines well above the visible
   screen. Verified on the Mac against a real tmux attach, and not yet on the
   phone.
+- PgUp and PgDn page a full-screen program's own history from the phone. The
+  sequences and the reason they were missing are verified; that OpenCode answers
+  to them is read out of its keybind table, not observed on the phone.
 - the software keyboard opens without covering the terminal and the keybar stays
   above it
 - the FULL hint occupies one line
