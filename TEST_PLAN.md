@@ -90,6 +90,10 @@ Required:
   window.confirm
 - a Project with active Managed Work says so on its card before the button is
   pressed
+- a refused unregister keeps the confirmation open and states the reason inside it
+- a successful unregister and revoke are confirmed next to the list, not at the
+  top of the section
+- an expired browser link says it has expired rather than counting down to 0:00
 - the Prompt dock carries no permanent mechanism footnote
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls

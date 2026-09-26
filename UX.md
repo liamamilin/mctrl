@@ -1,5 +1,32 @@
 # UX Specification
 
+## Feedback rules
+
+Every action answers four questions, and the answers must be **next to the
+action**, not at the top of the section:
+
+1. **In progress** — the control itself changes, so a tap is visibly received.
+2. **Succeeded** — confirmed where the change happened. If the thing acted on
+   disappears, the confirmation takes its place; a notice at the top of a long
+   section is not a confirmation.
+3. **Refused** — the reason appears next to the control, and any confirmation the
+   user was asked for **stays open** to carry it. Closing a confirmation before
+   the request is made deletes the only feedback that was nearby.
+4. **Blocked before the attempt** — if an action cannot succeed right now, say so
+   before the user presses it. A button that can only fail is a trap.
+
+A correct refusal is still a failure of feedback if the user cannot see why. The
+API refusing to unregister a Project with active Managed Work is right; a page
+that renders that refusal off-screen is wrong, and no amount of correct
+server-side behaviour makes it right.
+
+Shared error state across two distant actions is the same defect wearing a
+different hat: it guarantees one of the two reports in the wrong place. Split it.
+
+`window.confirm` cannot be used anywhere in this app. iOS disables it in a
+standalone PWA — it displays nothing and returns false — so a destructive control
+built on it is silently dead. Confirm inline, as Session Detail does.
+
 ## Pages
 
 1. Home

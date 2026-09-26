@@ -163,6 +163,40 @@ the four RUNNING Works. A defensive `Array.isArray` branch was removed once
 to preserve `project_id` and `state` — otherwise the count would have been
 silently zero and the feedback would have looked absent again.
 
+## Feedback audit
+
+The unregister incident was generalised into four questions, asked of every action
+in the app, and the answers are now in UX.md as standing rules:
+
+1. Is the in-progress state visible on the control itself?
+2. Is success confirmed where the change happened?
+3. Is a refusal stated next to the control, in a confirmation that stays open?
+4. If the action cannot succeed now, is that said before the press?
+
+Auditing against those found three more, all in Settings and all the same class:
+
+- **A successful unregister was reported at the top of the Projects section.** The
+  card it removed was at the bottom of the list, so on a phone the confirmation
+  was off-screen. Success now renders where the card was.
+- **Revoke had no success confirmation at all** — the device simply vanished from
+  the list. It now confirms next to the list.
+- **One `actionError` served two distant actions.** A revoke failure therefore
+  also rendered in the browser-link panel, above the fold, generically labelled
+  "Device action failed". Browser-link actions and revocation now report
+  separately. Register and unregister likewise stopped sharing `projectError`,
+  which had the same shape of problem: correct above the register form, invisible
+  below the project list.
+
+Audited and found already correct, so left alone: Session Detail's close flow
+(which re-opens its confirmation on failure, the pattern Settings was missing),
+Start Work's submit error (adjacent to the sticky button), the Terminal banners
+(stacked between canvas and keybar, never scrolled), and the keybar's disabled
+state (covered by the connection overlay directly above it).
+
+One more fixed while auditing: an expired browser link disabled its Copy button
+and said "Expires in 0:00", which describes a countdown rather than a state. It
+now says the link has expired and to create a new one.
+
 The preview bound is the API's; the paging is in the page.
 
 What is evidence and what is not:

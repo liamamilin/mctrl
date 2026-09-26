@@ -40,8 +40,14 @@ export function SettingsPage() {
   const [projectRunner, setProjectRunner] = useState('shell');
   const [projectSaving, setProjectSaving] = useState(false);
   const [projectRemoving, setProjectRemoving] = useState('');
+  // Registering and unregistering report separately. They used to share one
+  // error, rendered once at the top of the section — correct for the register
+  // form, which is at the top, and invisible for unregister, which happens at the
+  // bottom of the project list.
   const [projectError, setProjectError] = useState('');
   const [projectNotice, setProjectNotice] = useState('');
+  const [unregisterNotice, setUnregisterNotice] = useState('');
+  const [unregisterError, setUnregisterError] = useState('');
   const [terminalCols, setTerminalCols] = useState('240');
   const [terminalRows, setTerminalRows] = useState('60');
   const [terminalSizeSaving, setTerminalSizeSaving] = useState(false);
@@ -56,7 +62,12 @@ export function SettingsPage() {
   const [browserLinkSeconds, setBrowserLinkSeconds] = useState(0);
   const [linkCopied, setLinkCopied] = useState(false);
   const [linkNotice, setLinkNotice] = useState('');
-  const [actionError, setActionError] = useState('');
+  // Browser-link actions and device revocation are far apart on the page, so
+  // they report separately. One shared error rendered in both places, which is
+  // how a revoke failure ended up duplicated in a spot the user was not looking at.
+  const [linkError, setLinkError] = useState('');
+  const [revokeError, setRevokeError] = useState('');
+  const [revokeNotice, setRevokeNotice] = useState('');
   const loadId = useRef(0);
   const browserLinkInput = useRef<HTMLInputElement>(null);
 
@@ -64,7 +75,7 @@ export function SettingsPage() {
     const currentLoad = ++loadId.current;
     setLoading(true);
     setError('');
-    setActionError('');
+    setLinkError('');
     setBrowserLink('');
     setBrowserLinkExpiry('');
     setBrowserLinkSeconds(0);
@@ -200,7 +211,7 @@ export function SettingsPage() {
 
   const createBrowserLink = async () => {
     setCreatingLink(true);
-    setActionError('');
+    setLinkError('');
     setLinkCopied(false);
     setLinkNotice('');
     try {
@@ -215,7 +226,7 @@ export function SettingsPage() {
       });
       setLinkNotice('Link created. Copy it, then paste it into Safari on this phone.');
     } catch (caught) {
-      setActionError(
+      setLinkError(
         caught instanceof Error ? caught.message : 'Could not create a browser link.',
       );
     } finally {
@@ -225,7 +236,7 @@ export function SettingsPage() {
 
   const copyBrowserLink = async () => {
     if (!browserLink) return;
-    setActionError('');
+    setLinkError('');
     setLinkNotice('');
     try {
       if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
@@ -251,7 +262,8 @@ export function SettingsPage() {
 
   const revoke = async (device: PairedDevice) => {
     setRevoking(device.id);
-    setActionError('');
+    setRevokeError('');
+    setRevokeNotice('');
     try {
       await revokeDevice(device.id);
       const revoked = {
@@ -264,12 +276,15 @@ export function SettingsPage() {
       setLinkNotice('');
       setDevices((current) => current.filter((item) => item.id !== device.id));
       setConfirmAction(undefined);
+      setRevokeNotice(
+        `Revoked “${device.name}”. It can no longer control this Mac.`,
+      );
       setDeviceHistory((current) => [
         revoked,
         ...current.filter((item) => item.id !== device.id),
       ]);
     } catch (caught) {
-      setActionError(
+      setRevokeError(
         caught instanceof Error ? caught.message : 'Device revocation failed.',
       );
     } finally {
@@ -317,15 +332,19 @@ export function SettingsPage() {
   // of the section put it off-screen on a phone, which read as "nothing happened".
   const unregisterProject = async (project: Project) => {
     setProjectRemoving(project.id);
-    setProjectError('');
-    setProjectNotice('');
+    setUnregisterNotice('');
+    setUnregisterError('');
     try {
       await deleteProject(project.id);
       setProjects((current) => current.filter((item) => item.id !== project.id));
       setConfirmAction(undefined);
-      setProjectNotice(`Unregistered “${project.name}”. Existing Sessions were not changed.`);
+      // Where the change happened, not at the top of the section: the card is
+      // gone and the user's eyes are where it used to be.
+      setUnregisterNotice(
+        `Unregistered “${project.name}”. Existing Sessions were not changed.`,
+      );
     } catch (caught) {
-      setProjectError(
+      setUnregisterError(
         caught instanceof Error ? caught.message : 'Could not remove the Project.',
       );
     } finally {
@@ -609,6 +628,12 @@ export function SettingsPage() {
               )}
             </div>
 
+            {unregisterNotice && (
+              <p class="browser-link-notice" role="status">
+                {unregisterNotice}
+              </p>
+            )}
+
             <p class="settings-footnote">
               Registering a Project does not start a process. Unregistering it
               only removes the future launch target; existing Sessions and Work
@@ -657,10 +682,11 @@ export function SettingsPage() {
                   </button>
                 </div>
                 {/* Stays open after a refusal so the reason is where the
-                    decision is being made. */}
-                {projectError && (
+                    decision is being made, and only here — the top of the
+                    section is off-screen on a phone. */}
+                {unregisterError && (
                   <p class="inline-confirm-error" role="alert">
-                    {projectError}
+                    {unregisterError}
                   </p>
                 )}
               </div>
@@ -683,8 +709,8 @@ export function SettingsPage() {
               </button>
             </div>
 
-            {actionError && (
-              <ErrorNotice title="Device action failed" message={actionError} />
+            {linkError && (
+              <ErrorNotice title="Browser link failed" message={linkError} />
             )}
 
             <section class="browser-link-panel" aria-labelledby="browser-link-title">
@@ -722,8 +748,11 @@ export function SettingsPage() {
                     {linkCopied ? 'Copied' : 'Copy link'}
                   </button>
                   <small>
-                    Expires in {browserLinkClock} ({formatDate(browserLinkExpiry)}).
-                    The link works once and can use this paired device until then.
+                    {browserLinkSeconds <= 0
+                      ? 'This link has expired. Create a new one to link another browser.'
+                      : `Expires in ${browserLinkClock} (${formatDate(
+                          browserLinkExpiry,
+                        )}). The link works once and can use this paired device until then.`}
                   </small>
                 </div>
               )}
@@ -811,12 +840,18 @@ export function SettingsPage() {
                       : 'Revoke device'}
                   </button>
                 </div>
-                {actionError && (
+                {revokeError && (
                   <p class="inline-confirm-error" role="alert">
-                    {actionError}
+                    {revokeError}
                   </p>
                 )}
               </div>
+            )}
+
+            {revokeNotice && (
+              <p class="browser-link-notice" role="status">
+                {revokeNotice}
+              </p>
             )}
 
             <details class="device-history card">
