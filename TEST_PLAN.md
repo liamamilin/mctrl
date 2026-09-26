@@ -83,11 +83,13 @@ Required:
   `mctrl-terminal-half-width` to `off` in `localStorage` restores the raw bytes
 - CJK text typed into the terminal is unchanged by that conversion
 - a Latin keyboard's letters, digits and punctuation are each sent exactly once
-  on the phone and in a desktop browser, with no duplication from the
-  `beforeinput` interception
+  on the phone and in a desktop browser
 - an armed CTRL still modifies a character typed on the software keyboard
 - the digits of a Chinese keyboard select candidates and never reach the
   terminal; the same digits on a Latin keyboard arrive as `1`–`9`
+- the temporary `⌦ trace` control records the event stream iOS delivers for a
+  letter, for `，`, and for `1`, and the recording is pasted back before the
+  Chinese-keyboard punctuation work continues
 - scrolling back shows the ↓ lines-back control, and one tap returns to the tail
 - the software keyboard does not cover the terminal, and the keybar stays above it
 - the FULL hint stays on one line

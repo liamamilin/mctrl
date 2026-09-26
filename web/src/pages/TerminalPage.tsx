@@ -108,6 +108,41 @@ function halfWidthEnabled(): boolean {
   }
 }
 
+// TEMPORARY INPUT DIAGNOSTIC — remove once the iOS event stream is known.
+//
+// Two attempts to fix the Chinese keyboard's punctuation by inference both
+// failed on the real phone, so this records the events iOS actually delivers to
+// xterm's helper textarea. The answer is only in there: if no event carries the
+// character, the page is never told about it and no interception can help.
+const INPUT_TRACE_EVENTS = [
+  'keydown',
+  'beforeinput',
+  'input',
+  'compositionstart',
+  'compositionupdate',
+  'compositionend',
+  'keyup',
+] as const;
+
+const INPUT_TRACE_LIMIT = 40;
+
+function describeInputEvent(event: Event): string {
+  const anyEvent = event as KeyboardEvent & InputEvent & CompositionEvent;
+  if (event.type === 'keydown' || event.type === 'keyup') {
+    return `key=${JSON.stringify(anyEvent.key)} code=${JSON.stringify(
+      anyEvent.code,
+    )} keyCode=${anyEvent.keyCode}`;
+  }
+  if (event.type === 'beforeinput' || event.type === 'input') {
+    return `inputType=${JSON.stringify(anyEvent.inputType)} data=${JSON.stringify(
+      anyEvent.data,
+    )} composed=${anyEvent.composed} isComposing=${anyEvent.isComposing} cancelable=${anyEvent.cancelable} prevented=${anyEvent.defaultPrevented} value=${JSON.stringify(
+      (event.target as HTMLTextAreaElement | null)?.value ?? '',
+    )}`;
+  }
+  return `composition data=${JSON.stringify(anyEvent.data)}`;
+}
+
 type ConnectionState =
   | 'connecting'
   | 'connected'
@@ -198,6 +233,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const [sessionLabel, setSessionLabel] = useState('');
   const [scrolledBack, setScrolledBack] = useState(0);
   const [keyboardInset, setKeyboardInset] = useState(0);
+  // TEMPORARY INPUT DIAGNOSTIC — remove with the recorder and the keybar button.
+  const [inputTrace, setInputTrace] = useState<string[]>([]);
+  const [traceOpen, setTraceOpen] = useState(false);
   // Read once per mount: it is an escape hatch, not a preference the user is
   // expected to flip while typing.
   const [halfWidth] = useState(halfWidthEnabled);
@@ -319,50 +357,25 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       terminal.textarea?.focus({ preventScroll: true });
     };
 
-    // Recover the one case where iOS delivers a character and xterm drops it.
+    // TEMPORARY INPUT DIAGNOSTIC. Remove once the iOS event stream is known.
     //
-    // iOS reports no keyCode for its on-screen keyboard, so xterm's printable
-    // branch, which requires keyCode >= 48, can never match. What is left is the
-    // textarea's input event, and xterm discards an IME commit because it
-    // arrives with composed === true once a keydown has been seen. Letters
-    // survive on the plain path (composed === false) and a whole Chinese phrase
-    // survives on the composition events, but a single punctuation mark committed
-    // by a Chinese keyboard reaches nothing at all.
-    //
-    // The interception is deliberately narrow, because every path it could take
-    // over is one that already works:
-    //
-    //   composed === false -> xterm's own handler takes it: desktop keyboards
-    //                         and iOS letters. Not touched.
-    //   isComposing       -> the IME still needs it. Not touched.
-    //   xterm already sent -> a real keydown carried the character, so sending
-    //                         again would duplicate it. Not touched.
-    //
-    // What is left is committed IME text that nobody sent, and beforeinput is
-    // cancelable, so preventing the default also stops xterm's handler. The lost
-    // case is claimed, and it is claimed exactly once.
-    const IME_COMMIT_TYPES = new Set(['insertText', 'insertFromComposition']);
-    let sentForThisKey = false;
-    const claimSoftKeyboardText = (event: Event) => {
-      const input = event as InputEvent;
-      if (!input.data || input.isComposing || !input.composed) return;
-      if (!IME_COMMIT_TYPES.has(input.inputType) || sentForThisKey) return;
-      event.preventDefault();
-      sendTyped(input.data);
-    };
-    // Capture on the host, an ancestor of xterm's textarea, so this runs before
-    // xterm's own keydown listener and cannot be reordered by registration.
-    // The keyup reset matters too: a committed phrase sends data from
-    // compositionend, and without it that stale flag would swallow the next
-    // punctuation mark if the IME commits it without a fresh keydown.
-    const resetSentForThisKey = () => {
-      sentForThisKey = false;
-    };
+    // The previous commit claimed committed IME text on `beforeinput` and it
+    // changed nothing on the phone. Two guesses have now been wrong, so this
+    // records what iOS actually delivers instead of inferring it: if the stream
+    // shows no event carrying the character at all, no amount of interception
+    // can help and the answer is that the page is never told.
     const helperTextarea = terminal.textarea;
-    if (helperTextarea && 'onbeforeinput' in helperTextarea) {
-      helperTextarea.addEventListener('beforeinput', claimSoftKeyboardText);
-      host.addEventListener('keydown', resetSentForThisKey, true);
-      host.addEventListener('keyup', resetSentForThisKey, true);
+    const recordInputEvent = (event: Event) => {
+      setInputTrace((current) =>
+        [...current, `${event.type} ${describeInputEvent(event)}`].slice(
+          -INPUT_TRACE_LIMIT,
+        ),
+      );
+    };
+    if (helperTextarea) {
+      for (const name of INPUT_TRACE_EVENTS) {
+        helperTextarea.addEventListener(name, recordInputEvent, true);
+      }
     }
 
     const blockInput = (message: string) => {
@@ -601,11 +614,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       }
     };
 
-    // One path for typed text, so the keybar, the software keyboard and this
-    // interception cannot drift apart. Every send goes through here, which is
-    // what lets the interception above know the character is not still unsent.
+    // One path for typed text, so the keybar and the software keyboard cannot
+    // drift apart.
     const sendTyped = (text: string) => {
-      sentForThisKey = true;
       const transformed = withControlModifier(
         halfWidth ? normalizeHalfWidth(text) : text,
         controlArmed.current,
@@ -920,9 +931,10 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       viewport?.removeEventListener('resize', scheduleFit);
       viewport?.removeEventListener('resize', applyKeyboardInset);
       viewport?.removeEventListener('scroll', applyKeyboardInset);
-      helperTextarea?.removeEventListener('beforeinput', claimSoftKeyboardText);
-      host.removeEventListener('keydown', resetSentForThisKey, true);
-      host.removeEventListener('keyup', resetSentForThisKey, true);
+      // TEMPORARY INPUT DIAGNOSTIC — remove with the recorder above.
+      for (const name of INPUT_TRACE_EVENTS) {
+        helperTextarea?.removeEventListener(name, recordInputEvent, true);
+      }
       scrollDisposable.dispose();
       renderDisposable.dispose();
       window.removeEventListener('online', onOnline);
@@ -1106,6 +1118,20 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           {/* The one floating action. It stays out of the grid so the terminal
               keeps every row, and it only appears once the viewport has left
               the live tail. */}
+          {/* TEMPORARY INPUT DIAGNOSTIC — remove once the iOS event stream is
+              known. It records what the phone delivers so the Chinese-keyboard
+              failure can be read instead of guessed. */}
+          <button
+            class="canvas-action canvas-action-left"
+            type="button"
+            onClick={() => setTraceOpen((open) => !open)}
+            aria-expanded={traceOpen}
+            aria-label="Show recorded input events"
+            title="TEMPORARY input diagnostic"
+          >
+            ⌦ trace
+          </button>
+
           {scrolledBack > 0 && (
             <button
               className="canvas-action"
@@ -1160,6 +1186,34 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           role="toolbar"
           aria-label="Terminal keys"
         >
+          {/* TEMPORARY INPUT DIAGNOSTIC — remove once the iOS event stream is
+              known. It records what the phone delivers so the Chinese-keyboard
+              failure can be read instead of guessed. */}
+          {traceOpen && (
+            <div class="input-trace">
+              <textarea
+                readOnly
+                rows={6}
+                value={
+                  inputTrace.length
+                    ? inputTrace.join('\n')
+                    : 'No events recorded yet. Tap 编辑, then the keys, then reopen.'
+                }
+                aria-label="Recorded input events"
+              />
+              <div class="input-trace-actions">
+                <button
+                  type="button"
+                  onClick={() => setInputTrace([])}
+                >
+                  Clear
+                </button>
+                <button type="button" onClick={() => setTraceOpen(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
           <div
             class="keybar-primary"
             role="group"

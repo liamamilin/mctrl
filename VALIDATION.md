@@ -94,8 +94,7 @@ package has no test runner, so nothing here is covered by an automated test yet.
   silent rewrite
 - CJK text typed into the terminal is unchanged by the conversion
 - a Latin keyboard's letters, digits and punctuation are each sent exactly once
-  on the phone and in a desktop browser, with no duplication from the
-  `beforeinput` interception
+  on the phone and in a desktop browser
 - an armed CTRL still modifies a character typed on the software keyboard
 - the digits of a Chinese keyboard select candidates and never reach the
   terminal, while the same digits on a Latin keyboard arrive as `1`–`9`
@@ -117,9 +116,9 @@ What is evidence and what is not:
   on-screen keyboard. Letters and committed phrases use the two paths that are
   not gated, which is why they worked and punctuation did not.
 - **Not evidence.** That iOS fires `beforeinput` for this case, and that
-  `input.composed` is true for it. Both are plausible and neither is verifiable
-  off-device. If either is wrong the interception is inert and the behaviour is
-  exactly what it was before — no regression, no fix.
+  `input.composed` is true for it. Both were plausible and both are now known to
+  be wrong: the interception built on them changed nothing on the phone, which
+  means the character never reaches a `beforeinput` at all.
 - **Not evidence.** That a Chinese keyboard's number row consumes digits as
   candidate selection on this phone. That is the operating system's design and it
   matches what was observed, but it was observed as "nothing happened", not as an
@@ -127,6 +126,13 @@ What is evidence and what is not:
 - **Not evidence.** The software-keyboard inset. No desktop browser can raise an
   iOS keyboard, so the layout consuming `--keyboard-inset` is the only thing that
   has been checked.
+
+Two inferences from the xterm source were wrong, and the reason is worth
+recording: reading a library's control flow tells you what a browser *would* do
+with an event, not what iOS *delivers*. The next step is a recording, not another
+inference. A temporary `⌦ trace` control on the terminal page captures the real
+`keydown` / `beforeinput` / `input` / `composition*` stream for the helper
+textarea, and it is to be removed once the stream is known.
 
 ## Raw keyboard transport validation
 

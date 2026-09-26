@@ -213,19 +213,18 @@ candidate selector: `1`–`5` pick a candidate word, so the keystroke is consume
 by the operating system and never reaches the page. Nothing in the terminal can
 recover it. Switch to a Latin keyboard.
 
-**Punctuation used to produce nothing either, and that was a real defect** — in
-the browser layer, not the OS. iOS reports no `keyCode` for its on-screen
-keyboard, so xterm's printable-key branch (`keyCode >= 48`) could never match,
-and the `input` event it depends on arrives from an IME with `composed === true`,
-which xterm discards once a keydown has been seen. mctrl now claims that one lost
-case on `beforeinput` and converts the result from full-width to half-width, so
-`，` arrives as `,`.
+**Punctuation produced nothing either, and it is not fixed.** The previous commit
+claimed committed IME text on `beforeinput`, and on the real phone it changed
+nothing, which means the character never reaches a `beforeinput` at all. Two
+attempts to infer the cause from xterm's source were both wrong, so the terminal
+page now carries a temporary input diagnostic: the `⌦ trace` button over the
+canvas records the real `keydown` / `beforeinput` / `input` / `composition*`
+stream that iOS delivers to xterm's helper textarea.
 
-If punctuation is still dropped after a reload, the interception did not take
-effect. Reload the page once (the versioned service worker swaps the cached shell
-on the next load), and check that the keyboard actually commits text into the
-focused field — a third-party keyboard extension that never commits cannot be
-recovered by the page either.
+To use it: reload, open a terminal, tap **编辑**, tap the keys in question, then
+tap **⌦ trace** and paste the recorded lines. The recording answers the only
+question that matters — whether any event carries the character at all. If none
+does, the page is never told, and no interception can help.
 
 To confirm the full-width conversion is what you are seeing, set
 `mctrl-terminal-half-width` to `off` in the page's `localStorage` and reload; the

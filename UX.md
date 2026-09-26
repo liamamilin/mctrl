@@ -95,28 +95,20 @@ decision is made by the operating system, outside the page, and no terminal-side
 handling recovers it. Switching to a Latin keyboard is the only native way to
 type a digit.
 
-**Punctuation used to reach the page and be dropped.** iOS reports no `keyCode`
-for its on-screen keyboard, so xterm's printable-key branch, which requires
-`keyCode >= 48`, can never match; the same `switch` carries a `case 0` purely for
-iOS's `UIKeyInput*` arrows. Input therefore depends on the textarea's `input`
-event, and xterm discards an IME commit because it arrives with `composed === true`
-once a keydown has been seen. Letters survive on the plain path
-(`composed === false`) and a whole Chinese phrase survives on the composition
-events, but a single `，` committed by the IME reached nothing at all.
+**Punctuation is not fixed, and the cause is not yet known.** Two attempts to
+derive it from xterm's source were both wrong on the real phone: reading a
+library's control flow says what a browser would *do* with an event, not what iOS
+*delivers*. A temporary `⌦ trace` control over the canvas records the real event
+stream, and it is to be removed once that stream is read. Until then, treat
+`mctrl`'s handling of a Chinese keyboard's punctuation as unknown rather than
+fixed.
 
-mctrl claims exactly that lost case on `beforeinput`: committed IME text that
-nobody has sent yet. `composed === false` input, anything still composing, and
-input xterm has already sent for the current key are all left alone, so no
-working path changes. Because `beforeinput` is cancelable, preventing the default
-also stops xterm's handler, which is what makes the claim happen exactly once.
-
-The claimed text is then converted from full-width to half-width: `：，／` become
-`: ,/`, and the ideographic space becomes a space. Only the full-width ASCII
-block (U+FF01–U+FF5E) is touched, so real CJK input is left exactly as typed.
-The conversion applies to terminal keystrokes only, never to the Structured
-Prompt, where a program reads text rather than keys. It is unconditional; to send
-the raw bytes, set `mctrl-terminal-half-width` to `off` in the page's
-`localStorage`.
+What mctrl does do, for whatever text does arrive, is convert the full-width
+ASCII block (U+FF01–U+FF5E) and the ideographic space to half-width: `：，／`
+become `: ,/`. Only those two blocks are touched, so real CJK input is left
+exactly as typed, and the conversion applies to terminal keystrokes only, never
+to the Structured Prompt. It is unconditional; to send the raw bytes, set
+`mctrl-terminal-half-width` to `off` in the page's `localStorage`.
 
 ### Reaching earlier output
 

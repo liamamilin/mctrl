@@ -2306,6 +2306,60 @@ button:disabled {
   background: rgba(20, 32, 26, 0.95);
 }
 
+.canvas-action-left {
+  left: 9px;
+  color: var(--text-soft);
+  border-color: var(--border-strong);
+}
+
+/* TEMPORARY INPUT DIAGNOSTIC — remove with the recorder in TerminalPage.tsx. */
+.input-trace {
+  display: grid;
+  width: 100%;
+  max-width: 520px;
+  justify-self: center;
+  gap: 6px;
+  margin: 0 auto;
+  padding: 7px;
+  background: #0a100d;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+}
+
+.input-trace textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 6px;
+  color: #bfe8ce;
+  background: #060907;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.56rem;
+  line-height: 1.35;
+  resize: none;
+  /* The user has to read this and paste it, so it must be selectable. */
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.input-trace-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.input-trace-actions button {
+  height: 30px;
+  padding: 0 12px;
+  color: var(--text-soft);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
 .prompt-dock {
   position: relative;
   padding: 8px 9px calc(7px + env(safe-area-inset-bottom));
