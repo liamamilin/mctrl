@@ -206,50 +206,44 @@ current size.
 
 ## The Chinese keyboard cannot type numbers or symbols into a program
 
-Two different causes, and only one of them is recoverable.
+**This is not fixable in the terminal, and the cause is measured rather than
+guessed.** With the daemon recording every input frame the phone sends:
 
-**Digits do nothing at all.** On a Chinese keyboard the number row is the
-candidate selector: `1`–`5` pick a candidate word, so the keystroke is consumed
-by the operating system and never reaches the page. Nothing in the terminal can
-recover it. Switch to a Latin keyboard.
+| Key | Chinese keyboard | English keyboard |
+| --- | --- | --- |
+| `a` | `hex=61` arrives | `hex=61` arrives |
+| Return | `hex=0d` arrives | `hex=0d` arrives |
+| `1` | **nothing** | `hex=31` arrives |
+| `，` | **nothing** | `hex=2c` arrives |
 
-**Punctuation produced nothing either, and it is not fixed.** The previous commit
-claimed committed IME text on `beforeinput`, and on the real phone it changed
-nothing, which means the character never reaches a `beforeinput` at all. Two
-attempts to infer the cause from xterm's source were both wrong, so the terminal
-page now carries a temporary input diagnostic: the `⌦ trace` button over the
-canvas records the real `keydown` / `beforeinput` / `input` / `composition*`
-stream that iOS delivers to xterm's helper textarea.
+The transport is sound: every character the browser produces reaches the Mac. A
+Chinese keyboard simply produces no event at all for the digit row or for
+punctuation, so there is nothing for the page to intercept, forward, or convert.
+On a Chinese keyboard the number row is the candidate selector, which is the
+operating system's design.
 
-The answer is recorded on the Mac, not on the phone. The phone cannot hand a
-recording over — iOS blocks copy and paste from a plain-HTTP page, and the async
-clipboard API needs a secure context, which Trusted LAN HTTP deliberately is not —
-but the daemon already sees every byte the phone sends, so that is where the
-question is settled.
+Switch to a Latin keyboard to type digits and punctuation. If the character
+appears on screen but the program ignores it, that is the program's input
+handling, not mctrl: use a shell rather than a full-screen TUI to tell them
+apart.
 
-Turn the trace on, press the keys, read it off:
-
-```sh
-touch ~/.mctrl/logs/INPUT_TRACE     # enables; no daemon restart needed
-# press the keys on the phone
-cat ~/.mctrl/logs/input-trace.log
-rm ~/.mctrl/logs/INPUT_TRACE         # disables
-```
-
-Each line is one input frame: timestamp, Session, byte count, the text as typed,
-and the hex. The full-width comma appears as `，` with `hex=ef bc 8c`, which
-distinguishes "the phone sent the full-width character and something dropped it
-later" from "the phone never sent it".
-
-`rm` the log between rounds, because frames accumulate. There is no reset inside
-the tool: a stale recording must never be silently mixed into a new one. The file
-is capped, so a forgotten flag cannot fill the disk.
+Two wrong conclusions came out of this before it was measured. Reading xterm's
+source showed the character being delivered and then discarded, and an
+interception built on that reading changed nothing on the phone. The lesson is
+recorded because it is the trap: reading a library's control flow tells you what
+a browser *would* do with an event, not what iOS *delivers*. Measure at the
+boundary the data actually crosses.
 
 To confirm the full-width conversion is what you are seeing, set
 `mctrl-terminal-half-width` to `off` in the page's `localStorage` and reload; the
 raw full-width characters then reach the program unchanged.
 
-CJK text itself is never altered by the conversion.
+CJK text itself is never altered by the conversion. What it does cover, beyond
+the full-width block, is the ideographic punctuation a Chinese keyboard sends
+when an English layout is active or when text is pasted: `。` (U+3002) and `、`
+(U+3001) become `.` and `,`, which the previous version missed because those
+codes sit below U+FF01. Curly quotes are straightened too. `web/scripts/check-normalizer.mjs`
+covers all of this and runs in `make test-web`.
 
 ## The software keyboard covers the terminal
 

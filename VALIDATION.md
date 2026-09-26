@@ -127,27 +127,37 @@ What is evidence and what is not:
   iOS keyboard, so the layout consuming `--keyboard-inset` is the only thing that
   has been checked.
 
-Two inferences from the xterm source were wrong, and the reason is worth
-recording: reading a library's control flow tells you what a browser *would* do
-with an event, not what iOS *delivers*. The next step is a measurement, not
-another inference.
+The Chinese-keyboard question is settled, by measurement rather than inference,
+and the answer is that it is not a defect mctrl can fix.
 
-A browser-side recorder was tried first and abandoned. It could not deliver its
-own result: iOS blocks copy and paste from a plain-HTTP page, and the async
-clipboard API needs a secure context, which Trusted LAN HTTP deliberately is not.
-Asking the user to read forty event lines off a phone screen is a design that
-fails regardless of the diagnosis being correct.
+Measured at the daemon's input boundary, which sees every byte the phone sends:
 
-The measurement therefore moved to the Mac, where the answer already passes
-through: `TraceTerminalInput` records every input frame the phone sends, in
-`internal/terminal/inputtrace.go`. It is off unless `~/.mctrl/logs/INPUT_TRACE`
-exists, so nothing is recorded by default and the cost when off is one failed
-stat per frame. It resolves its path through `config.StateDir()`, so the V1/V2
-profile split holds. Covered by tests for the disabled case, the recorded
-content, frame order, the size cap, and that it stays inside the state dir.
+| Key | Chinese keyboard | English keyboard |
+| --- | --- | --- |
+| `a` | `0x61` arrives | `0x61` arrives |
+| Return | `0x0d` arrives | `0x0d` arrives |
+| `1` | nothing | `0x31` arrives |
+| `，` | nothing | `0x2c` arrives |
 
-The file is temporary and is to be deleted along with its one call site in
-`bridge.go` once the Chinese-keyboard question is settled.
+So the transport is sound and the browser produces no event for the digit row or
+for punctuation under a Chinese keyboard. Nothing in the page can intercept a
+character that is never dispatched. Two earlier conclusions were wrong, and the
+reason is worth keeping: xterm's source was read as showing the character being
+delivered and then discarded, and an interception built on that reading changed
+nothing on the phone. Reading a library's control flow tells you what a browser
+*would* do with an event, not what iOS *delivers*.
+
+The measurement itself is gone. It was a temporary recorder in the terminal
+bridge, gated behind a flag file so nothing was written during normal use, and it
+has been removed along with its tests. What survives is the finding.
+
+The measurement did find a real, separate defect, which is fixed here: the
+full-width conversion covered U+FF01–U+FF5E and U+3000, so `。` (U+3002) and `、`
+(U+3001) — what a Chinese keyboard actually sends for the period and comma keys —
+passed through unchanged and a program binding `.` never saw one. The conversion
+now also covers those two and the curly quotes, and
+`web/scripts/check-normalizer.mjs` checks 18 conversions and 23 characters that
+must not change, wired into `make test-web` so it cannot rot.
 
 ## Raw keyboard transport validation
 

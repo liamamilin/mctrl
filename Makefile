@@ -62,6 +62,7 @@ test-race:
 
 test-web: web-deps
 	cd web && $(NPM) run typecheck
+	cd web && $(NODE) scripts/check-normalizer.mjs
 
 check-release-deps:
 	@test "$$($(GO) env GOVERSION)" = "go1.27.1" || { echo "release-check requires Go 1.27.1"; exit 1; }

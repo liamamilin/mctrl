@@ -79,19 +79,15 @@ Required:
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls
 - the terminal keybar's ⏎ control sends Return unchanged
-- a Chinese keyboard's `，` reaches the program as `,`, and setting
-  `mctrl-terminal-half-width` to `off` in `localStorage` restores the raw bytes
-- CJK text typed into the terminal is unchanged by that conversion
+- a Chinese keyboard delivers letters and Return and delivers nothing for the
+  digit row or for punctuation, while an English keyboard delivers `1` and `,`;
+  measured at the daemon, not inferred
+- `。` and `、` are converted to `.` and `,` when text does arrive in that form,
+  and CJK brackets, `—`, `…` and circled digits are left alone
+- `web/scripts/check-normalizer.mjs` passes in `make test-web`
 - a Latin keyboard's letters, digits and punctuation are each sent exactly once
   on the phone and in a desktop browser
 - an armed CTRL still modifies a character typed on the software keyboard
-- the digits of a Chinese keyboard select candidates and never reach the
-  terminal; the same digits on a Latin keyboard arrive as `1`–`9`
-- with `~/.mctrl/logs/INPUT_TRACE` absent, the daemon records no input frames
-- with it present, a letter, `，`, `1`, an arrow sequence and an empty frame are
-  each recorded with their byte count, text and hex, in order
-- the recording distinguishes a full-width `，` (`hex=ef bc 8c`) that arrived from
-  one that never left the phone
 - scrolling back shows the ↓ lines-back control, and one tap returns to the tail
 - the software keyboard does not cover the terminal, and the keybar stays above it
 - the FULL hint stays on one line

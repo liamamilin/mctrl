@@ -95,18 +95,41 @@ decision is made by the operating system, outside the page, and no terminal-side
 handling recovers it. Switching to a Latin keyboard is the only native way to
 type a digit.
 
-**Punctuation is not fixed, and the cause is not yet known.** Two attempts to
-derive it from xterm's source were both wrong on the real phone: reading a
-library's control flow says what a browser would *do* with an event, not what iOS
-*delivers*. The diagnosis is now being measured on the Mac instead, by recording
-the input frames the phone sends. Until that is read, treat `mctrl`'s handling of
-a Chinese keyboard's punctuation as unknown rather than fixed.
+**Digits and punctuation cannot be sent from a Chinese keyboard, and mctrl
+cannot fix that.** Measured on the phone by recording every frame the browser
+sends to the Mac: a Chinese keyboard delivers letters (`a` → `0x61`) and Return
+(`0x0d`), and delivers *nothing at all* for the digit row or for punctuation. No
+DOM event is produced, so there is nothing for the page to intercept. The same
+keys on an English keyboard arrive normally (`1` → `0x31`, `,` → `0x2C`), which is
+why switching keyboards works. The digit row of a Chinese keyboard is the
+candidate selector; that is the operating system's design.
 
-What mctrl does do, for whatever text does arrive, is convert the full-width
-ASCII block (U+FF01–U+FF5E) and the ideographic space to half-width: `：，／`
-become `: ,/`. Only those two blocks are touched, so real CJK input is left
-exactly as typed, and the conversion applies to terminal keystrokes only, never
-to the Structured Prompt. It is unconditional; to send the raw bytes, set
+Two wrong conclusions came out of this before it was measured, and are recorded
+because they are the trap: reading xterm's source suggested the character was
+delivered and then discarded, and an interception built on that changed nothing
+on the phone. Reading a library's control flow tells you what a browser *would*
+do with an event, not what iOS *delivers*.
+
+**Width is still corrected for text that does arrive.** A Chinese keyboard with
+an English layout, a paste, or a hardware keyboard produce real characters, and
+they arrive full-width or as CJK punctuation. A program that binds `.` never sees
+`。`. Converted, and only where there is one unambiguous ASCII equivalent:
+
+| From | To |
+| --- | --- |
+| U+FF01–U+FF5E full-width forms | ASCII `0x21`–`0x7E` |
+| U+3000 ideographic space | space |
+| U+3001 `、` | `,` |
+| U+3002 `。` | `.` |
+| U+2018–U+201D curly quotes | `'` and `"` |
+
+Left exactly as typed: CJK text, CJK brackets such as `「」【】《》`, `—`, `…`, `〃`,
+and the circled digits a long press produces. Those are characters, not width
+errors. Checked by `web/scripts/check-normalizer.mjs`, which runs in `make
+test-web`.
+
+The conversion applies to terminal keystrokes only, never to the Structured
+Prompt. It is unconditional; to send the raw bytes, set
 `mctrl-terminal-half-width` to `off` in the page's `localStorage`.
 
 ### Reaching earlier output
