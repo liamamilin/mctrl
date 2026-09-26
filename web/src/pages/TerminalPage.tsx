@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import type { JSX } from 'preact';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal } from '@xterm/xterm';
 import '@xterm/xterm/css/xterm.css';
@@ -62,6 +63,84 @@ function overviewTargetSize(
       FALLBACK_FULL_SIZE.rows,
     ),
   };
+}
+
+// Terminals want half-width ASCII. A Chinese IME on iOS emits full-width
+// forms (１, ：, ／ …) and the ideographic space, and a program that binds keys
+// like "1" or "/" never sees them. Only these two blocks are touched, so real
+// CJK input is left exactly as typed.
+function normalizeHalfWidth(data: string): string {
+  let result = '';
+  for (const character of data) {
+    const code = character.codePointAt(0) ?? 0;
+    if (code >= 0xff01 && code <= 0xff5e) {
+      // U+FF01..U+FF5E map onto ASCII 0x21..0x7E.
+      result += String.fromCharCode(code - 0xfee0);
+      continue;
+    }
+    if (code === 0x3000) {
+      result += ' ';
+      continue;
+    }
+    result += character;
+  }
+  return result;
+}
+
+const SYMBOL_ROWS: string[][] = [
+  ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+  ['/', ':', '-', '_', '.', ',', ';', "'", '"', '`'],
+  ['(', ')', '[', ']', '{', '}', '<', '>', '+', '='],
+  ['*', '&', '%', '$', '#', '@', '!', '?', '~', '^'],
+  ['|', '\\', '€', '£', '¥', '°', '±', '×', '÷', '§'],
+];
+
+const FONT_SIZES = [12, 13, 15, 17] as const;
+
+function loadFontSize(): number {
+  try {
+    const stored = Number(
+      window.localStorage.getItem(runtimeStorageKey('mctrl-terminal-font-size')),
+    );
+    if ((FONT_SIZES as readonly number[]).includes(stored)) return stored;
+  } catch {
+    // A blocked storage API only costs persistence.
+  }
+  return 13;
+}
+
+function saveFontSize(size: number): void {
+  try {
+    window.localStorage.setItem(
+      runtimeStorageKey('mctrl-terminal-font-size'),
+      String(size),
+    );
+  } catch {
+    // A blocked storage API only costs persistence.
+  }
+}
+
+function loadHalfWidth(): boolean {
+  try {
+    const stored = window.localStorage.getItem(
+      runtimeStorageKey('mctrl-terminal-half-width'),
+    );
+    // Default on: a full-width character in a terminal is almost never intended.
+    return stored === null ? true : stored === 'on';
+  } catch {
+    return true;
+  }
+}
+
+function saveHalfWidth(enabled: boolean): void {
+  try {
+    window.localStorage.setItem(
+      runtimeStorageKey('mctrl-terminal-half-width'),
+      enabled ? 'on' : 'off',
+    );
+  } catch {
+    // A blocked storage API only costs persistence.
+  }
 }
 
 type ConnectionState =
@@ -129,6 +208,15 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const sendRaw = useRef<(data: string) => boolean>(() => false);
   const focusTerminal = useRef<() => void>(() => undefined);
   const toggleOverview = useRef<() => void>(() => undefined);
+  // The terminal instance itself stays inside the effect; only the two
+  // operations the page needs from outside are published here.
+  const terminalApi = useRef<{
+    scrollToBottom: () => void;
+    setFontSize: (size: number) => boolean;
+  }>({
+    scrollToBottom: () => undefined,
+    setFontSize: () => false,
+  });
   const controlArmed = useRef(false);
   const promptStorageKey = runtimeStorageKey(`mctrl-prompt:${sessionId}`);
   const initialPromptRequest = readPendingPrompt(promptStorageKey);
@@ -149,6 +237,13 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     undefined,
   );
   const [sessionLabel, setSessionLabel] = useState('');
+  const [textToolsOpen, setTextToolsOpen] = useState(false);
+  const [fontSize, setFontSize] = useState(loadFontSize);
+  const [halfWidth, setHalfWidth] = useState(loadHalfWidth);
+  const [scrolledBack, setScrolledBack] = useState(0);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const halfWidthRef = useRef(halfWidth);
+  halfWidthRef.current = halfWidth;
   const [prompt, setPrompt] = useState('');
   const [sendingPrompt, setSendingPrompt] = useState(false);
   const [promptNotice, setPromptNotice] = useState<PromptNotice | undefined>(() =>
@@ -221,7 +316,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       cursorBlink: true,
       fontFamily:
         'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-      fontSize: 13,
+      fontSize: loadFontSize(),
       lineHeight: 1.2,
       scrollback: 5000,
       theme: {
@@ -505,7 +600,11 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
 
     sendRaw.current = send;
     const rawDisposable = terminal.onData((data) => {
-      const transformed = withControlModifier(data, controlArmed.current);
+      // A Chinese IME emits full-width forms; a terminal wants half-width ASCII.
+      const halfWidthSafe = halfWidthRef.current
+        ? normalizeHalfWidth(data)
+        : data;
+      const transformed = withControlModifier(halfWidthSafe, controlArmed.current);
       if (send(transformed)) controlArmed.current = false;
     });
     const binaryDisposable = terminal.onBinary((data) => {
@@ -744,9 +843,62 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       typeof ResizeObserver === 'undefined'
         ? undefined
         : new ResizeObserver(scheduleFit);
+    const viewport = window.visualViewport;
     resizeObserver?.observe(host);
     window.addEventListener('resize', scheduleFit);
-    window.visualViewport?.addEventListener('resize', scheduleFit);
+    viewport?.addEventListener('resize', scheduleFit);
+
+    // iOS Safari keeps the layout viewport at full height when the software
+    // keyboard opens, so a terminal sized to the layout viewport ends up behind
+    // the keyboard. Measure the inset between the two viewports and hand it to
+    // the layout instead of guessing.
+    const applyKeyboardInset = () => {
+      if (!viewport) {
+        setKeyboardInset(0);
+        return;
+      }
+      const layoutHeight = window.innerHeight;
+      const visibleBottom = viewport.offsetTop + viewport.height;
+      const inset = Math.round(layoutHeight - visibleBottom);
+      // Ignore rounding noise and anything implausible; a wrong value would
+      // shrink the terminal for no reason.
+      setKeyboardInset(inset > 80 && inset < layoutHeight * 0.75 ? inset : 0);
+      scheduleFit();
+    };
+    viewport?.addEventListener('resize', applyKeyboardInset);
+    viewport?.addEventListener('scroll', applyKeyboardInset);
+    applyKeyboardInset();
+
+    // "Jump to the live tail" needs to know whether the viewport has left it.
+    const syncScrollPosition = () => {
+      const buffer = terminal.buffer.active;
+      const distance = Math.max(0, buffer.baseY - buffer.viewportY);
+      setScrolledBack((current) => (current === distance ? current : distance));
+    };
+    const scrollDisposable = terminal.onScroll(syncScrollPosition);
+    const renderDisposable = terminal.onRender(syncScrollPosition);
+
+    terminalApi.current = {
+      scrollToBottom: () => {
+        terminal.scrollToBottom();
+        syncScrollPosition();
+      },
+      setFontSize: (size: number) => {
+        // Changing the font only makes sense in the phone-sized view; in FULL
+        // the overview transform already decides how large the Session looks,
+        // so the caller is told the change did not happen.
+        if (overviewMode) return false;
+        terminal.options.fontSize = size;
+        try {
+          fitAddon.fit();
+        } catch {
+          // The next resize pass will fit after layout settles.
+        }
+        sendTerminalResize();
+        return true;
+      },
+    };
+
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
     document.addEventListener('visibilitychange', onVisibility);
@@ -773,7 +925,11 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       if (resizeFrame !== undefined) cancelAnimationFrame(resizeFrame);
       resizeObserver?.disconnect();
       window.removeEventListener('resize', scheduleFit);
-      window.visualViewport?.removeEventListener('resize', scheduleFit);
+      viewport?.removeEventListener('resize', scheduleFit);
+      viewport?.removeEventListener('resize', applyKeyboardInset);
+      viewport?.removeEventListener('scroll', applyKeyboardInset);
+      scrollDisposable.dispose();
+      renderDisposable.dispose();
       window.removeEventListener('online', onOnline);
       window.removeEventListener('offline', onOffline);
       document.removeEventListener('visibilitychange', onVisibility);
@@ -805,7 +961,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   }, [connection]);
 
   const pressKey = (data: string) => {
-    if (!sendRaw.current(data)) return;
+    if (!sendRaw.current(halfWidth ? normalizeHalfWidth(data) : data)) return;
     controlArmed.current = false;
     setControlArmedState(false);
   };
@@ -814,6 +970,32 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     const next = !controlArmed.current;
     controlArmed.current = next;
     setControlArmedState(next);
+  };
+
+  const stepFontSize = (direction: 1 | -1) => {
+    const index = FONT_SIZES.indexOf(fontSize as (typeof FONT_SIZES)[number]);
+    const next =
+      FONT_SIZES[
+        Math.min(FONT_SIZES.length - 1, Math.max(0, index + direction))
+      ];
+    if (!next || next === fontSize) return;
+    // The terminal decides whether the change applies, so the label and the
+    // stored preference never claim a size the screen is not using.
+    if (!terminalApi.current.setFontSize(next)) return;
+    setFontSize(next);
+    saveFontSize(next);
+  };
+
+  const toggleHalfWidth = () => {
+    setHalfWidth((current) => {
+      saveHalfWidth(!current);
+      return !current;
+    });
+  };
+
+  const jumpToBottom = () => {
+    terminalApi.current.scrollToBottom();
+    setScrolledBack(0);
   };
 
   const reconnect = () => {
@@ -867,9 +1049,22 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const promptUncertain = promptNotice?.kind === 'uncertain';
   const promptDisabled =
     terminalInputDisabled || overview || sendingPrompt || promptUncertain;
+  // FULL is a whole-Session view; the Structured Prompt dock would only take
+  // space there. An unconfirmed prompt still has to stay reachable, because it
+  // is the one thing in that dock the user may have to act on.
+  const showPromptDock = !overview || promptUncertain;
 
   return (
-    <div class="terminal-page">
+    <div
+      class="terminal-page"
+      // A custom property rather than a padding value, so the layout rule in
+      // styles.css stays the single place that decides what the inset means.
+      style={
+        keyboardInset
+          ? ({ '--keyboard-inset': `${keyboardInset}px` } as JSX.CSSProperties)
+          : undefined
+      }
+    >
       <header class="terminal-header">
         <a
           class="terminal-back"
@@ -934,15 +1129,29 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               </div>
             </div>
           )}
+
+          {/* The one floating action. It stays out of the grid so the terminal
+              keeps every row, and it only appears once the viewport has left
+              the live tail. */}
+          {scrolledBack > 0 && (
+            <button
+              className="canvas-action"
+              type="button"
+              onClick={jumpToBottom}
+            >
+              <span aria-hidden="true">↓</span>
+              {scrolledBack} lines back
+            </button>
+          )}
         </div>
 
         {overview && (
           <div className="overview-hint" role="status">
             <strong>
-              Full Session overview
-              {overviewSize ? ` · ${overviewSize.cols}×${overviewSize.rows}` : ''}
+              Full
+              {overviewSize ? ` ${overviewSize.cols}×${overviewSize.rows}` : ''}
             </strong>
-            <span>Editable. Pinch to zoom, drag to pan, then use the keyboard button to type.</span>
+            <span>Editable · pinch · pan</span>
           </div>
         )}
         {overviewError && (
@@ -978,6 +1187,75 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           role="toolbar"
           aria-label="Terminal keys"
         >
+          {textToolsOpen && (
+            <div class="text-tools" role="group" aria-label="Text tools">
+              <div class="text-tools-grid">
+                {SYMBOL_ROWS.map((row, rowIndex) => (
+                  <div class="text-tools-row" key={`symbols-${rowIndex}`}>
+                    {row.map((symbol) => (
+                      <button
+                        key={symbol}
+                        type="button"
+                        onClick={() => pressKey(symbol)}
+                        disabled={terminalInputDisabled}
+                      >
+                        {symbol}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div class="text-tools-options">
+                <div class="text-tools-option">
+                  <span>
+                    Text size
+                    {overview && <small>Switch to LOCAL to change the size.</small>}
+                  </span>
+                  <div class="text-tools-stepper">
+                    <button
+                      type="button"
+                      onClick={() => stepFontSize(-1)}
+                      disabled={
+                        overview ||
+                        terminalInputDisabled ||
+                        fontSize <= FONT_SIZES[0]
+                      }
+                      aria-label="Smaller text"
+                    >
+                      A−
+                    </button>
+                    <strong>{fontSize}</strong>
+                    <button
+                      type="button"
+                      onClick={() => stepFontSize(1)}
+                      disabled={
+                        overview ||
+                        terminalInputDisabled ||
+                        fontSize >= FONT_SIZES[FONT_SIZES.length - 1]!
+                      }
+                      aria-label="Larger text"
+                    >
+                      A+
+                    </button>
+                  </div>
+                </div>
+                <label class="text-tools-option">
+                  <span>
+                    Full-width → half-width
+                    <small>
+                      A Chinese IME sends １ and ：; programs expect 1 and :.
+                    </small>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={halfWidth}
+                    onChange={toggleHalfWidth}
+                    disabled={terminalInputDisabled}
+                  />
+                </label>
+              </div>
+            </div>
+          )}
           <div
             class="keybar-primary"
             role="group"
@@ -1073,70 +1351,82 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             >
               ⏎
             </button>
+            <button
+              class={textToolsOpen ? 'armed text-tools-toggle' : 'text-tools-toggle'}
+              type="button"
+              onClick={() => setTextToolsOpen((open) => !open)}
+              aria-expanded={textToolsOpen}
+              aria-label="Symbols and text options"
+              title="Symbols and text options"
+            >
+              #
+            </button>
           </div>
         </div>
 
-        <form class="prompt-dock" onSubmit={submitPrompt}>
-          {promptNotice && (
-            <div
-              class={`prompt-notice prompt-notice-${promptNotice.kind}`}
-              role={promptNotice.kind === 'success' ? 'status' : 'alert'}
-            >
-              <span>{promptNotice.message}</span>
-              {promptNotice.kind === 'uncertain' && (
-                <button
-                  class="text-button"
-                  type="button"
-                  onClick={() => {
-                    setPrompt('');
-                    promptRequest.current = undefined;
-                    clearPendingPrompt(promptStorageKey);
-                    setPromptNotice(undefined);
-                  }}
-                >
-                  Clear prompt
-                </button>
-              )}
-              {promptNotice.kind === 'success' && (
-                <button
-                  class="notice-dismiss"
-                  type="button"
-                  onClick={() => setPromptNotice(undefined)}
-                  aria-label="Dismiss prompt status"
-                >
-                  ×
-                </button>
-              )}
+        {showPromptDock && (
+          <form class="prompt-dock" onSubmit={submitPrompt}>
+            {promptNotice && (
+              <div
+                class={`prompt-notice prompt-notice-${promptNotice.kind}`}
+                role={promptNotice.kind === 'success' ? 'status' : 'alert'}
+              >
+                <span>{promptNotice.message}</span>
+                {promptNotice.kind === 'uncertain' && (
+                  <button
+                    class="text-button"
+                    type="button"
+                    onClick={() => {
+                      setPrompt('');
+                      promptRequest.current = undefined;
+                      clearPendingPrompt(promptStorageKey);
+                      setPromptNotice(undefined);
+                    }}
+                  >
+                    Clear prompt
+                  </button>
+                )}
+                {promptNotice.kind === 'success' && (
+                  <button
+                    class="notice-dismiss"
+                    type="button"
+                    onClick={() => setPromptNotice(undefined)}
+                    aria-label="Dismiss prompt status"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            )}
+            <div class="prompt-input-row">
+              <textarea
+                value={prompt}
+                onInput={(event) => setPrompt(event.currentTarget.value)}
+                rows={2}
+                placeholder={
+                  overview
+                    ? 'Structured Prompt is available in LOCAL mode'
+                    : connection === 'connected'
+                      ? 'Prompt this session…'
+                      : 'Reconnect to send a prompt'
+                }
+                disabled={promptDisabled}
+                aria-label="Structured session prompt"
+              />
+              <button
+                class="prompt-send"
+                type="submit"
+                disabled={promptDisabled || !prompt.trim()}
+              >
+                {sendingPrompt ? '…' : 'Send'}
+              </button>
             </div>
-          )}
-          <div class="prompt-input-row">
-            <textarea
-              value={prompt}
-              onInput={(event) => setPrompt(event.currentTarget.value)}
-              rows={2}
-              placeholder={
-                overview
-                  ? 'Structured Prompt is available in LOCAL mode'
-                  : connection === 'connected'
-                    ? 'Prompt this session…'
-                    : 'Reconnect to send a prompt'
-              }
-              disabled={promptDisabled}
-              aria-label="Structured session prompt"
-            />
-            <button
-              class="prompt-send"
-              type="submit"
-              disabled={promptDisabled || !prompt.trim()}
-            >
-              {sendingPrompt ? '…' : 'Send'}
-            </button>
-          </div>
-          <p class="at-most-once-note">
-            Prompt actions use a request ID. Terminal keystrokes are sent once
-            and never replayed after uncertainty.
-          </p>
-        </form>
+            <p class="at-most-once-note">
+              Prompt actions use a request ID. Terminal keystrokes are sent once
+              and never replayed after uncertainty.
+            </p>
+          </form>
+        )}
       </main>
     </div>
   );

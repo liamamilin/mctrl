@@ -201,7 +201,41 @@ Note what `largest` actually means: tmux sizes the window to the largest
 the window. When the phone is the only client, the phone's own viewport becomes
 that largest client and the window follows it down to phone size. That is
 expected tmux behavior, not a bug, and it is why the phone's `FULL` overview asks
-for the Mac's canonical `120×40` instead of reading the pane's current size.
+for the Mac's canonical `240×60` (configurable) instead of reading the pane's
+current size.
+
+## The Chinese keyboard cannot type numbers or symbols into a program
+
+A full-width IME sends `１`, `：`, `／` and the ideographic space, while a
+program that binds `1`, `:` or `/` never sees them. Nothing is wrong with the
+terminal transport. Two ways to send them:
+
+- open the `#` panel on the keybar and tap the character; every key sends exactly
+  one ASCII character
+- leave **Full-width → half-width** on (the default) and type normally; only the
+  full-width ASCII block and the ideographic space are converted, so Chinese text
+  is untouched
+
+If a program genuinely needs full-width input, switch the conversion off in the
+same panel. It is a client-side choice stored per device, not a Mac-side setting.
+
+## The software keyboard covers the terminal
+
+The page measures the gap between the layout viewport and the visual viewport and
+lifts the keybar above the keyboard. If the keyboard still covers the terminal:
+
+- reload the page once; the versioned service worker swaps the cached shell on
+  the next load, and `index.html` is fetched network-first
+- rotate the phone once, which forces a fresh visual-viewport measurement
+- a value that looks like rounding noise or a pinch-zoom is deliberately ignored,
+  so a half-open keyboard that reports an implausible gap is left alone
+
+## Earlier output cannot be found
+
+The terminal keeps 5000 lines of scrollback, so shell output is reachable by
+scrolling; the `↓ N lines back` control returns to the live tail. A full-screen
+TUI repaints the same rows, so its earlier screens are not in the scrollback —
+that history lives in the program, not in mctrl.
 
 ## Remote Ready is false
 

@@ -75,10 +75,36 @@ Result: 0 vulnerabilities.
 
 - verified the two-row control layout at 393 px and the 320 px minimum width
 - confirmed `ESC`, `TAB`, `CTRL`, `LOCAL`, and `编辑` remain fully visible
-- confirmed `↑`, `↓`, `←`, `→`, and `⏎` remain fully visible without horizontal scrolling
+- confirmed `↑`, `↓`, `←`, `→`, `⏎`, and `#` fit the same row without horizontal
+  scrolling, with `↑ ↓ ← →` keeping their order and `编辑` staying between
+  `LOCAL` and the arrows
 - confirmed the direction controls send the standard terminal sequences for up,
   down, left, and right
 - confirmed `⏎` sends Return unchanged
+- confirmed the `#` panel's 50 symbol keys each send exactly one character
+- confirmed the keybar order survives with the `#` panel expanded
+
+## Mobile input and viewport changes — pending device verification
+
+These landed in this pass and are **not** yet confirmed on the iPhone. They are
+listed as expectations to check, not as results. Static checks only: the web
+build type-checks and `make release-check` passes for both profiles. The web
+package has no test runner, so nothing here is covered by an automated test yet.
+
+- a Chinese IME's full-width `１`, `：`, and `／` reach the program as `1`, `:`,
+  and `/`; the ideographic space reaches it as a space
+- switching **Full-width → half-width** off restores the raw full-width bytes, so
+  the conversion is a visible client-side choice and not a silent rewrite
+- CJK text typed into the terminal is unchanged by the conversion
+- `A+` grows the font, the terminal re-fits into fewer columns, and the Mac
+  receives the smaller size; the choice survives a page reload
+- scrolling back shows `↓ N lines back`; one tap returns to the tail and the
+  control disappears
+- the software keyboard opens without covering the terminal and the keybar stays
+  above it
+- the FULL hint occupies one line
+- FULL shows no Structured Prompt dock, and the dock returns in LOCAL
+- a Session name longer than the header wraps to two lines and then ellipsises
 
 ## Raw keyboard transport validation
 

@@ -79,6 +79,17 @@ Required:
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls
 - the terminal keybar's ⏎ control sends Return unchanged
+- the `#` control opens a symbol grid whose keys send digits and punctuation the
+  phone keyboard hides
+- a Chinese IME's full-width `１` reaches the program as `1`, and the conversion
+  can be switched off
+- `A−` / `A+` change the terminal font, re-fit the terminal, and survive a
+  reload
+- scrolling back shows the ↓ lines-back control, and one tap returns to the tail
+- the software keyboard does not cover the terminal, and the keybar stays above it
+- the FULL hint stays on one line
+- FULL hides the Structured Prompt dock, except while a send is uncertain
+- a long Session name wraps to two lines instead of being silently truncated
 - FULL asks the Mac for max(canonical full size, current pane size) and shows the
   whole Session scaled to fit
 - FULL still works when the phone is the only attached client and the shared

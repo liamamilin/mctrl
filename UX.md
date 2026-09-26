@@ -68,10 +68,10 @@ Show facts:
 ┌─────────────────────────────┐
 │ ← Session                   │
 ├─────────────────────────────┤
-│ xterm.js                    │
+│ xterm.js        [↓ 120 back] │
 ├─────────────────────────────┤
 │ ESC  TAB  CTRL  LOCAL  编辑 │
-│ ↑   ↓   ←   →    ⏎         │
+│ ↑   ↓   ←   →   ⏎    #     │
 ├─────────────────────────────┤
 │ [Prompt textarea]    Send   │
 └─────────────────────────────┘
@@ -81,7 +81,47 @@ Show facts:
 same Return the keyboard sends, so submitting never depends on which Return the
 phone shows.
 
-The Session title shows the tmux session **name**, never the bare id (`$0`, `$1`).
+The keybar order is `LOCAL` → **编辑** → `↑ ↓ ← →`, and the `#` key sits after
+the arrows because it opens a panel instead of sending a keystroke.
+
+### Symbols and text options
+
+`#` expands a panel above the keybar. It exists because the phone's own
+keyboard is not enough: a Chinese IME can produce full-width forms, and a
+terminal program that binds `1` or `/` never sees `１` or `／`.
+
+The panel holds three things:
+
+- **Symbol grid** — digits, punctuation, brackets, and the currency and math
+  characters that a phone keyboard hides. Every key sends one character.
+- **Text size** — `A−` / `A+` steps the terminal font through 12 / 13 / 15 / 17
+  and re-fits the terminal, so a larger font means fewer columns rather than
+  clipped text. The choice is remembered per device.
+- **Full-width → half-width** — on by default. A Chinese IME sends `１`, `：`,
+  `／`; programs expect `1`, `:`, `/`. Only the full-width ASCII block and the
+  ideographic space are converted, so real CJK input is untouched. It applies to
+  terminal keystrokes only, never to the Structured Prompt, where a program
+  reads text rather than keys. It can be switched off if a program genuinely
+  wants full-width input.
+
+### Reaching earlier output
+
+The terminal keeps 5000 lines of scrollback, so shell output is reachable by
+scrolling. When the viewport leaves the live tail, a **↓ N lines back** button
+appears over the canvas; one tap returns to the tail.
+
+`FULL` does not need it: it shows the whole Session at once.
+
+### Software keyboard
+
+iOS keeps the layout viewport at full height when the software keyboard opens, so
+a terminal sized to the layout viewport ends up behind the keyboard. The page
+measures the gap between the two viewports and hands it to the layout as
+`--keyboard-inset`, which lifts the keybar above the keyboard. Values that look
+like rounding noise or a pinch-zoom are ignored.
+
+The Session title shows the tmux session **name**, never the bare id (`$0`, `$1`),
+and wraps to two lines instead of truncating without a hint.
 
 ## LOCAL and FULL
 
@@ -98,6 +138,16 @@ shared window when no desktop client is attached. Without that rule `FULL` and
 The size is editable in **Settings → Full Session size**. Widen it if a program
 still drops panels, because programs lay themselves out by width and mctrl cannot
 know their thresholds. See `CONFIG_SCHEMA.md`.
+
+`FULL` hides the Structured Prompt dock, because a whole-Session view does not
+need it and the dock costs about 90px. The one exception is an unconfirmed
+Prompt: while a send is uncertain, the dock stays visible, because "Clear
+prompt" is the only way out of that state.
+
+The `FULL` hint is a single line (`Full 240×60 · Editable · pinch · pan`).
+A hint that wraps into three lines costs more terminal than the instruction is
+worth, so "editable" stays in the shortened form: `FULL` is still a working
+terminal, not a read-only view.
 
 ## Reconnect
 
