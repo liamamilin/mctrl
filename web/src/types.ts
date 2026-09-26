@@ -9,6 +9,12 @@ export interface Host {
   public_url?: string;
   version?: string;
   profile?: string;
+  terminal_full_size?: TerminalSize;
+}
+
+export interface TerminalSize {
+  cols: number;
+  rows: number;
 }
 
 export interface Project {

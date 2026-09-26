@@ -67,6 +67,35 @@ Use a largest-client-oriented tmux policy or equivalent verified mechanism.
 
 This behavior requires integration tests with two clients.
 
+`window-size largest` only protects the shared window while a desktop client is
+attached: tmux sizes the window to the largest *attached* client. When the phone
+is the only client, its own viewport becomes that largest client and the window
+legitimately shrinks to phone size. mctrl must not build any feature on the
+assumption that the pane keeps a desktop size.
+
+## Full Session overview size
+
+The phone's FULL overview must not be defined as "the pane's current size",
+because that size is phone-driven whenever no desktop client is attached and
+FULL would collapse into LOCAL.
+
+FULL asks tmux for:
+
+```text
+max(canonical full size, current pane size)
+```
+
+The canonical full size is 120×40, which is also the size a Managed Work pane is
+launched at and the initial size of a disposable attach PTY. All three come from
+one constant so they cannot drift. A pane larger than the canonical size stays
+authoritative because a desktop client asked for it.
+
+`GET /api/v1/host` advertises the canonical size as `terminal_full_size`.
+
+Every client-requested resize is clamped to 20–500 columns and 10–200 rows before
+it reaches a PTY, so a phone cannot grow or collapse the shared window with an
+unbounded value.
+
 ## Raw keyboard transport
 
 Every terminal transport mctrl controls must be a raw terminal. That includes

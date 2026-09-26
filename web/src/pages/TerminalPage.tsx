@@ -5,6 +5,7 @@ import '@xterm/xterm/css/xterm.css';
 import {
   API_BASE,
   ApiError,
+  getHost,
   getSession,
   isUncertainOutcome,
   runtimeStorageKey,
@@ -12,8 +13,55 @@ import {
 } from '../api';
 import { makeRequestId } from '../format';
 import { sessionPath } from '../router';
+import type { ActivePane, TerminalSize } from '../types';
 
 const RECONNECT_DELAYS = [500, 1000, 2000, 5000, 10000] as const;
+
+// Mirrors the Mac's canonical full Session size. The /host response is
+// authoritative; this only keeps FULL usable before that response arrives.
+const FALLBACK_FULL_SIZE: TerminalSize = { cols: 120, rows: 40 };
+
+const TERMINAL_LIMITS = {
+  minCols: 20,
+  minRows: 10,
+  maxCols: 500,
+  maxRows: 200,
+} as const;
+
+function clampDimension(
+  value: number,
+  low: number,
+  high: number,
+  fallback: number,
+): number {
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(high, Math.max(low, Math.round(value)));
+}
+
+// FULL asks the Mac for its canonical full size, raised to whatever a desktop
+// client already made larger. Reading the pane's current size instead would
+// make FULL identical to LOCAL whenever the phone is the only attached client,
+// because tmux's largest-client policy has already shrunk the window to the
+// phone's own viewport. See TMUX_CONTRACT.md.
+function overviewTargetSize(
+  canonical: TerminalSize,
+  pane: ActivePane | undefined,
+): TerminalSize {
+  return {
+    cols: clampDimension(
+      Math.max(canonical.cols, pane?.width ?? 0),
+      TERMINAL_LIMITS.minCols,
+      TERMINAL_LIMITS.maxCols,
+      FALLBACK_FULL_SIZE.cols,
+    ),
+    rows: clampDimension(
+      Math.max(canonical.rows, pane?.height ?? 0),
+      TERMINAL_LIMITS.minRows,
+      TERMINAL_LIMITS.maxRows,
+      FALLBACK_FULL_SIZE.rows,
+    ),
+  };
+}
 
 type ConnectionState =
   | 'connecting'
@@ -96,6 +144,10 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const [overview, setOverview] = useState(false);
   const [overviewBusy, setOverviewBusy] = useState(false);
   const [overviewError, setOverviewError] = useState('');
+  const [overviewSize, setOverviewSize] = useState<TerminalSize | undefined>(
+    undefined,
+  );
+  const [sessionLabel, setSessionLabel] = useState('');
   const [prompt, setPrompt] = useState('');
   const [sendingPrompt, setSendingPrompt] = useState(false);
   const [promptNotice, setPromptNotice] = useState<PromptNotice | undefined>(() =>
@@ -115,6 +167,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     setOverview(false);
     setOverviewBusy(false);
     setOverviewError('');
+    setOverviewSize(undefined);
     setPromptNotice(
       pending
         ? {
@@ -124,6 +177,23 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           }
         : undefined,
     );
+  }, [sessionId]);
+
+  // The route carries tmux's stable id ($0, $1, …). Show the human name so the
+  // header is never a bare identifier.
+  useEffect(() => {
+    let cancelled = false;
+    setSessionLabel('');
+    void getSession(sessionId)
+      .then((session) => {
+        if (!cancelled) setSessionLabel(session.name || sessionId);
+      })
+      .catch(() => {
+        if (!cancelled) setSessionLabel('');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId]);
 
   useEffect(() => {
@@ -231,9 +301,14 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
 
     const measureOverviewFitScale = () => {
       const content = overviewContentSize();
+      const hostWidth = host.clientWidth;
+      const hostHeight = host.clientHeight;
+      if (hostWidth <= 0 || hostHeight <= 0) return 1;
+      // Fit means "never larger than the viewport". A scale above 1 would
+      // magnify a Session that is already smaller than the phone.
       return Math.max(
         0.01,
-        Math.min(host.clientWidth / content.width, host.clientHeight / content.height),
+        Math.min(1, hostWidth / content.width, hostHeight / content.height),
       );
     };
 
@@ -267,16 +342,29 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       terminalElement.style.transform = '';
     };
 
+    const canonicalFullSize = async (): Promise<TerminalSize> => {
+      try {
+        const hostInfo = await getHost();
+        return hostInfo.terminal_full_size ?? FALLBACK_FULL_SIZE;
+      } catch {
+        // A FULL overview is still useful from the mirrored size.
+        return FALLBACK_FULL_SIZE;
+      }
+    };
+
     const setOverviewMode = async (enabled: boolean) => {
       if (enabled === overviewMode || disposed) return;
       setOverviewBusy(true);
       setOverviewError('');
       try {
         if (enabled) {
-          const session = await getSession(sessionId);
-          const cols = Math.max(20, Math.min(500, Math.round(session.active_pane?.width ?? 80)));
-          const rows = Math.max(10, Math.min(200, Math.round(session.active_pane?.height ?? 24)));
-          terminal.resize(cols, rows);
+          const [session, canonical] = await Promise.all([
+            getSession(sessionId),
+            canonicalFullSize(),
+          ]);
+          const full = overviewTargetSize(canonical, session.active_pane);
+          setOverviewSize(full);
+          terminal.resize(full.cols, full.rows);
           overviewMode = true;
           overviewFitScale = 1;
           overviewZoom = 1;
@@ -285,7 +373,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           host.scrollLeft = 0;
           host.scrollTop = 0;
           terminal.options.disableStdin = inputIsBlocked || stopped;
-          terminal.refresh(0, Math.max(0, rows - 1));
+          terminal.refresh(0, Math.max(0, full.rows - 1));
           setOverview(true);
           sendTerminalResize();
           requestAnimationFrame(applyOverviewTransform);
@@ -791,7 +879,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
         </a>
         <div class="terminal-title">
           <span>Session</span>
-          <strong>{sessionId}</strong>
+          <strong>{sessionLabel || sessionId}</strong>
         </div>
         <div class={`connection-pill connection-${connection}`}>
           <span aria-hidden="true" />
@@ -849,7 +937,10 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
 
         {overview && (
           <div className="overview-hint" role="status">
-            <strong>Full Session overview</strong>
+            <strong>
+              Full Session overview
+              {overviewSize ? ` · ${overviewSize.cols}×${overviewSize.rows}` : ''}
+            </strong>
             <span>Editable. Pinch to zoom, drag to pan, then use the keyboard button to type.</span>
           </div>
         )}

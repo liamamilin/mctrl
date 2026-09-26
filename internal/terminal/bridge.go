@@ -258,7 +258,7 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 		_ = writeControl(errorMessage{Type: "error", Code: terminalAttachFailed})
 		return
 	}
-	ptmx, err := startRawPTY(cmd, pty.Winsize{Cols: 120, Rows: 40})
+	ptmx, err := startRawPTY(cmd, DefaultFullWinsize())
 	if err != nil {
 		_ = writeControl(errorMessage{Type: "error", Code: terminalAttachFailed})
 		return
@@ -318,7 +318,8 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 			}
 			var resize resizeMessage
 			if json.Unmarshal(data, &resize) == nil && resize.Type == "resize" && resize.Cols > 0 && resize.Rows > 0 {
-				_ = pty.Setsize(ptmx, &pty.Winsize{Cols: resize.Cols, Rows: resize.Rows})
+				clamped := ClampWinsize(int(resize.Cols), int(resize.Rows))
+				_ = pty.Setsize(ptmx, &clamped)
 			}
 		}
 	}()

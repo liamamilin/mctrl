@@ -79,6 +79,12 @@ Required:
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls
 - the terminal keybar's ⏎ control sends Return unchanged
+- FULL asks the Mac for max(canonical full size, current pane size) and shows the
+  whole Session scaled to fit
+- FULL still works when the phone is the only attached client and the shared
+  window has already shrunk to phone size
+- the overview label reports the size being shown, and the Session title shows the
+  session name rather than a bare tmux id
 - keys reach a Managed Work program one at a time, without pressing Return first
 - Return submits in the program instead of inserting a line break
 - the input is not echoed twice over the program's own output

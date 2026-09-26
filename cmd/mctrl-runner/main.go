@@ -204,7 +204,9 @@ func supervise(workFile, expectedAttemptID string) error {
 	if readyFile != "" {
 		command.Env = append(command.Env, "MCTRL_READY_FILE="+readyFile)
 	}
-	initialSize := &pty.Winsize{Cols: 120, Rows: 40}
+	// The launch size is also the canonical full Session size the phone's FULL
+	// overview asks for. Keep both decisions on the same constant.
+	initialSize := &pty.Winsize{Cols: terminal.DefaultFullCols, Rows: terminal.DefaultFullRows}
 	if rows, cols, sizeErr := pty.Getsize(os.Stdin); sizeErr == nil && rows > 0 && cols > 0 {
 		initialSize.Rows = uint16(rows)
 		initialSize.Cols = uint16(cols)

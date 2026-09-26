@@ -174,6 +174,13 @@ Disconnect the mobile attachment. mctrl sets tmux's `window-size` policy to
 `largest`, but the final behavior depends on the installed tmux version and the
 desktop client's own settings. Verify with both clients attached before release.
 
+Note what `largest` actually means: tmux sizes the window to the largest
+**attached** client. While a desktop client is attached, the phone cannot shrink
+the window. When the phone is the only client, the phone's own viewport becomes
+that largest client and the window follows it down to phone size. That is
+expected tmux behavior, not a bug, and it is why the phone's `FULL` overview asks
+for the Mac's canonical `120×40` instead of reading the pane's current size.
+
 ## Remote Ready is false
 
 - `mctrl status` shows the configured availability policy.

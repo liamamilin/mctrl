@@ -81,6 +81,19 @@ Show facts:
 same Return the keyboard sends, so submitting never depends on which Return the
 phone shows.
 
+The Session title shows the tmux session **name**, never the bare id (`$0`, `$1`).
+
+## LOCAL and FULL
+
+`LOCAL` sizes the terminal to the phone viewport, so the program re-renders for
+the phone and stays readable. `FULL` shows the whole Session at once, scaled
+down to fit, and is labelled with the size it is showing (`120×40`).
+
+`FULL` asks the Mac for `max(120×40, current pane size)` instead of reading the
+pane back, because the phone's own `LOCAL` size is what shrinks the shared window
+when no desktop client is attached. Without that rule `FULL` and `LOCAL` would be
+identical and `FULL` would have nothing to show. See `TMUX_CONTRACT.md`.
+
 ## Reconnect
 
 ```text

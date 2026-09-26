@@ -26,9 +26,15 @@ Base:
   "remote_ready": true,
   "transport": "trusted_lan_http",
   "public_url": "http://192.168.1.20:7681",
-  "version": "0.1.0-dev"
+  "version": "0.1.0-dev",
+  "terminal_full_size": { "cols": 120, "rows": 40 }
 }
 ```
+
+`terminal_full_size` is the Mac's canonical full Session size. The phone's FULL
+overview asks tmux for `max(terminal_full_size, current pane size)` instead of
+reading the pane back, because the phone's own viewport is what shrinks the shared
+window when no desktop client is attached. See `TMUX_CONTRACT.md`.
 
 ## Projects
 

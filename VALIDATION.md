@@ -116,6 +116,20 @@ Result: 0 vulnerabilities.
 - DCS/PM/APC/SOS payloads are stripped from previews instead of leaking as text;
 - `make release-check` and `make release-check PROFILE=v2`: passed
 
+## Full Session overview validation
+
+- `GET /api/v1/host` advertises the canonical full size, and it equals the size a
+  Managed Work pane is launched at
+- FULL asks for `max(canonical, pane)`: a phone-shrunk pane is raised back to the
+  canonical size, while a larger desktop pane stays authoritative
+- the fit scale never exceeds 1, so a Session already smaller than the phone is
+  never magnified
+- the overview label reports the size actually being shown
+- the Session title shows the session name rather than the tmux id
+- an absurd client resize is clamped: a 4000×4000 request does not grow the shared
+  window past 500×200
+- switching between FULL and LOCAL re-requests the matching size in both directions
+
 ## Profile isolation validation
 
 - `make release-check PROFILE=v2`: passed

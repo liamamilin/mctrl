@@ -20,6 +20,7 @@ import (
 	"mctrl/internal/config"
 	"mctrl/internal/project"
 	"mctrl/internal/runner"
+	"mctrl/internal/terminal"
 	"mctrl/internal/tmux"
 	"mctrl/internal/version"
 	"mctrl/internal/work"
@@ -203,6 +204,7 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleHost(w http.ResponseWriter, _ *http.Request) {
 	info := s.HostInfo()
+	full := terminal.DefaultFullWinsize()
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"name":         info.Name,
 		"hostname":     info.Hostname,
@@ -212,6 +214,13 @@ func (s *Server) handleHost(w http.ResponseWriter, _ *http.Request) {
 		"public_url":   s.cfg.PublicURL,
 		"version":      version.Version,
 		"profile":      s.profileName,
+		// The phone's FULL overview asks tmux for this size instead of
+		// trusting the pane's current size, which the phone itself shrinks when
+		// it is the only attached client.
+		"terminal_full_size": map[string]interface{}{
+			"cols": full.Cols,
+			"rows": full.Rows,
+		},
 	})
 }
 
