@@ -73,6 +73,8 @@ Required:
 - Origin rejection
 - Home
 - Session preview
+- Session detail lists every window and pane, marks the one the phone is showing,
+  and offers no window switch
 - Terminal
 - stale CONNECTING socket is replaced after resume
 - FULL overview fits, zooms and pans with one finger

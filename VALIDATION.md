@@ -203,6 +203,30 @@ verified on the phone; the mechanism is certain from the code — `replayHistory
 unconditional per WebSocket, and `connect()` builds a new socket without
 recreating the Terminal.
 
+## Window and pane inventory
+
+The phone shows only the active window's active pane, which read as a limitation
+without explanation. The Session page now lists every window and pane, grouped by
+window, marking which one the phone is showing.
+
+The switch that was proposed with it is deliberately absent, because measurement
+showed it would break the desktop. On tmux 3.7c, with a desktop client attached:
+
+- `attach-session -t session:window` attaches to that window, moves the Session's
+  active window, and the desktop client follows
+- `attach-session -t session:window.pane` attaches to the whole window
+- `switch-client -c <client> -t <target>` returns rc 0 and moves every client
+
+A client cannot hold an independent current window, so any switch from the phone
+changes what the desktop user sees. The inventory reports the facts instead.
+`TestInspectSessionReportsEveryWindowAndPane` covers the data: two windows, a
+split pane, two distinct window indexes, both window names, and exactly one pane
+that is active within the active window — the one the phone attaches to.
+
+The first measurement was wrong and was discarded: it read client positions out
+of `list-panes`, which reports pane ttys, not client ttys. The corrected probe
+reads each client's window with `display-message -c <client>`.
+
 ## Raw keyboard transport validation
 
 - a single keystroke reaches a Managed Work program without any Return, proving

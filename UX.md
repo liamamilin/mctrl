@@ -186,6 +186,16 @@ like rounding noise or a pinch-zoom are ignored.
 The Session title shows the tmux session **name**, never the bare id (`$0`, `$1`),
 and wraps to two lines instead of truncating without a hint.
 
+## Windows and panes
+
+A Session with more than one window or pane shows only the active window's active
+pane in the terminal, and the Session detail page lists the rest as a read-only
+inventory: every window, every pane, and which one you are looking at.
+
+The inventory has no switch, on purpose. A tmux client cannot hold a window of its
+own, so switching from the phone would drag the Mac's view along with it. See
+TMUX_CONTRACT.md for the measurements.
+
 ## LOCAL and FULL
 
 `LOCAL` sizes the terminal to the phone viewport, so the program re-renders for

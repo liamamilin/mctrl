@@ -53,6 +53,8 @@ func (a *Adapter) Available() bool {
 type Pane struct {
 	ID           string `json:"id"`
 	WindowID     string `json:"window_id,omitempty"`
+	WindowIndex  int    `json:"window_index,omitempty"`
+	WindowName   string `json:"window_name,omitempty"`
 	PID          int    `json:"pid,omitempty"`
 	Command      string `json:"command"`
 	StartCommand string `json:"start_command,omitempty"`
@@ -238,6 +240,7 @@ func (a *Adapter) listPanes(ctx context.Context, sessionID string) ([]Pane, erro
 	format, delimiter, err := recordFormat([]string{
 		"#{pane_id}", "#{window_id}", "#{window_active}", "#{pane_active}", "#{pane_dead}", "#{pane_pid}",
 		"#{pane_current_command}", "#{pane_current_path}", "#{pane_width}", "#{pane_height}", "#{pane_start_command}",
+		"#{window_index}", "#{window_name}",
 	})
 	if err != nil {
 		return nil, err
@@ -249,7 +252,7 @@ func (a *Adapter) listPanes(ctx context.Context, sessionID string) ([]Pane, erro
 		}
 		return nil, err
 	}
-	records, err := parseRecords(output, delimiter, 11)
+	records, err := parseRecords(output, delimiter, 13)
 	if err != nil {
 		return nil, fmt.Errorf("parse tmux list-panes: %w", err)
 	}
@@ -258,11 +261,12 @@ func (a *Adapter) listPanes(ctx context.Context, sessionID string) ([]Pane, erro
 		pid, _ := strconv.Atoi(values[5])
 		width, _ := strconv.Atoi(values[8])
 		height, _ := strconv.Atoi(values[9])
+		windowIndex, _ := strconv.Atoi(values[11])
 		result = append(result, Pane{
 			ID: values[0], WindowID: values[1], WindowActive: values[2] == "1",
 			Active: values[3] == "1", Dead: values[4] == "1", PID: pid,
 			Command: values[6], Cwd: values[7], Width: width, Height: height,
-			StartCommand: values[10],
+			StartCommand: values[10], WindowIndex: windowIndex, WindowName: values[12],
 		})
 	}
 	return result, nil

@@ -156,6 +156,72 @@ func TestInspectSessionUsesActiveWindowPane(t *testing.T) {
 	}
 }
 
+// The Session page shows a read-only window and pane inventory, so every pane
+// must carry the window it belongs to. Without the index and name the UI could
+// only count, which is what it did before.
+func TestInspectSessionReportsEveryWindowAndPane(t *testing.T) {
+	adapter, socket := newTestAdapter(t)
+	name := "mctrl-inventory-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if _, err := adapter.run(ctx, "new-session", "-d", "-s", name, "-n", "editor", "sleep 20"); err != nil {
+		t.Fatalf("tmux new session: %v", err)
+	}
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
+	if _, err := adapter.run(ctx, "new-window", "-t", name, "-n", "shell", "sleep 20"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := adapter.run(ctx, "split-window", "-t", name+":0", "-h"); err != nil {
+		t.Fatal(err)
+	}
+	sessions, err := adapter.ListSessions(ctx)
+	if err != nil {
+		t.Fatalf("list sessions: %v", err)
+	}
+	var id string
+	for _, session := range sessions {
+		if session.Name == name {
+			id = session.ID
+		}
+	}
+	session, err := adapter.InspectSession(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if session.Windows != 2 {
+		t.Fatalf("windows = %d, want 2", session.Windows)
+	}
+	if len(session.Panes) != 3 {
+		t.Fatalf("panes = %d, want 3", len(session.Panes))
+	}
+	seenIndexes := map[int]bool{}
+	seenNames := map[string]bool{}
+	activeInActiveWindow := 0
+	for _, pane := range session.Panes {
+		if pane.WindowIndex == 0 && pane.WindowName == "" {
+			t.Errorf("pane %s has no window index or name: %+v", pane.ID, pane)
+		}
+		seenIndexes[pane.WindowIndex] = true
+		if pane.WindowName != "" {
+			seenNames[pane.WindowName] = true
+		}
+		if pane.Active && pane.WindowActive {
+			activeInActiveWindow++
+		}
+	}
+	if len(seenIndexes) != 2 {
+		t.Errorf("window indexes seen = %v, want two distinct indexes", seenIndexes)
+	}
+	if !seenNames["editor"] || !seenNames["shell"] {
+		t.Errorf("window names seen = %v, want editor and shell", seenNames)
+	}
+	// Exactly one pane is both the active pane and in the active window: that is
+	// the one the phone attaches to.
+	if activeInActiveWindow != 1 {
+		t.Errorf("panes active in the active window = %d, want exactly 1", activeInActiveWindow)
+	}
+}
+
 func TestPhoneAttachDoesNotShrinkDesktopLayout(t *testing.T) {
 	adapter, socket := newTestAdapter(t)
 	name := "mctrl-size-test-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")

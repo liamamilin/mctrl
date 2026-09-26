@@ -78,6 +78,81 @@ function WorkFacts({ work }: { work: ManagedWork }) {
   );
 }
 
+// Read-only, and deliberately not a control.
+//
+// mctrl attaches to the active window's active pane. Measured on tmux 3.7c: a
+// client cannot hold an independent current window, so any switch from the phone
+// — via `attach-session -t session:window` or `switch-client` — moves the
+// desktop client's view too. That would break the rule that the desktop has
+// priority, so mctrl offers the facts and not a switch. See TMUX_CONTRACT.md.
+function WindowInventory({ session }: { session: Session }) {
+  const panes = session.pane_details ?? [];
+  if (panes.length === 0) return null;
+
+  const windows = new Map<string, typeof panes>();
+  for (const pane of panes) {
+    const key = pane.window_id ?? `${pane.window_index ?? 0}`;
+    const existing = windows.get(key);
+    if (existing) existing.push(pane);
+    else windows.set(key, [pane]);
+  }
+  const groups = [...windows.values()];
+  if (groups.length === 0) return null;
+  const activeWindow = groups.find((group) => group.some((pane) => pane.active));
+
+  return (
+    <div class="window-inventory">
+      <div class="window-inventory-heading">
+        <span>Windows and panes</span>
+        <span class="muted-label">
+          {session.windows} {session.windows === 1 ? 'window' : 'windows'} ·{' '}
+          {session.panes} {session.panes === 1 ? 'pane' : 'panes'}
+        </span>
+      </div>
+      {groups.map((group) => {
+        const head = group[0]!;
+        const isActiveWindow = group === activeWindow;
+        return (
+          <div
+            class={isActiveWindow ? 'window-row active' : 'window-row'}
+            key={head.window_id ?? head.window_index}
+          >
+            <div class="window-row-label">
+              <strong>
+                {head.window_index ?? 0}
+                {head.window_name ? ` · ${head.window_name}` : ''}
+              </strong>
+              <span class="muted-label">
+                {isActiveWindow
+                  ? 'You see this window'
+                  : 'Not shown on the phone'}
+              </span>
+            </div>
+            <div class="window-pane-list">
+              {group.map((pane) => (
+                <span
+                  class={pane.active ? 'window-pane active' : 'window-pane'}
+                  key={pane.id}
+                >
+                  {pane.dead ? 'dead' : pane.command || 'shell'}
+                  {pane.width ? ` ${pane.width}×${pane.height}` : ''}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+      {groups.length > 1 && (
+        <p class="window-inventory-note">
+          mctrl attaches to the active window only. tmux clients cannot hold
+          independent windows, so switching here would move the desktop's view
+          too.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function SessionPage({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<Session>();
   const [preview, setPreview] = useState<Preview>();
@@ -230,6 +305,7 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
               Open Terminal
               <span aria-hidden="true">›</span>
             </a>
+            <WindowInventory session={session} />
             <button
               class="button button-danger-quiet button-full close-session-button"
               type="button"

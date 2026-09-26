@@ -37,6 +37,23 @@ export interface ActivePane {
   height?: number;
 }
 
+// Read-only inventory of every pane in the Session, as tmux reports it. mctrl
+// attaches to the active window's active pane and cannot switch either without
+// moving the desktop client's view, so this exists to make the rest visible
+// rather than to offer a control that would change shared state.
+export interface PaneDetail {
+  id: string;
+  window_id?: string;
+  window_index?: number;
+  window_name?: string;
+  command?: string;
+  cwd?: string;
+  active?: boolean;
+  dead?: boolean;
+  width?: number;
+  height?: number;
+}
+
 export interface Session {
   id: string;
   name: string;
@@ -44,6 +61,7 @@ export interface Session {
   panes: number;
   attached: boolean;
   active_pane?: ActivePane;
+  pane_details?: PaneDetail[];
   active_command?: string;
   cwd?: string;
   managed_work?: ManagedWork;

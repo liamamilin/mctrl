@@ -90,6 +90,24 @@ V1 Home/Detail may summarize only the active pane.
 
 Do not pretend this is the whole Session.
 
+The Session detail page lists every window and pane as a read-only inventory,
+grouped by window, marking the one the phone is showing. It is an inventory and
+not a control, and it must not grow one, because tmux does not allow it.
+
+Measured on tmux 3.7c, not assumed:
+
+- `attach-session -t session:window` does attach to that window, but it also
+  moves the Session's active window, and every other attached client follows.
+- `attach-session -t session:window.pane` does not isolate a pane. It attaches to
+  the whole window.
+- `switch-client -c <client> -t <target>` returns success but moves every client
+  to the target window. A client cannot hold an independent current window.
+
+So any window switch driven by the phone changes what the desktop user sees, which
+contradicts the rule that the desktop has priority. mctrl therefore reports the
+inventory and leaves the switching to the desktop. Revisit only if tmux gains a
+per-client current window.
+
 ## Phone attach size policy
 
 Desktop experience has priority.

@@ -256,6 +256,24 @@ lifts the keybar above the keyboard. If the keyboard still covers the terminal:
 - a value that looks like rounding noise or a pinch-zoom is deliberately ignored,
   so a half-open keyboard that reports an implausible gap is left alone
 
+## Only one window or pane is visible on the phone
+
+Expected. mctrl attaches to the Session's active window and its active pane, and
+the Session detail page lists every window and pane as a read-only inventory so
+you can see what else exists.
+
+There is no switch, deliberately. Measured on tmux 3.7c:
+
+- `attach-session -t session:window` reaches that window but moves the Session's
+  active window, and the desktop client follows it
+- `attach-session -t session:window.pane` attaches to the whole window, not one
+  pane
+- `switch-client -c <client> -t <target>` succeeds but moves every client
+
+A tmux client cannot hold a window of its own, so a switch from the phone would
+change the desktop's view. Since the desktop has priority, mctrl shows the facts
+and leaves the switching to the Mac. See TMUX_CONTRACT.md.
+
 ## Earlier output cannot be found
 
 Three different things get called "history", and each needs its own answer.

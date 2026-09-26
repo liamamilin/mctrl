@@ -2314,6 +2314,89 @@ button:disabled {
   background: rgba(20, 32, 26, 0.95);
 }
 
+/* Read-only window and pane inventory. It states what exists and which window
+   the phone is showing, and offers no switch on purpose. */
+.window-inventory {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+.window-inventory-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-soft);
+  font-size: 0.66rem;
+  font-weight: 760;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.window-inventory-heading .muted-label {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.window-row {
+  display: grid;
+  gap: 5px;
+  padding: 7px 8px;
+  background: rgba(255, 255, 255, 0.022);
+  border: 1px solid transparent;
+  border-radius: 9px;
+}
+
+.window-row.active {
+  border-color: rgba(121, 230, 165, 0.32);
+}
+
+.window-row-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.window-row-label strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.window-pane-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.window-pane {
+  padding: 2px 7px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.62rem;
+}
+
+.window-pane.active {
+  color: #07110b;
+  background: var(--accent);
+  font-weight: 760;
+}
+
+.window-inventory-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
 .prompt-dock {
   position: relative;
   padding: 8px 9px calc(7px + env(safe-area-inset-bottom));
