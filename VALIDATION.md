@@ -194,6 +194,15 @@ Known limit, not a defect: a full-screen TUI repaints the same rows, so its tmux
 history is many near-identical frames. The replay is faithful to what tmux holds
 and is not a conversation log.
 
+The replay also introduced a defect, found by review rather than by a test: every
+attachment replays, and the xterm instance survives a dropped socket, so a
+reconnect appended a second copy of the history into the middle of the scrollback
+and a third on the next blip. The client now resets the terminal when it
+re-attaches, so the scrollback is exactly one replay plus what follows. Not
+verified on the phone; the mechanism is certain from the code — `replayHistory` is
+unconditional per WebSocket, and `connect()` builds a new socket without
+recreating the Terminal.
+
 ## Raw keyboard transport validation
 
 - a single keystroke reaches a Managed Work program without any Return, proving

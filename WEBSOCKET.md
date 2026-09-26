@@ -36,6 +36,10 @@ redraw. It is not a distinct frame type: it is ordinary terminal output, so a
 client needs no special handling and older clients are unaffected. See
 TMUX_CONTRACT.md for why this is needed and why the redraw does not erase it.
 
+Because every attachment replays, a client that keeps its terminal across a
+reconnect must reset it on re-attach, or the scrollback accumulates one copy of
+the history per connection. mctrl's client does this.
+
 ## Binary frames
 
 Client → server:

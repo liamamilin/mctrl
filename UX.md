@@ -170,6 +170,11 @@ anything older than the program's own scrollback.
 tmux keeps 2000 lines per pane, so 500 is a deliberate cap for what a phone can
 usefully scroll, not a limit of the Session. See TMUX_CONTRACT.md.
 
+A dropped connection re-attaches, and every attachment is a fresh
+`tmux attach-session` that replays the history again. The client therefore resets
+its terminal when it re-attaches, so the scrollback is always exactly one replay
+plus what has happened since, never two copies of the same output stacked up.
+
 ### Software keyboard
 
 iOS keeps the layout viewport at full height when the software keyboard opens, so

@@ -301,6 +301,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     let overviewMode = false;
     let overviewFitScale = 1;
     let overviewZoom = 1;
+    let attachedBefore = false;
 
     const terminal = new Terminal({
       allowTransparency: false,
@@ -736,6 +737,22 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
         nextSocket.onopen = () => {
           clearConnectTimer();
           if (disposed || socket !== nextSocket) return;
+          // Every attachment is a fresh `tmux attach-session`, so the Mac
+          // replays the pane's history each time — that replay is what makes the
+          // history reachable at all. The xterm instance and its scrollback
+          // survive a dropped socket, so without this a reconnect would append a
+          // second copy of the same history into the middle of the scrollback,
+          // and a third on the next blip. Resetting makes the attachment the
+          // baseline: the scrollback is exactly the replay plus what follows it.
+          // Skipped on the first open, where there is nothing to discard.
+          if (attachedBefore) {
+            try {
+              terminal.reset();
+            } catch {
+              // The redraw that follows recovers on its own.
+            }
+          }
+          attachedBefore = true;
           hadConnection = true;
           openedAt = Date.now();
           inputIsBlocked = false;
