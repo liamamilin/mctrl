@@ -144,8 +144,12 @@ export function StartWorkPage() {
 
   const selectedProject = projects.find((project) => project.id === projectId);
   const selectedRunner = runners.find((runner) => runner.id === runnerId);
+  // The prompt is optional, and only the page thought otherwise. The API accepts
+  // an empty prompt, and every runner guards its own prompt argument, so a plain
+  // shell Work — or an agent Work the user intends to type into — does not have to
+  // be given an opening line it does not want.
   const canSubmit =
-    Boolean(projectId && runnerId && prompt.trim()) &&
+    Boolean(projectId && runnerId) &&
     Boolean(selectedRunner?.available) &&
     !submitting;
 
@@ -340,7 +344,7 @@ export function StartWorkPage() {
             <div class="form-section-content">
               <div class="form-section-title">
                 <h2>Prompt</h2>
-                <span>Multiline</span>
+                <span>Optional · multiline</span>
               </div>
               <label class="field">
                 <span class="sr-only">Prompt</span>
@@ -351,9 +355,8 @@ export function StartWorkPage() {
                     setSubmitError('');
                   }}
                   rows={7}
-                  placeholder="Describe the work to run on the Mac…"
+                  placeholder="Leave empty to open the runner and type on the Mac."
                   disabled={submitting}
-                  required
                 />
                 <span class="field-counter">{prompt.length} characters</span>
               </label>
@@ -396,9 +399,7 @@ export function StartWorkPage() {
                   ? `${selectedRunner.name} is not installed on the Mac.`
                   : !projectId
                     ? 'Choose a Project.'
-                    : !runnerId
-                      ? 'Choose a Runner.'
-                      : 'Describe the work in the Prompt to enable launch.'}
+                    : 'Choose a Runner.'}
               </p>
             )}
           </div>

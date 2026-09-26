@@ -2267,7 +2267,10 @@ button:disabled {
   grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   overflow: hidden;
-  padding: 7px 8px;
+  /* The bottom is slightly deeper than the sides: in a standalone PWA this sits
+     on top of the home-indicator inset, and in a Safari tab, where that inset is
+     zero, this is the only breathing room there is. */
+  padding: 7px 8px 11px;
   background: #0c120f;
   border-top: 1px solid var(--border);
 }

@@ -125,7 +125,13 @@ package has no test runner, so nothing here is covered by an automated test yet.
   request ID, which is implementation detail, and the guarantee it referred to is
   enforced rather than actionable. It is still stated in the uncertainty notice,
   in UX.md and in TROUBLESHOOTING.md.
-- Start Work explains a disabled launch button instead of leaving it mute. The
+- Start Work explains a disabled launch button instead of leaving it mute
+- Start Work launches with an empty Prompt. The page required one, and nothing
+  else did: the API rejects only a prompt over 200000 characters or containing
+  NUL, and the codex and opencode runners both guard their prompt argument with
+  `if strings.TrimSpace(spec.Prompt) != ""`. So a plain shell Work, or an agent
+  Work the user meant to type into, could not be started at all. Found because
+  the user could not press the button.. The
   bound is the API's; the paging is in the page.
 
 What is evidence and what is not:
