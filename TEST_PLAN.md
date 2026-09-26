@@ -89,6 +89,9 @@ Required:
   on the phone and in a desktop browser
 - an armed CTRL still modifies a character typed on the software keyboard
 - scrolling back shows the ↓ lines-back control, and one tap returns to the tail
+- attaching to a Session with existing pane history shows that history in the
+  phone's scrollback, including lines that had already scrolled off the pane's
+  visible screen before the phone connected
 - the software keyboard does not cover the terminal, and the keybar stays above it
 - the FULL hint stays on one line
 - FULL hides the Structured Prompt dock, except while a send is uncertain

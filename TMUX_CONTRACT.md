@@ -51,6 +51,39 @@ Preview capture must:
 - strip or normalize escape sequences for preview,
 - never mutate terminal state.
 
+## History replay on attach
+
+A fresh attach carries only the pane's visible grid. The client's scrollback
+starts empty and fills from output that arrives *after* the attach, so a client
+that connects late can scroll back only to output it caused itself. Everything
+that happened before it connected stays in tmux.
+
+Therefore, on attach, before the live stream starts, the bridge must send the
+pane's recent history to the client as plain lines terminated with CRLF. A
+terminal only scrolls, and therefore only records history, when the cursor moves
+past the last row, so CRLF is what puts the lines into the client's scrollback
+rather than leaving them as one overwritten row.
+
+This is safe because of how tmux redraws. A real attach was measured, not assumed:
+
+- tmux sends `CSI 2 J` (clear screen) at the start of the redraw. That clears the
+  visible screen but not the scrollback.
+- tmux does **not** send `CSI 3 J` (clear scrollback).
+
+So the replayed lines sit above the live view and survive the redraw. Bounds:
+
+- at most 500 lines, which is what `capture-pane` allows and what a phone can
+  usefully scroll; tmux keeps 2000 per pane by default
+- a capture failure must not fail the attach. The client gets a working terminal
+  without history, which is the previous behaviour
+- the replay may include the visible screen, because `capture-pane` cannot stop
+  short of it. tmux overwrites those rows immediately, so the overlap is
+  cosmetic
+
+A full-screen TUI repaints the same rows, so its tmux history is many near-identical
+frames rather than a transcript. The replay is still correct — it is what tmux
+holds — but it is not a conversation log. See UX.md.
+
 ## Active pane
 
 V1 Home/Detail may summarize only the active pane.

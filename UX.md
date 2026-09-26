@@ -134,11 +134,27 @@ Prompt. It is unconditional; to send the raw bytes, set
 
 ### Reaching earlier output
 
-The terminal keeps 5000 lines of scrollback, so shell output is reachable by
-scrolling. When the viewport leaves the live tail, a **↓ N lines back** button
-appears over the canvas; one tap returns to the tail.
+The terminal keeps 5000 lines of scrollback, and on attach the Mac replays the
+pane's own history into it, up to 500 lines. Without that replay the phone could
+only ever scroll to output the phone itself caused, because a fresh attach carries
+the visible grid alone — which is why the Mac could scroll and the phone could
+not, even though both were looking at the same tmux pane.
 
-`FULL` does not need it: it shows the whole Session at once.
+When the viewport leaves the live tail, a **↓ N lines back** button appears over
+the canvas; one tap returns to the tail. `FULL` does not need it: it shows the
+whole Session at once.
+
+What the replay can and cannot give you:
+
+- **Shell sessions** — real output. Commands, results and directory listings that
+  ran before the phone connected.
+- **Full-screen TUIs** — tmux holds many near-identical repainted frames rather
+  than a transcript, so scrolling back shows the same screen over and over. The
+  replay is faithful to what tmux has; it is not a conversation log. For an
+  agent's own history, use the app.
+
+tmux keeps 2000 lines per pane, so 500 is a deliberate cap for what a phone can
+usefully scroll, not a limit of the Session. See TMUX_CONTRACT.md.
 
 ### Software keyboard
 

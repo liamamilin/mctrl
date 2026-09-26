@@ -100,6 +100,10 @@ package has no test runner, so nothing here is covered by an automated test yet.
   terminal, while the same digits on a Latin keyboard arrive as `1`–`9`
 - scrolling back shows `↓ N lines back`; one tap returns to the tail and the
   control disappears
+- attaching to a Session that produced output before the phone connected shows
+  that output in the phone's scrollback, including lines well above the visible
+  screen. Verified on the Mac against a real tmux attach, and not yet on the
+  phone.
 - the software keyboard opens without covering the terminal and the keybar stays
   above it
 - the FULL hint occupies one line
@@ -158,6 +162,34 @@ passed through unchanged and a program binding `.` never saw one. The conversion
 now also covers those two and the curly quotes, and
 `web/scripts/check-normalizer.mjs` checks 18 conversions and 23 characters that
 must not change, wired into `make test-web` so it cannot rot.
+
+## History replay validation
+
+The phone could only scroll to output it caused itself, while the Mac could
+scroll freely over the same tmux pane. Cause: a fresh attach carries the pane's
+visible grid alone, so the client's scrollback starts empty and fills only from
+output that arrives after the attach.
+
+Two claims were measured rather than assumed, because the fix depends on both:
+
+- a real `tmux attach-session` on this machine sends `CSI 2 J` (clear screen) in
+  its first bytes and does **not** send `CSI 3 J` (clear scrollback). The replay
+  is therefore written before the live stream and survives the redraw.
+- the panes hold real history, not repainted frames: the two mctrl Sessions carry
+  57 and 202 lines of `history_size` against a 2000 limit, and the content is
+  genuine shell output.
+
+`TestTerminalWebSocketReplaysPaneHistoryOnAttach` covers it end to end. The first
+version of that test passed with the replay disabled, because 60 lines was close
+enough to the pane height that the attach — which creates its PTY at the canonical
+full size and so *grows* the pane — revealed the marker anyway. It now prints 400
+lines, asserts up front that the first marker is not on the visible screen, and
+fails without the fix. The failure output shows the live stream carrying only
+`hist-line-343` onward, which is exactly the bug.
+
+Known limit, not a defect: a full-screen TUI repaints the same rows, so its tmux
+history is many near-identical frames. The replay is faithful to what tmux holds
+and is not a conversation log.
 
 ## Raw keyboard transport validation
 

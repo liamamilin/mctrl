@@ -22,6 +22,20 @@ tmux attach-session
 
 The attach process is not the Session owner.
 
+### First frames on a successful attach
+
+In order:
+
+1. optional text control frames, such as `INPUT_MODE_REPAIRED`
+2. one binary frame carrying the pane's history replay, if any — plain lines
+   separated by CRLF, at most 500 lines
+3. the live output stream
+
+The replay comes first so the client's scrollback is populated before the live
+redraw. It is not a distinct frame type: it is ordinary terminal output, so a
+client needs no special handling and older clients are unaffected. See
+TMUX_CONTRACT.md for why this is needed and why the redraw does not erase it.
+
 ## Binary frames
 
 Client → server:
@@ -33,7 +47,7 @@ raw terminal input bytes
 Server → client:
 
 ```text
-raw terminal output bytes
+raw terminal output bytes, history replay first when present
 ```
 
 Do not JSON-wrap terminal byte streams.

@@ -258,10 +258,23 @@ lifts the keybar above the keyboard. If the keyboard still covers the terminal:
 
 ## Earlier output cannot be found
 
-The terminal keeps 5000 lines of scrollback, so shell output is reachable by
-scrolling; the `↓ N lines back` control returns to the live tail. A full-screen
-TUI repaints the same rows, so its earlier screens are not in the scrollback —
-that history lives in the program, not in mctrl.
+On attach the Mac replays the pane's tmux history into the phone's scrollback, up
+to 500 lines, and the terminal itself keeps 5000. So a shell session's earlier
+commands and output are reachable by scrolling, and `↓ N lines back` returns to
+the live tail.
+
+Two things it cannot do:
+
+- **A full-screen TUI has no transcript.** tmux holds many near-identical
+  repainted frames, so scrolling back shows the same screen repeatedly. That
+  history lives in the program; use the app's own scrollback.
+- **History older than the replay is gone from the phone's reach.** tmux keeps
+  2000 lines per pane and only the last 500 are replayed. Raise it with
+  `tmux set-option -g history-limit` if a Session genuinely needs more, and
+  re-attach to pick up the larger replay.
+
+If scrolling shows nothing at all after a reload, check the Session is not a
+TUI before suspecting mctrl.
 
 ## Remote Ready is false
 

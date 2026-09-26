@@ -78,6 +78,101 @@ func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
 	t.Fatalf("terminal output did not contain ready marker: %q", output.String())
 }
 
+// A phone that attaches late can only scroll to output it caused itself, because
+// the client's scrollback starts empty. The pane's history has to be replayed on
+// attach, and this is the only place that can be observed end to end.
+func TestTerminalWebSocketReplaysPaneHistoryOnAttach(t *testing.T) {
+	adapter, socket := isolateTestTmux(t)
+	root := t.TempDir()
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := newServer(cfg, root, adapter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	name := "mctrl-history-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	// Far more lines than any client can show. The attach creates its PTY at the
+	// canonical full size, which grows the pane, so a marker only just off screen
+	// would be revealed by the attach itself and would arrive through the live
+	// redraw — this test would then pass with no replay at all.
+	script := `i=1; while [ $i -le 400 ]; do printf 'hist-line-%s\n' "$i"; i=$((i+1)); done; sleep 8`
+	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", script})
+	if err != nil {
+		t.Fatalf("tmux managed session: %v", err)
+	}
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
+
+	// The pane must have produced history before any client attaches, otherwise
+	// there is nothing to replay and the test would pass for the wrong reason.
+	var history []byte
+	for attempt := 0; attempt < 40; attempt++ {
+		history, err = testTmuxCommand(socket, "capture-pane", "-p", "-t", id, "-S", "-500").CombinedOutput()
+		if err != nil {
+			t.Fatalf("capture history: %v", err)
+		}
+		if strings.Contains(string(history), "hist-line-1") {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	if !strings.Contains(string(history), "hist-line-1") {
+		t.Fatalf("pane never produced the history this test replays: %q", history)
+	}
+	// The first line must be far off screen, or the live redraw would carry it.
+	screen, err := testTmuxCommand(socket, "capture-pane", "-p", "-t", id).CombinedOutput()
+	if err != nil {
+		t.Fatalf("capture screen: %v", err)
+	}
+	if strings.Contains(string(screen), "hist-line-1") {
+		t.Fatalf("first marker is still on screen, so this test cannot isolate the replay: %q", screen)
+	}
+
+	pairing, err := auth.CreatePairing(root, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	paired, err := auth.NewRegistry(root).Pair(root, pairing.Token, "History Test Phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	httpServer := httptest.NewServer(server)
+	defer httpServer.Close()
+	wsURL := "ws" + strings.TrimPrefix(httpServer.URL, "http") + "/api/v1/sessions/" + id + "/terminal"
+	header := http.Header{}
+	header.Set("Origin", httpServer.URL)
+	header.Set("Cookie", auth.SessionCookieName+"="+paired.SessionToken)
+	conn, _, err := (&websocket.Dialer{HandshakeTimeout: 3 * time.Second}).DialContext(ctx, wsURL, header)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+
+	// Positive signal only: a read deadline that expires leaves a gorilla
+	// connection unusable, so this waits for the marker rather than for silence.
+	_ = conn.SetReadDeadline(time.Now().Add(8 * time.Second))
+	var output strings.Builder
+	replayed := false
+	for i := 0; i < 64; i++ {
+		messageType, data, readErr := conn.ReadMessage()
+		if readErr != nil {
+			t.Fatalf("read before the replay arrived: %v (got %q)", readErr, output.String())
+		}
+		if messageType == websocket.BinaryMessage {
+			output.Write(data)
+		}
+		if strings.Contains(output.String(), "hist-line-1") {
+			replayed = true
+			break
+		}
+	}
+	if !replayed {
+		t.Errorf("a line that had scrolled off screen never reached the client: %q", output.String())
+	}
+}
+
 func TestTerminalWebSocketRepairsManagedWorkTransport(t *testing.T) {
 	adapter, socket := isolateTestTmux(t)
 	root := t.TempDir()
