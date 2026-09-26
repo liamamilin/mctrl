@@ -8,6 +8,7 @@ import {
   getHost,
   getProjects,
   getRunners,
+  getWork,
   RUNTIME_PROFILE,
   revokeDevice,
   updateTerminalSize,
@@ -30,6 +31,9 @@ export function SettingsPage() {
   const [devices, setDevices] = useState<PairedDevice[]>([]);
   const [deviceHistory, setDeviceHistory] = useState<PairedDevice[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [activeWorkByProject, setActiveWorkByProject] = useState<
+    Record<string, number>
+  >({});
   const [runners, setRunners] = useState<Runner[]>([]);
   const [projectName, setProjectName] = useState('');
   const [projectPath, setProjectPath] = useState('~');
@@ -80,6 +84,30 @@ export function SettingsPage() {
         ]);
       if (currentLoad !== loadId.current) return;
       setHost(nextHost);
+      // The API refuses to unregister a Project that has active Managed Work, so
+      // the page counts that Work up front instead of letting the user press a
+      // button that can only fail.
+      void getWork()
+        .then((work) => {
+          if (currentLoad !== loadId.current) return;
+          const counts: Record<string, number> = {};
+          const item = Array.isArray(work) ? work[0] : work;
+          const items = Array.isArray(work) ? work : item ? [item] : [];
+          for (const entry of items) {
+            const state = entry?.state;
+            if (state !== 'RUNNING' && state !== 'STARTING' && state !== 'ACCEPTED') {
+              continue;
+            }
+            const id = entry?.project_id;
+            if (id) counts[id] = (counts[id] ?? 0) + 1;
+          }
+          setActiveWorkByProject(counts);
+        })
+        .catch(() => {
+          // A count that cannot be read must not block the control; the API
+          // remains the authority and will refuse if it disagrees.
+          setActiveWorkByProject({});
+        });
       if (nextHost.terminal_full_size) {
         setTerminalCols(String(nextHost.terminal_full_size.cols));
         setTerminalRows(String(nextHost.terminal_full_size.rows));
@@ -208,12 +236,17 @@ export function SettingsPage() {
     }
   };
 
-  const revoke = async (device: PairedDevice) => {
-    const confirmed = window.confirm(
-      `Revoke “${device.name}”? Future control requests from that device will be blocked. Existing Work is not stopped.`,
-    );
-    if (!confirmed) return;
+  // iOS disables window.confirm in a standalone PWA: it shows nothing and
+  // returns false, so a destructive control built on it silently does nothing.
+  // SessionPage already confirms inline for the same reason; this is that
+  // pattern applied to the two destructive actions here.
+  const [confirmAction, setConfirmAction] = useState<
+    | { kind: 'project'; project: Project; blockedBy: number }
+    | { kind: 'device'; device: PairedDevice }
+    | undefined
+  >();
 
+  const revoke = async (device: PairedDevice) => {
     setRevoking(device.id);
     setActionError('');
     try {
@@ -276,11 +309,6 @@ export function SettingsPage() {
   };
 
   const unregisterProject = async (project: Project) => {
-    const confirmed = window.confirm(
-      `Unregister “${project.name}”? It will no longer be available for new Work. Existing Sessions and Work will continue.`,
-    );
-    if (!confirmed) return;
-
     setProjectRemoving(project.id);
     setProjectError('');
     setProjectNotice('');
@@ -544,14 +572,30 @@ export function SettingsPage() {
                         </span>
                       )}
                     </div>
-                    <button
-                      class="button button-danger-quiet button-small"
-                      type="button"
-                      onClick={() => void unregisterProject(project)}
-                      disabled={projectRemoving === project.id}
-                    >
-                      {projectRemoving === project.id ? 'Unregistering…' : 'Unregister'}
-                    </button>
+                    <div class="project-card-actions">
+                      {activeWorkByProject[project.id] ? (
+                        <span class="project-in-use">
+                          {activeWorkByProject[project.id]} active Work
+                          {activeWorkByProject[project.id] === 1 ? '' : 's'}
+                        </span>
+                      ) : null}
+                      <button
+                        class="button button-danger-quiet button-small"
+                        type="button"
+                        onClick={() =>
+                          setConfirmAction({
+                            kind: 'project',
+                            project,
+                            blockedBy: activeWorkByProject[project.id] ?? 0,
+                          })
+                        }
+                        disabled={projectRemoving === project.id}
+                      >
+                        {projectRemoving === project.id
+                          ? 'Unregistering…'
+                          : 'Unregister'}
+                      </button>
+                    </div>
                   </article>
                 ))
               )}
@@ -562,6 +606,54 @@ export function SettingsPage() {
               only removes the future launch target; existing Sessions and Work
               remain untouched.
             </p>
+
+            {confirmAction?.kind === 'project' && (
+              <div
+                class="inline-confirm"
+                role="alertdialog"
+                aria-label="Confirm unregister"
+              >
+                <p>
+                  Unregister <strong>{confirmAction.project.name}</strong>? It
+                  will no longer be available for new Work. Existing Sessions and
+                  Work are not changed.
+                </p>
+                {confirmAction.blockedBy > 0 && (
+                  <p class="inline-confirm-blocked">
+                    This Project has {confirmAction.blockedBy} active Work
+                    {confirmAction.blockedBy === 1 ? '' : 's'}. The Mac will
+                    refuse until{' '}
+                    {confirmAction.blockedBy === 1
+                      ? 'it finishes or is closed'
+                      : 'they finish or are closed'}
+                    .
+                  </p>
+                )}
+                <div class="inline-confirm-actions">
+                  <button
+                    class="button button-secondary button-small"
+                    type="button"
+                    onClick={() => setConfirmAction(undefined)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    class="button button-danger button-small"
+                    type="button"
+                    disabled={projectRemoving === confirmAction.project.id}
+                    onClick={() => {
+                      const project = confirmAction.project;
+                      setConfirmAction(undefined);
+                      void unregisterProject(project);
+                    }}
+                  >
+                    {projectRemoving === confirmAction.project.id
+                      ? 'Unregistering…'
+                      : 'Unregister Project'}
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           <section class="settings-section" aria-labelledby="devices-title">
@@ -663,7 +755,9 @@ export function SettingsPage() {
                           <button
                             class="button button-danger-quiet button-small"
                             type="button"
-                            onClick={() => void revoke(device)}
+                            onClick={() =>
+                              setConfirmAction({ kind: 'device', device })
+                            }
                             disabled={revoking === device.id}
                           >
                             {revoking === device.id ? 'Revoking…' : 'Revoke device'}
@@ -675,6 +769,43 @@ export function SettingsPage() {
                 })
               )}
             </div>
+
+            {confirmAction?.kind === 'device' && (
+              <div
+                class="inline-confirm"
+                role="alertdialog"
+                aria-label="Confirm revoke"
+              >
+                <p>
+                  Revoke <strong>{confirmAction.device.name}</strong>? Future
+                  control requests from that device will be blocked. Existing
+                  Work is not stopped.
+                </p>
+                <div class="inline-confirm-actions">
+                  <button
+                    class="button button-secondary button-small"
+                    type="button"
+                    onClick={() => setConfirmAction(undefined)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    class="button button-danger button-small"
+                    type="button"
+                    disabled={revoking === confirmAction.device.id}
+                    onClick={() => {
+                      const device = confirmAction.device;
+                      setConfirmAction(undefined);
+                      void revoke(device);
+                    }}
+                  >
+                    {revoking === confirmAction.device.id
+                      ? 'Revoking…'
+                      : 'Revoke device'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <details class="device-history card">
               <summary>

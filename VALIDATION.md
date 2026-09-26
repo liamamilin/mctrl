@@ -130,9 +130,25 @@ package has no test runner, so nothing here is covered by an automated test yet.
   else did: the API rejects only a prompt over 200000 characters or containing
   NUL, and the codex and opencode runners both guard their prompt argument with
   `if strings.TrimSpace(spec.Prompt) != ""`. So a plain shell Work, or an agent
-  Work the user meant to type into, could not be started at all. Found because
-  the user could not press the button.. The
-  bound is the API's; the paging is in the page.
+  Work the user meant to type into, could not be started at all. Found because the
+  user could not press the button.
+
+Two destructive controls in Settings were dead in the user's hands:
+
+- **Unregister Project and Revoke device were built on `window.confirm`.** iOS
+  disables `window.confirm` in a standalone PWA: it displays nothing and returns
+  false, so the handler returned early and the page did nothing at all, with no
+  error anywhere. `SessionPage` already confirms inline for exactly this reason,
+  so the app had two conventions and Settings was the one that did not work. Both
+  now use the inline pattern.
+- **A Project with active Managed Work could not be unregistered, and the page
+  never said so.** The API refuses with `PROJECT_IN_USE` — a guard added
+  deliberately — but the page only learned that after a failed attempt. The card
+  now counts active Work per Project and states it on the card and in the
+  confirmation, so the button is not a trap. The API remains the authority, and a
+  count that cannot be read does not disable anything.
+
+The preview bound is the API's; the paging is in the page.
 
 What is evidence and what is not:
 

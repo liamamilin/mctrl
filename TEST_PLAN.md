@@ -86,6 +86,10 @@ Required:
 - Start Work states why the launch button is disabled
 - Start Work launches with an empty Prompt, matching what the API accepts and what
   every runner guards
+- unregistering a Project and revoking a device both confirm inline, never through
+  window.confirm
+- a Project with active Managed Work says so on its card before the button is
+  pressed
 - the Prompt dock carries no permanent mechanism footnote
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls

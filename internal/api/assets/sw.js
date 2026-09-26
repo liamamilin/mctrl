@@ -1,4 +1,4 @@
-const CACHE = 'mctrl-shell-fc054648454d437d';
+const CACHE = 'mctrl-shell-b97c9c09f170aefa';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
