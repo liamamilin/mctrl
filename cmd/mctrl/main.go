@@ -117,7 +117,7 @@ Commands:
   mctrl pair        create a short-lived pairing token
   mctrl doctor      diagnose the local installation
   mctrl logs        show daemon logs
-  mctrl project     add/remove/list registered Projects
+  mctrl project     add/remove/list/restore registered Projects
   mctrl devices     list paired devices
   mctrl revoke      revoke a paired device
   mctrl restart     restart only the daemon
@@ -686,7 +686,8 @@ func runDoctor(_ []string) error {
 	} else {
 		fmt.Println("Daemon:       stopped")
 	}
-	projects, projectErr := project.NewStore(stateDir).List()
+	projectStore := project.NewStore(stateDir)
+	projects, projectErr := projectStore.List()
 	if projectErr == nil {
 		fmt.Printf("Projects:     %d\n", len(projects))
 		for _, item := range projects {
@@ -695,6 +696,26 @@ func runDoctor(_ []string) error {
 				state = "missing"
 			}
 			fmt.Printf("  - %s [%s] %s\n", item.Name, state, item.Path)
+		}
+		// A live Work that references a Project id the registry no longer holds
+		// is the one state problem mctrl cannot fix on its own: the Work points
+		// at nothing, and re-adding the Project would mint a new id. Finished
+		// Work is history and is not worth reporting.
+		known := make(map[string]bool, len(projects))
+		for _, item := range projects {
+			known[item.ID] = true
+		}
+		works, workErr := work.NewStore(stateDir).List()
+		if workErr != nil {
+			fmt.Println("Work:          unavailable")
+		} else {
+			for _, item := range works {
+				if item.Terminal() || item.ProjectID == "" || known[item.ProjectID] {
+					continue
+				}
+				fmt.Printf("Dangling:      Work %s references unknown Project %s\n", item.ID, item.ProjectID)
+				fmt.Printf("  restore with: mctrl project restore --id %s <registered path>\n", item.ProjectID)
+			}
 		}
 	}
 	for _, detection := range runner.NewRegistry().List() {
@@ -739,7 +760,7 @@ func runLogs(args []string) error {
 
 func runProject(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("project requires add, remove, or list")
+		return fmt.Errorf("project requires add, remove, list, or restore")
 	}
 	stateDir, err := config.StateDir()
 	if err != nil {
@@ -820,6 +841,49 @@ func runProject(args []string) error {
 			return err
 		}
 		fmt.Println("Unregistered", args[1])
+		return nil
+	case "restore":
+		fs := flagSet("project restore")
+		id := fs.String("id", "", "existing Project id to restore")
+		name := fs.String("name", "", "display name")
+		runnerID := fs.String("runner", "shell", "default runner")
+		raw := args[1:]
+		pathIndex := -1
+		for index, arg := range raw {
+			if strings.HasPrefix(arg, "-") {
+				continue
+			}
+			if info, statErr := os.Stat(arg); statErr == nil && info.IsDir() {
+				pathIndex = index
+				break
+			}
+		}
+		if pathIndex < 0 {
+			for index, arg := range raw {
+				if !strings.HasPrefix(arg, "-") {
+					pathIndex = index
+					break
+				}
+			}
+		}
+		if pathIndex < 0 {
+			return fmt.Errorf("usage: mctrl project restore --id <id> <path> [--name <name>] [--runner <id>]")
+		}
+		path := raw[pathIndex]
+		parseArgs := append([]string{}, raw[:pathIndex]...)
+		parseArgs = append(parseArgs, raw[pathIndex+1:]...)
+		parseArgs = append(parseArgs, path)
+		if err := fs.Parse(parseArgs); err != nil {
+			return err
+		}
+		if strings.TrimSpace(*id) == "" {
+			return fmt.Errorf("mctrl project restore requires --id")
+		}
+		item, err := store.Restore(*id, *name, path, *runnerID)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Restored %s (%s) as %q\n", item.ID, item.Path, item.Name)
 		return nil
 	default:
 		return fmt.Errorf("unknown project command %q", args[0])

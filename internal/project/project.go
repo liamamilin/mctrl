@@ -181,6 +181,78 @@ func (s *Store) Add(name, path, defaultRunner string) (Project, error) {
 	return item, nil
 }
 
+// Restore re-inserts a Project record under an explicit id.
+//
+// It exists for one situation: a Project was unregistered while a Managed Work
+// or a still-running runner referenced it, so that Work now points at an id that
+// no longer exists. Re-adding through Add would mint a new id and orphan every
+// record that references the old one, which is why the id has to be supplied.
+//
+// Ids created by older versions look different from today's
+// "<slug>-<random>" form, so the check stays deliberately permissive: an id only
+// has to be safe to store and to compare, not to match the current format.
+func (s *Store) Restore(id, name, path, defaultRunner string) (Project, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return Project{}, fmt.Errorf("project id is required")
+	}
+	if len(id) > 128 {
+		return Project{}, fmt.Errorf("project id is too long")
+	}
+	if strings.ContainsAny(id, " \t\r\n/\\") {
+		return Project{}, fmt.Errorf("project id must not contain whitespace or path separators")
+	}
+	if strings.TrimSpace(path) == "" {
+		return Project{}, fmt.Errorf("project path is required")
+	}
+	clean, err := expandPath(path)
+	if err != nil {
+		return Project{}, fmt.Errorf("resolve project path: %w", err)
+	}
+	info, err := os.Stat(clean)
+	if err != nil {
+		return Project{}, fmt.Errorf("project path: %w", err)
+	}
+	if !info.IsDir() {
+		return Project{}, fmt.Errorf("project path is not a directory: %s", clean)
+	}
+	if strings.TrimSpace(name) == "" {
+		name = filepath.Base(clean)
+	}
+	defaultRunner = strings.ToLower(strings.TrimSpace(defaultRunner))
+	if defaultRunner == "" {
+		defaultRunner = "shell"
+	}
+	if !validRunnerID(defaultRunner) {
+		return Project{}, fmt.Errorf("unsupported default runner %q", defaultRunner)
+	}
+	item := Project{
+		ID:            id,
+		Name:          name,
+		Path:          clean,
+		DefaultRunner: defaultRunner,
+		CreatedAt:     time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	err = s.mutate(func(value *file) error {
+		for _, existing := range value.Projects {
+			if existing.ID == item.ID {
+				return fmt.Errorf("project %s already exists", item.ID)
+			}
+			// Add is idempotent by path, so two ids on one path would make
+			// "which Project is this?" ambiguous.
+			if existing.Path == clean {
+				return fmt.Errorf("project path %s is already registered as %s", clean, existing.ID)
+			}
+		}
+		value.Projects = append(value.Projects, item)
+		return nil
+	})
+	if err != nil {
+		return Project{}, err
+	}
+	return item, nil
+}
+
 func (s *Store) Remove(id string) error {
 	return s.mutate(func(value *file) error {
 		for i, item := range value.Projects {

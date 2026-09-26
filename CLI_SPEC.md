@@ -51,6 +51,23 @@ Sessions.
 `project remove` unregisters a Project only. It does not close Sessions or stop
 Work. Active Managed Work must finish before the Project can be unregistered.
 
+`project restore` re-inserts a Project under an id you supply. It exists for one
+recovery case: a Project was unregistered while a Work still referenced it, so
+that Work points at an id the registry no longer holds. `project add` cannot fix
+this, because it mints a new id and would orphan the Work's history.
+
+```text
+mctrl project restore --id <id> <path> [--name <name>] [--runner <id>]
+```
+
+The id must not already exist, and the path must not belong to a different id.
+Ids written by older versions are accepted: the check stays permissive on
+purpose, because the records that need recovering use that older shape. The path
+must exist and be a directory, and `~` expands to the Mac user's home directory.
+
+`mctrl doctor` reports a live Work whose Project id is missing, and prints the
+exact restore command to run.
+
 
 Example:
 

@@ -122,6 +122,28 @@ A dead pane is not restarted in place. V1 creates a new Work/attempt/Session for
 new launch and retains the old Session as evidence. Use **Start another Work** on
 the terminal Work card; the original Project is preselected when it still exists.
 
+## A Work references a Project that no longer exists
+
+`mctrl doctor` reports this as a dangling reference:
+
+```text
+Dangling:      Work work_xxx references unknown Project project-yyy
+  restore with: mctrl project restore --id project-yyy <registered path>
+```
+
+A Project was unregistered while that Work still pointed at it. Do **not** re-add
+it with `mctrl project add`: that mints a new id, so the Work's history would
+reference an id that will never exist again. Restore the original id instead, with
+the same path the Work recorded:
+
+```sh
+mctrl project restore --id project-yyy <path>
+```
+
+The path must still exist. Restore is refused if the id is already taken or the
+path belongs to a different Project. Finished Work is history and is not
+reported; only a live Work needs this.
+
 ## Terminal attachment fails
 
 - Confirm the tmux Session still exists in `mctrl status`.
