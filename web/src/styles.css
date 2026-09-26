@@ -2224,7 +2224,7 @@ button:disabled {
 }
 
 .direction-keys {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .terminal-keybar button {
@@ -2276,15 +2276,7 @@ button:disabled {
   border-color: rgba(121, 230, 165, 0.45);
 }
 
-/* Opens the symbol grid. It is the only key in the arrow row that does not
-   send a keystroke, so it keeps the keybar's own typography instead of the
-   larger arrow glyphs. */
-.direction-keys .text-tools-toggle {
-  color: var(--text-soft);
-  font-size: 0.8rem;
-}
-
-/* Floating actions over the terminal. They stay out of the grid so the canvas
+/* Floating action over the terminal. It stays out of the grid so the canvas
    keeps every row. */
 .canvas-action {
   position: absolute;
@@ -2312,101 +2304,6 @@ button:disabled {
 .canvas-action:active {
   color: var(--text);
   background: rgba(20, 32, 26, 0.95);
-}
-
-/* The symbols and text options the keybar itself cannot hold. */
-.text-tools {
-  display: grid;
-  width: 100%;
-  max-width: 520px;
-  justify-self: center;
-  margin: 0 auto;
-  gap: 7px;
-  padding: 8px;
-  background: #0a100d;
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
-}
-
-.text-tools-grid {
-  display: grid;
-  gap: 5px;
-}
-
-.text-tools-row {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 5px;
-}
-
-.text-tools button {
-  height: 34px;
-  padding: 0 2px;
-  color: var(--text);
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.78rem;
-  font-weight: 700;
-  touch-action: manipulation;
-}
-
-.text-tools button:active:not(:disabled) {
-  background: var(--surface-3);
-  transform: translateY(1px);
-}
-
-.text-tools-options {
-  display: grid;
-  gap: 6px;
-  padding-top: 7px;
-  border-top: 1px solid var(--border);
-}
-
-.text-tools-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--text-soft);
-  font-size: 0.66rem;
-  line-height: 1.3;
-}
-
-.text-tools-option small {
-  display: block;
-  color: var(--muted);
-  font-size: 0.6rem;
-}
-
-.text-tools-stepper {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 6px;
-}
-
-.text-tools-stepper button {
-  width: 42px;
-  height: 30px;
-  font-family: inherit;
-  font-size: 0.72rem;
-}
-
-.text-tools-stepper strong {
-  min-width: 18px;
-  color: var(--text);
-  font-size: 0.7rem;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.text-tools-option input[type='checkbox'] {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent);
 }
 
 .prompt-dock {

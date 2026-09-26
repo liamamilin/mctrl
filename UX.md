@@ -71,7 +71,7 @@ Show facts:
 │ xterm.js        [↓ 120 back] │
 ├─────────────────────────────┤
 │ ESC  TAB  CTRL  LOCAL  编辑 │
-│ ↑   ↓   ←   →   ⏎    #     │
+│ ↑   ↓   ←   →    ⏎         │
 ├─────────────────────────────┤
 │ [Prompt textarea]    Send   │
 └─────────────────────────────┘
@@ -81,28 +81,27 @@ Show facts:
 same Return the keyboard sends, so submitting never depends on which Return the
 phone shows.
 
-The keybar order is `LOCAL` → **编辑** → `↑ ↓ ← →`, and the `#` key sits after
-the arrows because it opens a panel instead of sending a keystroke.
+The keybar order is `LOCAL` → **编辑** → `↑ ↓ ← →`, and nothing else is added:
+the phone's own keyboard already carries digits and symbols.
 
-### Symbols and text options
+### What a Chinese keyboard can and cannot send
 
-`#` expands a panel above the keybar. It exists because the phone's own
-keyboard is not enough: a Chinese IME can produce full-width forms, and a
-terminal program that binds `1` or `/` never sees `１` or `／`.
+Two different failures look like one from the phone:
 
-The panel holds three things:
+- **Digits do nothing.** On a Chinese keyboard the number row is the candidate
+  selector, so those keys select a word instead of typing a digit, and the
+  keystroke never reaches the page. This is the operating system's design; no
+  amount of terminal-side handling recovers it. Switching to a Latin keyboard is
+  the only native way to type a digit.
+- **Punctuation arrives, but full-width.** `：`, `，`, `／` are committed text, so
+  they do reach the terminal, and a program that binds `:`, `,` or `/` never sees
+  them. mctrl converts the full-width ASCII block (U+FF01–U+FF5E) and the
+  ideographic space to half-width before sending, so real CJK input is untouched.
+  The conversion applies to terminal keystrokes only, never to the Structured
+  Prompt, where a program reads text rather than keys.
 
-- **Symbol grid** — digits, punctuation, brackets, and the currency and math
-  characters that a phone keyboard hides. Every key sends one character.
-- **Text size** — `A−` / `A+` steps the terminal font through 12 / 13 / 15 / 17
-  and re-fits the terminal, so a larger font means fewer columns rather than
-  clipped text. The choice is remembered per device.
-- **Full-width → half-width** — on by default. A Chinese IME sends `１`, `：`,
-  `／`; programs expect `1`, `:`, `/`. Only the full-width ASCII block and the
-  ideographic space are converted, so real CJK input is untouched. It applies to
-  terminal keystrokes only, never to the Structured Prompt, where a program
-  reads text rather than keys. It can be switched off if a program genuinely
-  wants full-width input.
+The conversion is unconditional. To send the raw bytes back, set
+`mctrl-terminal-half-width` to `off` in the page's `localStorage`.
 
 ### Reaching earlier output
 

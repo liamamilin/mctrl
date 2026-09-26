@@ -206,18 +206,22 @@ current size.
 
 ## The Chinese keyboard cannot type numbers or symbols into a program
 
-A full-width IME sends `１`, `：`, `／` and the ideographic space, while a
-program that binds `1`, `:` or `/` never sees them. Nothing is wrong with the
-terminal transport. Two ways to send them:
+Two different causes, and the fix is only different for one of them.
 
-- open the `#` panel on the keybar and tap the character; every key sends exactly
-  one ASCII character
-- leave **Full-width → half-width** on (the default) and type normally; only the
-  full-width ASCII block and the ideographic space are converted, so Chinese text
-  is untouched
+**Digits do nothing at all.** On a Chinese keyboard the number row is the
+candidate selector: `1`–`5` pick a candidate word, so the keystroke never reaches
+the page and the terminal receives nothing. This is the operating system's design
+and no terminal-side handling recovers it. Switch to a Latin keyboard.
 
-If a program genuinely needs full-width input, switch the conversion off in the
-same panel. It is a client-side choice stored per device, not a Mac-side setting.
+**Punctuation arrives but is ignored.** `：`, `，`, `／` are committed text, so
+they do reach the terminal, and a program that binds `:`, `,` or `/` never
+recognises them. mctrl converts the full-width ASCII block (U+FF01–U+FF5E) and
+the ideographic space to half-width before sending, so this case needs no action.
+To confirm the conversion is what you are seeing, set
+`mctrl-terminal-half-width` to `off` in the page's `localStorage` and reload; the
+raw full-width characters then reach the program unchanged.
+
+CJK text itself is never altered by the conversion.
 
 ## The software keyboard covers the terminal
 

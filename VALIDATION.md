@@ -75,14 +75,11 @@ Result: 0 vulnerabilities.
 
 - verified the two-row control layout at 393 px and the 320 px minimum width
 - confirmed `ESC`, `TAB`, `CTRL`, `LOCAL`, and `编辑` remain fully visible
-- confirmed `↑`, `↓`, `←`, `→`, `⏎`, and `#` fit the same row without horizontal
-  scrolling, with `↑ ↓ ← →` keeping their order and `编辑` staying between
-  `LOCAL` and the arrows
+- confirmed `↑`, `↓`, `←`, `→`, and `⏎` fit the arrow row without horizontal
+  scrolling, with `编辑` staying between `LOCAL` and the arrows
 - confirmed the direction controls send the standard terminal sequences for up,
   down, left, and right
 - confirmed `⏎` sends Return unchanged
-- confirmed the `#` panel's 50 symbol keys each send exactly one character
-- confirmed the keybar order survives with the `#` panel expanded
 
 ## Mobile input and viewport changes — pending device verification
 
@@ -91,13 +88,14 @@ listed as expectations to check, not as results. Static checks only: the web
 build type-checks and `make release-check` passes for both profiles. The web
 package has no test runner, so nothing here is covered by an automated test yet.
 
-- a Chinese IME's full-width `１`, `：`, and `／` reach the program as `1`, `:`,
+- a Chinese IME's full-width `：`, `，`, and `／` reach the program as `:`, `,`,
   and `/`; the ideographic space reaches it as a space
-- switching **Full-width → half-width** off restores the raw full-width bytes, so
-  the conversion is a visible client-side choice and not a silent rewrite
+- setting `mctrl-terminal-half-width` to `off` in `localStorage` restores the raw
+  full-width bytes, so the conversion is a visible client-side choice and not a
+  silent rewrite
 - CJK text typed into the terminal is unchanged by the conversion
-- `A+` grows the font, the terminal re-fits into fewer columns, and the Mac
-  receives the smaller size; the choice survives a page reload
+- the digits of a Chinese keyboard select candidates and never reach the
+  terminal, while the same digits on a Latin keyboard arrive as `1`–`9`
 - scrolling back shows `↓ N lines back`; one tap returns to the tail and the
   control disappears
 - the software keyboard opens without covering the terminal and the keybar stays
@@ -105,6 +103,17 @@ package has no test runner, so nothing here is covered by an automated test yet.
 - the FULL hint occupies one line
 - FULL shows no Structured Prompt dock, and the dock returns in LOCAL
 - a Session name longer than the header wraps to two lines and then ellipsises
+
+Two claims above are not yet backed by a measurement, and both are noted as
+risks rather than results:
+
+- the digits of a Chinese keyboard are assumed to be a candidate selector that
+  consumes the keystroke. That is the operating system's design, but it has not
+  been observed on this phone. If a digit ever reaches the page as a full-width
+  `１`, the conversion above is what handles it.
+- the software-keyboard inset is unobservable off-device. No desktop browser can
+  raise an iOS keyboard, so the layout consuming `--keyboard-inset` is the only
+  thing that has been checked.
 
 ## Raw keyboard transport validation
 

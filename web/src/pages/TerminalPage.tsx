@@ -65,10 +65,17 @@ function overviewTargetSize(
   };
 }
 
-// Terminals want half-width ASCII. A Chinese IME on iOS emits full-width
-// forms (１, ：, ／ …) and the ideographic space, and a program that binds keys
-// like "1" or "/" never sees them. Only these two blocks are touched, so real
-// CJK input is left exactly as typed.
+// Terminals want half-width ASCII, and a Chinese IME does not send it.
+//
+// The digit row of a Chinese keyboard is a candidate selector, so those keys
+// never reach the page at all — that is the OS's design and nothing here can
+// recover it. Punctuation is different: it is committed text, it does arrive,
+// and it arrives full-width (：，／). A program that binds ":" or "/" then sees
+// nothing it recognises, which is the half of the original report that this
+// conversion actually fixes.
+//
+// Only these two blocks are touched, so real CJK input is left exactly as typed.
+// Set mctrl-terminal-half-width to "off" in localStorage to send the raw bytes.
 function normalizeHalfWidth(data: string): string {
   let result = '';
   for (const character of data) {
@@ -87,59 +94,17 @@ function normalizeHalfWidth(data: string): string {
   return result;
 }
 
-const SYMBOL_ROWS: string[][] = [
-  ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
-  ['/', ':', '-', '_', '.', ',', ';', "'", '"', '`'],
-  ['(', ')', '[', ']', '{', '}', '<', '>', '+', '='],
-  ['*', '&', '%', '$', '#', '@', '!', '?', '~', '^'],
-  ['|', '\\', '€', '£', '¥', '°', '±', '×', '÷', '§'],
-];
-
-const FONT_SIZES = [12, 13, 15, 17] as const;
-
-function loadFontSize(): number {
-  try {
-    const stored = Number(
-      window.localStorage.getItem(runtimeStorageKey('mctrl-terminal-font-size')),
-    );
-    if ((FONT_SIZES as readonly number[]).includes(stored)) return stored;
-  } catch {
-    // A blocked storage API only costs persistence.
-  }
-  return 13;
-}
-
-function saveFontSize(size: number): void {
-  try {
-    window.localStorage.setItem(
-      runtimeStorageKey('mctrl-terminal-font-size'),
-      String(size),
-    );
-  } catch {
-    // A blocked storage API only costs persistence.
-  }
-}
-
-function loadHalfWidth(): boolean {
+// The escape hatch for a program that genuinely wants full-width input. There is
+// no control for it: the conversion is not a preference the phone user is
+// expected to reason about, it is a correction for a keyboard the OS controls.
+function halfWidthEnabled(): boolean {
   try {
     const stored = window.localStorage.getItem(
       runtimeStorageKey('mctrl-terminal-half-width'),
     );
-    // Default on: a full-width character in a terminal is almost never intended.
-    return stored === null ? true : stored === 'on';
+    return stored !== 'off';
   } catch {
     return true;
-  }
-}
-
-function saveHalfWidth(enabled: boolean): void {
-  try {
-    window.localStorage.setItem(
-      runtimeStorageKey('mctrl-terminal-half-width'),
-      enabled ? 'on' : 'off',
-    );
-  } catch {
-    // A blocked storage API only costs persistence.
   }
 }
 
@@ -208,15 +173,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const sendRaw = useRef<(data: string) => boolean>(() => false);
   const focusTerminal = useRef<() => void>(() => undefined);
   const toggleOverview = useRef<() => void>(() => undefined);
-  // The terminal instance itself stays inside the effect; only the two
-  // operations the page needs from outside are published here.
-  const terminalApi = useRef<{
-    scrollToBottom: () => void;
-    setFontSize: (size: number) => boolean;
-  }>({
-    scrollToBottom: () => undefined,
-    setFontSize: () => false,
-  });
+  // The terminal instance itself stays inside the effect; only the one
+  // operation the page needs from outside is published here.
+  const scrollToTail = useRef<() => void>(() => undefined);
   const controlArmed = useRef(false);
   const promptStorageKey = runtimeStorageKey(`mctrl-prompt:${sessionId}`);
   const initialPromptRequest = readPendingPrompt(promptStorageKey);
@@ -237,13 +196,11 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     undefined,
   );
   const [sessionLabel, setSessionLabel] = useState('');
-  const [textToolsOpen, setTextToolsOpen] = useState(false);
-  const [fontSize, setFontSize] = useState(loadFontSize);
-  const [halfWidth, setHalfWidth] = useState(loadHalfWidth);
   const [scrolledBack, setScrolledBack] = useState(0);
   const [keyboardInset, setKeyboardInset] = useState(0);
-  const halfWidthRef = useRef(halfWidth);
-  halfWidthRef.current = halfWidth;
+  // Read once per mount: it is an escape hatch, not a preference the user is
+  // expected to flip while typing.
+  const [halfWidth] = useState(halfWidthEnabled);
   const [prompt, setPrompt] = useState('');
   const [sendingPrompt, setSendingPrompt] = useState(false);
   const [promptNotice, setPromptNotice] = useState<PromptNotice | undefined>(() =>
@@ -316,7 +273,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       cursorBlink: true,
       fontFamily:
         'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-      fontSize: loadFontSize(),
+      fontSize: 13,
       lineHeight: 1.2,
       scrollback: 5000,
       theme: {
@@ -600,11 +557,10 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
 
     sendRaw.current = send;
     const rawDisposable = terminal.onData((data) => {
-      // A Chinese IME emits full-width forms; a terminal wants half-width ASCII.
-      const halfWidthSafe = halfWidthRef.current
-        ? normalizeHalfWidth(data)
-        : data;
-      const transformed = withControlModifier(halfWidthSafe, controlArmed.current);
+      const transformed = withControlModifier(
+        halfWidth ? normalizeHalfWidth(data) : data,
+        controlArmed.current,
+      );
       if (send(transformed)) controlArmed.current = false;
     });
     const binaryDisposable = terminal.onBinary((data) => {
@@ -878,25 +834,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     const scrollDisposable = terminal.onScroll(syncScrollPosition);
     const renderDisposable = terminal.onRender(syncScrollPosition);
 
-    terminalApi.current = {
-      scrollToBottom: () => {
-        terminal.scrollToBottom();
-        syncScrollPosition();
-      },
-      setFontSize: (size: number) => {
-        // Changing the font only makes sense in the phone-sized view; in FULL
-        // the overview transform already decides how large the Session looks,
-        // so the caller is told the change did not happen.
-        if (overviewMode) return false;
-        terminal.options.fontSize = size;
-        try {
-          fitAddon.fit();
-        } catch {
-          // The next resize pass will fit after layout settles.
-        }
-        sendTerminalResize();
-        return true;
-      },
+    scrollToTail.current = () => {
+      terminal.scrollToBottom();
+      syncScrollPosition();
     };
 
     window.addEventListener('online', onOnline);
@@ -972,32 +912,10 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     setControlArmedState(next);
   };
 
-  const stepFontSize = (direction: 1 | -1) => {
-    const index = FONT_SIZES.indexOf(fontSize as (typeof FONT_SIZES)[number]);
-    const next =
-      FONT_SIZES[
-        Math.min(FONT_SIZES.length - 1, Math.max(0, index + direction))
-      ];
-    if (!next || next === fontSize) return;
-    // The terminal decides whether the change applies, so the label and the
-    // stored preference never claim a size the screen is not using.
-    if (!terminalApi.current.setFontSize(next)) return;
-    setFontSize(next);
-    saveFontSize(next);
-  };
-
-  const toggleHalfWidth = () => {
-    setHalfWidth((current) => {
-      saveHalfWidth(!current);
-      return !current;
-    });
-  };
-
   const jumpToBottom = () => {
-    terminalApi.current.scrollToBottom();
+    scrollToTail.current();
     setScrolledBack(0);
   };
-
   const reconnect = () => {
     setRetryIn(0);
     setInputWarning('');
@@ -1187,75 +1105,6 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           role="toolbar"
           aria-label="Terminal keys"
         >
-          {textToolsOpen && (
-            <div class="text-tools" role="group" aria-label="Text tools">
-              <div class="text-tools-grid">
-                {SYMBOL_ROWS.map((row, rowIndex) => (
-                  <div class="text-tools-row" key={`symbols-${rowIndex}`}>
-                    {row.map((symbol) => (
-                      <button
-                        key={symbol}
-                        type="button"
-                        onClick={() => pressKey(symbol)}
-                        disabled={terminalInputDisabled}
-                      >
-                        {symbol}
-                      </button>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <div class="text-tools-options">
-                <div class="text-tools-option">
-                  <span>
-                    Text size
-                    {overview && <small>Switch to LOCAL to change the size.</small>}
-                  </span>
-                  <div class="text-tools-stepper">
-                    <button
-                      type="button"
-                      onClick={() => stepFontSize(-1)}
-                      disabled={
-                        overview ||
-                        terminalInputDisabled ||
-                        fontSize <= FONT_SIZES[0]
-                      }
-                      aria-label="Smaller text"
-                    >
-                      A−
-                    </button>
-                    <strong>{fontSize}</strong>
-                    <button
-                      type="button"
-                      onClick={() => stepFontSize(1)}
-                      disabled={
-                        overview ||
-                        terminalInputDisabled ||
-                        fontSize >= FONT_SIZES[FONT_SIZES.length - 1]!
-                      }
-                      aria-label="Larger text"
-                    >
-                      A+
-                    </button>
-                  </div>
-                </div>
-                <label class="text-tools-option">
-                  <span>
-                    Full-width → half-width
-                    <small>
-                      A Chinese IME sends １ and ：; programs expect 1 and :.
-                    </small>
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={halfWidth}
-                    onChange={toggleHalfWidth}
-                    disabled={terminalInputDisabled}
-                  />
-                </label>
-              </div>
-            </div>
-          )}
           <div
             class="keybar-primary"
             role="group"
@@ -1350,16 +1199,6 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               title="Send Return"
             >
               ⏎
-            </button>
-            <button
-              class={textToolsOpen ? 'armed text-tools-toggle' : 'text-tools-toggle'}
-              type="button"
-              onClick={() => setTextToolsOpen((open) => !open)}
-              aria-expanded={textToolsOpen}
-              aria-label="Symbols and text options"
-              title="Symbols and text options"
-            >
-              #
             </button>
           </div>
         </div>

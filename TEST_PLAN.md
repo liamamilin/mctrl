@@ -79,12 +79,11 @@ Required:
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls
 - the terminal keybar's ⏎ control sends Return unchanged
-- the `#` control opens a symbol grid whose keys send digits and punctuation the
-  phone keyboard hides
-- a Chinese IME's full-width `１` reaches the program as `1`, and the conversion
-  can be switched off
-- `A−` / `A+` change the terminal font, re-fit the terminal, and survive a
-  reload
+- a Chinese IME's full-width `：` reaches the program as `:`, and setting
+  `mctrl-terminal-half-width` to `off` in `localStorage` restores the raw bytes
+- CJK text typed into the terminal is unchanged by that conversion
+- the digits of a Chinese keyboard select candidates and never reach the
+  terminal; the same digits on a Latin keyboard arrive as `1`–`9`
 - scrolling back shows the ↓ lines-back control, and one tap returns to the tail
 - the software keyboard does not cover the terminal, and the keybar stays above it
 - the FULL hint stays on one line
