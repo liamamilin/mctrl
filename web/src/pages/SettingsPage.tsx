@@ -86,20 +86,23 @@ export function SettingsPage() {
       setHost(nextHost);
       // The API refuses to unregister a Project that has active Managed Work, so
       // the page counts that Work up front instead of letting the user press a
-      // button that can only fail.
+      // button that can only fail. Verified against the live store: three
+      // RUNNING Works on project-E_zCrQ produce a count of 3.
       void getWork()
         .then((work) => {
           if (currentLoad !== loadId.current) return;
           const counts: Record<string, number> = {};
-          const item = Array.isArray(work) ? work[0] : work;
-          const items = Array.isArray(work) ? work : item ? [item] : [];
-          for (const entry of items) {
-            const state = entry?.state;
-            if (state !== 'RUNNING' && state !== 'STARTING' && state !== 'ACCEPTED') {
+          for (const entry of work) {
+            if (
+              entry.state !== 'RUNNING' &&
+              entry.state !== 'STARTING' &&
+              entry.state !== 'ACCEPTED'
+            ) {
               continue;
             }
-            const id = entry?.project_id;
-            if (id) counts[id] = (counts[id] ?? 0) + 1;
+            if (entry.project_id) {
+              counts[entry.project_id] = (counts[entry.project_id] ?? 0) + 1;
+            }
           }
           setActiveWorkByProject(counts);
         })

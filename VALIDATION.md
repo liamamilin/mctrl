@@ -146,7 +146,22 @@ Two destructive controls in Settings were dead in the user's hands:
   deliberately — but the page only learned that after a failed attempt. The card
   now counts active Work per Project and states it on the card and in the
   confirmation, so the button is not a trap. The API remains the authority, and a
-  count that cannot be read does not disable anything.
+  count that cannot be read does not disable anything: a stale count must never be
+  the reason a legitimate action is blocked.
+- **The refusal was then invisible anyway.** The error rendered at the top of the
+  Projects section while the button sits at the bottom of the project list, and the
+  inline confirmation was closed *before* the request was made, so the only piece
+  of feedback near the button had already been taken away. A correct 409 carrying
+  an accurate message read as "nothing happened". The confirmation now stays open
+  through the request, closes only on success, and states a refusal inside itself.
+  Revoke device had the identical structure and the identical flaw.
+
+The active-Work count was verified rather than assumed: replaying the page's filter
+over the live store yields `project-E_zCrQ -> 3` and `milin-ZAVuXg -> 1`, matching
+the four RUNNING Works. A defensive `Array.isArray` branch was removed once
+`getWork` was confirmed to return `ManagedWork[]`, and `normalizeWork` was checked
+to preserve `project_id` and `state` — otherwise the count would have been
+silently zero and the feedback would have looked absent again.
 
 The preview bound is the API's; the paging is in the page.
 
