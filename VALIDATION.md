@@ -88,12 +88,15 @@ listed as expectations to check, not as results. Static checks only: the web
 build type-checks and `make release-check` passes for both profiles. The web
 package has no test runner, so nothing here is covered by an automated test yet.
 
-- a Chinese IME's full-width `：`, `，`, and `／` reach the program as `:`, `,`,
-  and `/`; the ideographic space reaches it as a space
-- setting `mctrl-terminal-half-width` to `off` in `localStorage` restores the raw
+- a Chinese keyboard's `：` reaches the program as `:`, and setting
+  `mctrl-terminal-half-width` to `off` in `localStorage` restores the raw
   full-width bytes, so the conversion is a visible client-side choice and not a
   silent rewrite
 - CJK text typed into the terminal is unchanged by the conversion
+- a Latin keyboard's letters, digits and punctuation are each sent exactly once
+  on the phone and in a desktop browser, with no duplication from the
+  `beforeinput` interception
+- an armed CTRL still modifies a character typed on the software keyboard
 - the digits of a Chinese keyboard select candidates and never reach the
   terminal, while the same digits on a Latin keyboard arrive as `1`–`9`
 - scrolling back shows `↓ N lines back`; one tap returns to the tail and the
@@ -104,16 +107,26 @@ package has no test runner, so nothing here is covered by an automated test yet.
 - FULL shows no Structured Prompt dock, and the dock returns in LOCAL
 - a Session name longer than the header wraps to two lines and then ellipsises
 
-Two claims above are not yet backed by a measurement, and both are noted as
-risks rather than results:
+What is evidence and what is not:
 
-- the digits of a Chinese keyboard are assumed to be a candidate selector that
-  consumes the keystroke. That is the operating system's design, but it has not
-  been observed on this phone. If a digit ever reaches the page as a full-width
-  `１`, the conversion above is what handles it.
-- the software-keyboard inset is unobservable off-device. No desktop browser can
-  raise an iOS keyboard, so the layout consuming `--keyboard-inset` is the only
-  thing that has been checked.
+- **Evidence.** The cause of the dropped punctuation was read out of the installed
+  xterm 5.5 source, not guessed: `Keyboard.ts` gates printable keys on
+  `keyCode >= 48`, the same switch carries a `case 0` for iOS `UIKeyInput*` arrows,
+  and `Terminal.ts` discards an `input` event when `composed === true` and a
+  keydown was seen. iOS is documented not to populate `keyCode` for its
+  on-screen keyboard. Letters and committed phrases use the two paths that are
+  not gated, which is why they worked and punctuation did not.
+- **Not evidence.** That iOS fires `beforeinput` for this case, and that
+  `input.composed` is true for it. Both are plausible and neither is verifiable
+  off-device. If either is wrong the interception is inert and the behaviour is
+  exactly what it was before — no regression, no fix.
+- **Not evidence.** That a Chinese keyboard's number row consumes digits as
+  candidate selection on this phone. That is the operating system's design and it
+  matches what was observed, but it was observed as "nothing happened", not as an
+  event trace.
+- **Not evidence.** The software-keyboard inset. No desktop browser can raise an
+  iOS keyboard, so the layout consuming `--keyboard-inset` is the only thing that
+  has been checked.
 
 ## Raw keyboard transport validation
 

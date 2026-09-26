@@ -206,18 +206,28 @@ current size.
 
 ## The Chinese keyboard cannot type numbers or symbols into a program
 
-Two different causes, and the fix is only different for one of them.
+Two different causes, and only one of them is recoverable.
 
 **Digits do nothing at all.** On a Chinese keyboard the number row is the
-candidate selector: `1`–`5` pick a candidate word, so the keystroke never reaches
-the page and the terminal receives nothing. This is the operating system's design
-and no terminal-side handling recovers it. Switch to a Latin keyboard.
+candidate selector: `1`–`5` pick a candidate word, so the keystroke is consumed
+by the operating system and never reaches the page. Nothing in the terminal can
+recover it. Switch to a Latin keyboard.
 
-**Punctuation arrives but is ignored.** `：`, `，`, `／` are committed text, so
-they do reach the terminal, and a program that binds `:`, `,` or `/` never
-recognises them. mctrl converts the full-width ASCII block (U+FF01–U+FF5E) and
-the ideographic space to half-width before sending, so this case needs no action.
-To confirm the conversion is what you are seeing, set
+**Punctuation used to produce nothing either, and that was a real defect** — in
+the browser layer, not the OS. iOS reports no `keyCode` for its on-screen
+keyboard, so xterm's printable-key branch (`keyCode >= 48`) could never match,
+and the `input` event it depends on arrives from an IME with `composed === true`,
+which xterm discards once a keydown has been seen. mctrl now claims that one lost
+case on `beforeinput` and converts the result from full-width to half-width, so
+`，` arrives as `,`.
+
+If punctuation is still dropped after a reload, the interception did not take
+effect. Reload the page once (the versioned service worker swaps the cached shell
+on the next load), and check that the keyboard actually commits text into the
+focused field — a third-party keyboard extension that never commits cannot be
+recovered by the page either.
+
+To confirm the full-width conversion is what you are seeing, set
 `mctrl-terminal-half-width` to `off` in the page's `localStorage` and reload; the
 raw full-width characters then reach the program unchanged.
 

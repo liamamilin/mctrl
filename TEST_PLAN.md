@@ -79,9 +79,13 @@ Required:
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls
 - the terminal keybar's ⏎ control sends Return unchanged
-- a Chinese IME's full-width `：` reaches the program as `:`, and setting
+- a Chinese keyboard's `，` reaches the program as `,`, and setting
   `mctrl-terminal-half-width` to `off` in `localStorage` restores the raw bytes
 - CJK text typed into the terminal is unchanged by that conversion
+- a Latin keyboard's letters, digits and punctuation are each sent exactly once
+  on the phone and in a desktop browser, with no duplication from the
+  `beforeinput` interception
+- an armed CTRL still modifies a character typed on the software keyboard
 - the digits of a Chinese keyboard select candidates and never reach the
   terminal; the same digits on a Latin keyboard arrive as `1`–`9`
 - scrolling back shows the ↓ lines-back control, and one tap returns to the tail

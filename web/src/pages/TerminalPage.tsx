@@ -319,6 +319,52 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       terminal.textarea?.focus({ preventScroll: true });
     };
 
+    // Recover the one case where iOS delivers a character and xterm drops it.
+    //
+    // iOS reports no keyCode for its on-screen keyboard, so xterm's printable
+    // branch, which requires keyCode >= 48, can never match. What is left is the
+    // textarea's input event, and xterm discards an IME commit because it
+    // arrives with composed === true once a keydown has been seen. Letters
+    // survive on the plain path (composed === false) and a whole Chinese phrase
+    // survives on the composition events, but a single punctuation mark committed
+    // by a Chinese keyboard reaches nothing at all.
+    //
+    // The interception is deliberately narrow, because every path it could take
+    // over is one that already works:
+    //
+    //   composed === false -> xterm's own handler takes it: desktop keyboards
+    //                         and iOS letters. Not touched.
+    //   isComposing       -> the IME still needs it. Not touched.
+    //   xterm already sent -> a real keydown carried the character, so sending
+    //                         again would duplicate it. Not touched.
+    //
+    // What is left is committed IME text that nobody sent, and beforeinput is
+    // cancelable, so preventing the default also stops xterm's handler. The lost
+    // case is claimed, and it is claimed exactly once.
+    const IME_COMMIT_TYPES = new Set(['insertText', 'insertFromComposition']);
+    let sentForThisKey = false;
+    const claimSoftKeyboardText = (event: Event) => {
+      const input = event as InputEvent;
+      if (!input.data || input.isComposing || !input.composed) return;
+      if (!IME_COMMIT_TYPES.has(input.inputType) || sentForThisKey) return;
+      event.preventDefault();
+      sendTyped(input.data);
+    };
+    // Capture on the host, an ancestor of xterm's textarea, so this runs before
+    // xterm's own keydown listener and cannot be reordered by registration.
+    // The keyup reset matters too: a committed phrase sends data from
+    // compositionend, and without it that stale flag would swallow the next
+    // punctuation mark if the IME commits it without a fresh keydown.
+    const resetSentForThisKey = () => {
+      sentForThisKey = false;
+    };
+    const helperTextarea = terminal.textarea;
+    if (helperTextarea && 'onbeforeinput' in helperTextarea) {
+      helperTextarea.addEventListener('beforeinput', claimSoftKeyboardText);
+      host.addEventListener('keydown', resetSentForThisKey, true);
+      host.addEventListener('keyup', resetSentForThisKey, true);
+    }
+
     const blockInput = (message: string) => {
       inputIsBlocked = true;
       terminal.options.disableStdin = true;
@@ -555,14 +601,20 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       }
     };
 
-    sendRaw.current = send;
-    const rawDisposable = terminal.onData((data) => {
+    // One path for typed text, so the keybar, the software keyboard and this
+    // interception cannot drift apart. Every send goes through here, which is
+    // what lets the interception above know the character is not still unsent.
+    const sendTyped = (text: string) => {
+      sentForThisKey = true;
       const transformed = withControlModifier(
-        halfWidth ? normalizeHalfWidth(data) : data,
+        halfWidth ? normalizeHalfWidth(text) : text,
         controlArmed.current,
       );
       if (send(transformed)) controlArmed.current = false;
-    });
+    };
+
+    sendRaw.current = send;
+    const rawDisposable = terminal.onData(sendTyped);
     const binaryDisposable = terminal.onBinary((data) => {
       const bytes = Uint8Array.from(data, (character) => character.charCodeAt(0));
       if (
@@ -868,6 +920,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       viewport?.removeEventListener('resize', scheduleFit);
       viewport?.removeEventListener('resize', applyKeyboardInset);
       viewport?.removeEventListener('scroll', applyKeyboardInset);
+      helperTextarea?.removeEventListener('beforeinput', claimSoftKeyboardText);
+      host.removeEventListener('keydown', resetSentForThisKey, true);
+      host.removeEventListener('keyup', resetSentForThisKey, true);
       scrollDisposable.dispose();
       renderDisposable.dispose();
       window.removeEventListener('online', onOnline);

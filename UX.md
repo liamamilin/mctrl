@@ -86,22 +86,37 @@ the phone's own keyboard already carries digits and symbols.
 
 ### What a Chinese keyboard can and cannot send
 
-Two different failures look like one from the phone:
+The phone keyboard has digits and symbols. The failures are narrower than they
+look, and they have different causes.
 
-- **Digits do nothing.** On a Chinese keyboard the number row is the candidate
-  selector, so those keys select a word instead of typing a digit, and the
-  keystroke never reaches the page. This is the operating system's design; no
-  amount of terminal-side handling recovers it. Switching to a Latin keyboard is
-  the only native way to type a digit.
-- **Punctuation arrives, but full-width.** `：`, `，`, `／` are committed text, so
-  they do reach the terminal, and a program that binds `:`, `,` or `/` never sees
-  them. mctrl converts the full-width ASCII block (U+FF01–U+FF5E) and the
-  ideographic space to half-width before sending, so real CJK input is untouched.
-  The conversion applies to terminal keystrokes only, never to the Structured
-  Prompt, where a program reads text rather than keys.
+**Digits never reach the page.** On a Chinese keyboard the number row is the
+candidate selector, so `1`–`5` choose a word instead of typing a digit. That
+decision is made by the operating system, outside the page, and no terminal-side
+handling recovers it. Switching to a Latin keyboard is the only native way to
+type a digit.
 
-The conversion is unconditional. To send the raw bytes back, set
-`mctrl-terminal-half-width` to `off` in the page's `localStorage`.
+**Punctuation used to reach the page and be dropped.** iOS reports no `keyCode`
+for its on-screen keyboard, so xterm's printable-key branch, which requires
+`keyCode >= 48`, can never match; the same `switch` carries a `case 0` purely for
+iOS's `UIKeyInput*` arrows. Input therefore depends on the textarea's `input`
+event, and xterm discards an IME commit because it arrives with `composed === true`
+once a keydown has been seen. Letters survive on the plain path
+(`composed === false`) and a whole Chinese phrase survives on the composition
+events, but a single `，` committed by the IME reached nothing at all.
+
+mctrl claims exactly that lost case on `beforeinput`: committed IME text that
+nobody has sent yet. `composed === false` input, anything still composing, and
+input xterm has already sent for the current key are all left alone, so no
+working path changes. Because `beforeinput` is cancelable, preventing the default
+also stops xterm's handler, which is what makes the claim happen exactly once.
+
+The claimed text is then converted from full-width to half-width: `：，／` become
+`: ,/`, and the ideographic space becomes a space. Only the full-width ASCII
+block (U+FF01–U+FF5E) is touched, so real CJK input is left exactly as typed.
+The conversion applies to terminal keystrokes only, never to the Structured
+Prompt, where a program reads text rather than keys. It is unconditional; to send
+the raw bytes, set `mctrl-terminal-half-width` to `off` in the page's
+`localStorage`.
 
 ### Reaching earlier output
 
