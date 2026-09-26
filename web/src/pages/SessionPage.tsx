@@ -153,6 +153,11 @@ function WindowInventory({ session }: { session: Session }) {
   );
 }
 
+// The API serves 1..500 lines, in pages, so the user pays for the extra output
+// only when they ask for it.
+const PREVIEW_PAGE = 100;
+const PREVIEW_MAX = 500;
+
 export function SessionPage({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<Session>();
   const [preview, setPreview] = useState<Preview>();
@@ -163,6 +168,11 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
   const [closeConfirm, setCloseConfirm] = useState(false);
   const [closing, setClosing] = useState(false);
   const [closeError, setCloseError] = useState('');
+  // The API serves 1..500 lines. 100 is enough to recognise a Session; asking
+  // for 500 on every load would push 500 lines down the wire on a phone for
+  // output most Sessions never have, so the rest is opt-in.
+  const [previewLines, setPreviewLines] = useState(PREVIEW_PAGE);
+  const [loadingMore, setLoadingMore] = useState(false);
   const loadId = useRef(0);
 
   const load = useCallback(async (background = false) => {
@@ -177,7 +187,7 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
 
     const [sessionResult, previewResult, workResult] = await Promise.allSettled([
       getSession(sessionId),
-      getSessionPreview(sessionId, 100),
+      getSessionPreview(sessionId, previewLines),
       getWork(),
     ]);
 
@@ -216,7 +226,11 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
       setWork(associated);
     }
     setLoading(false);
-  }, [sessionId]);
+  }, [sessionId, previewLines]);
+
+  useEffect(() => {
+    setLoadingMore(false);
+  }, [preview]);
 
   useEffect(() => {
     void load();
@@ -353,7 +367,10 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
                 <h2 id="preview-title">Recent output</h2>
               </div>
               <span class="muted-label">
-                {preview?.captured_at ? formatDate(preview.captured_at) : '100 lines'}
+                {preview?.lines.length
+                  ? `${preview.lines.length} of ${previewLines} lines`
+                  : `${previewLines} lines`}
+                {preview?.captured_at ? ` · ${formatDate(preview.captured_at)}` : ''}
               </span>
             </div>
             {previewError ? (
@@ -366,6 +383,28 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
               <pre class="output-preview">{preview.lines.join('\n')}</pre>
             ) : (
               <p class="empty-copy">No recent output was returned.</p>
+            )}
+            {/* More output only when there is plausibly more to get, and never
+                past what the API will serve. */}
+            {previewLines < PREVIEW_MAX && !previewError && (
+              <button
+                class="button button-secondary button-full preview-more"
+                type="button"
+                disabled={loadingMore}
+                onClick={() => {
+                  setLoadingMore(true);
+                  setPreviewLines((current) =>
+                    Math.min(PREVIEW_MAX, current + PREVIEW_PAGE),
+                  );
+                }}
+              >
+                {loadingMore
+                  ? 'Loading…'
+                  : `Show ${Math.min(
+                      PREVIEW_PAGE,
+                      PREVIEW_MAX - previewLines,
+                    )} more lines`}
+              </button>
             )}
           </section>
         </>

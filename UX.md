@@ -77,6 +77,26 @@ Show facts:
 └─────────────────────────────┘
 ```
 
+## Home
+
+```text
+┌─────────────────────────────┐
+│ mctrl-project-e-zcrq-mmjbi  │
+│ [Managed] [RUNNING]         │
+│ /                            │
+│ ● mctrl-runner  1 window  1 pane│
+│ ❯ ls                          │
+└─────────────────────────────┘
+```
+
+The Work state chip is on the card because "is it still running?" should not cost
+a tap. `RUNNING` is filled, `EXITED` shows the exit code, `LAUNCH_FAILED` is
+red, and `ACCEPTED` / `STARTING` are amber because they are in flight. External
+tmux Sessions have no Work and get no chip rather than a misleading one.
+
+Recent output on the card is the last two lines, which is enough to recognise a
+Session and not enough to pretend it is a log.
+
 **编辑** raises the software keyboard on the terminal itself. **⏎** sends the
 same Return the keyboard sends, so submitting never depends on which Return the
 phone shows.
@@ -185,6 +205,16 @@ like rounding noise or a pinch-zoom are ignored.
 
 The Session title shows the tmux session **name**, never the bare id (`$0`, `$1`),
 and wraps to two lines instead of truncating without a hint.
+
+## Recent output on a Session
+
+The Session detail page shows the last 100 lines of plain text and a **Show 100
+more lines** button, up to the 500 the API serves. Asking for 500 on every load
+would push 500 lines down the wire on a phone for output most Sessions never have,
+so the rest is opt-in.
+
+This is the same text as the terminal shows, not a transcript. For a TUI it is
+whatever occupies the visible rows.
 
 ## Windows and panes
 

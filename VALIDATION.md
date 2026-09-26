@@ -112,6 +112,11 @@ package has no test runner, so nothing here is covered by an automated test yet.
 - the FULL hint occupies one line
 - FULL shows no Structured Prompt dock, and the dock returns in LOCAL
 - a Session name longer than the header wraps to two lines and then ellipsises
+- the Home card shows a Managed Work state chip and an External tmux Session shows
+  none. Not verified on the phone: the payload already carried `state` and the
+  frontend never read it, so the data path is certain, but the rendering is not.
+- Session detail loads 100 preview lines and grows to at most 500 on request. The
+  bound is the API's; the paging is in the page.
 
 What is evidence and what is not:
 

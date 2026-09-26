@@ -1285,6 +1285,54 @@ button:disabled {
   border-color: rgba(114, 226, 156, 0.16);
 }
 
+/* Managed Work state, next to the Managed/External badge. This is the answer to
+   "is it still running?" without opening the Session. */
+.session-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.work-state-chip {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0 5px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  background: var(--surface-2);
+  font-size: 0.58rem;
+  font-weight: 760;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.work-state-chip.running {
+  color: #07110b;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.work-state-chip.pending {
+  color: #f3d79c;
+  background: var(--warning-bg);
+  border-color: rgba(242, 198, 109, 0.28);
+}
+
+.work-state-chip.exited {
+  color: var(--text-soft);
+}
+
+.work-state-chip.failed {
+  color: #ffc4c0;
+  background: var(--danger-bg);
+  border-color: rgba(255, 138, 128, 0.3);
+}
+
 .session-origin-badge.compact {
   margin: 4px 0 5px;
   padding: 3px 6px;
@@ -2312,6 +2360,58 @@ button:disabled {
 .canvas-action:active {
   color: var(--text);
   background: rgba(20, 32, 26, 0.95);
+}
+
+/* Asking for more output is a deliberate act, so it is a real button under the
+   output rather than an invisible gesture. */
+.preview-more {
+  margin-top: 9px;
+}
+
+.session-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.work-state-chip {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0 5px;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  background: var(--surface-2);
+  font-size: 0.58rem;
+  font-weight: 760;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.work-state-chip.running {
+  color: #07110b;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.work-state-chip.pending {
+  color: #f3d79c;
+  background: var(--warning-bg);
+  border-color: rgba(242, 198, 109, 0.28);
+}
+
+.work-state-chip.exited {
+  color: var(--text-soft);
+}
+
+.work-state-chip.failed {
+  color: #ffc4c0;
+  background: var(--danger-bg);
+  border-color: rgba(255, 138, 128, 0.3);
 }
 
 /* Read-only window and pane inventory. It states what exists and which window

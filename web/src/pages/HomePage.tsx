@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { getHost, getSessionPreview, getSessions } from '../api';
-import type { Host, Preview, Session } from '../types';
+import type { Host, ManagedWork, Preview, Session } from '../types';
 import { sessionPath } from '../router';
 import {
   EmptyState,
@@ -8,6 +8,35 @@ import {
   LoadingBlock,
   StatusDot,
 } from '../components/ui';
+
+// mctrl already knows whether a Managed Work is alive, so the Home list says so.
+// Without it every card looks identical and "is it still running?" costs a tap
+// into the Session page to answer. External tmux Sessions have no Work, so they
+// get no chip rather than a misleading one.
+function WorkStateChip({ work }: { work: ManagedWork }) {
+  const state = work.state ?? '';
+  const tone =
+    state === 'RUNNING'
+      ? 'running'
+      : state === 'LAUNCH_FAILED'
+        ? 'failed'
+        : state === 'EXITED'
+          ? 'exited'
+          : 'pending';
+  const detail =
+    state === 'EXITED'
+      ? work.exit_code === undefined || work.exit_code === null
+        ? 'EXITED'
+        : `EXITED · code ${work.exit_code}`
+      : work.error_code
+        ? `${state} · ${work.error_code}`
+        : state;
+  return (
+    <span class={`work-state-chip ${tone}`} title={`Managed Work is ${state}`}>
+      {detail || 'Managed Work'}
+    </span>
+  );
+}
 
 function SessionCard({
   session,
@@ -19,15 +48,19 @@ function SessionCard({
   const command = session.active_command || session.active_pane?.command;
   const cwd = session.cwd || session.active_pane?.cwd;
   const recentLines = preview?.lines.slice(-2) ?? [];
+  const work = session.managed_work ?? session.work;
 
   return (
     <a class="session-card" href={`#${sessionPath(session.id)}`}>
       <div class="session-card-topline">
         <div>
           <h3>{session.name}</h3>
-          <p className="session-origin-badge compact">
-            {session.managed_work ? 'Managed' : 'External tmux'}
-          </p>
+          <div class="session-badges">
+            <p className="session-origin-badge compact">
+              {work ? 'Managed' : 'External tmux'}
+            </p>
+            {work && <WorkStateChip work={work} />}
+          </div>
           {cwd && <p class="session-path">{cwd}</p>}
         </div>
         <span class="chevron" aria-hidden="true">

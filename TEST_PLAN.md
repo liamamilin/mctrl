@@ -75,6 +75,9 @@ Required:
 - Session preview
 - Session detail lists every window and pane, marks the one the phone is showing,
   and offers no window switch
+- the Home card shows a Managed Work state chip, and an External tmux Session has
+  no chip
+- Session detail loads 100 preview lines and grows to at most 500 on request
 - Terminal
 - stale CONNECTING socket is replaced after resume
 - FULL overview fits, zooms and pans with one finger
