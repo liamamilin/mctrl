@@ -269,6 +269,12 @@ If a structured Prompt send cannot determine whether it was delivered, do not si
 
 Show a factual warning and let the user inspect output.
 
+The at-most-once guarantee is a property mctrl enforces, not something the user
+acts on, so it is not printed under the Prompt box on every screen. It is stated
+where it becomes relevant: in the uncertainty notice itself, and in
+TROUBLESHOOTING.md. A permanent footnote about request IDs was implementation
+detail wearing a user-facing label.
+
 ## Offline
 
 Use:

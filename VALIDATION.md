@@ -115,7 +115,17 @@ package has no test runner, so nothing here is covered by an automated test yet.
 - the Home card shows a Managed Work state chip and an External tmux Session shows
   none. Not verified on the phone: the payload already carried `state` and the
   frontend never read it, so the data path is certain, but the rendering is not.
-- Session detail loads 100 preview lines and grows to at most 500 on request. The
+- Session detail loads 100 preview lines and grows to at most 500 on request
+- the keybar keeps its home-indicator inset in FULL. The inset lived on the
+  Prompt dock, which FULL hides, so hiding the dock removed the inset from the
+  bottom of the screen. The inset now belongs to the workspace, which is true
+  whichever child is last. Introduced by the FULL dock change and found by
+  reading the padding rules, not by a test. Not verified on the phone.
+- the Prompt dock's permanent at-most-once footnote is gone. It described a
+  request ID, which is implementation detail, and the guarantee it referred to is
+  enforced rather than actionable. It is still stated in the uncertainty notice,
+  in UX.md and in TROUBLESHOOTING.md.
+- Start Work explains a disabled launch button instead of leaving it mute. The
   bound is the API's; the paging is in the page.
 
 What is evidence and what is not:

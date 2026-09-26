@@ -81,6 +81,10 @@ Required:
 - Terminal
 - stale CONNECTING socket is replaced after resume
 - FULL overview fits, zooms and pans with one finger
+- the keybar keeps the home-indicator inset in FULL, where the Prompt dock is
+  hidden and the keybar is the bottom element
+- Start Work states why the launch button is disabled
+- the Prompt dock carries no permanent mechanism footnote
 - FULL mode can edit through the explicit 编辑 control immediately after LOCAL
 - the terminal keybar exposes working up, down, left and right arrow controls
 - the terminal keybar's ⏎ control sends Return unchanged

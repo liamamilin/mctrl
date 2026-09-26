@@ -1090,6 +1090,7 @@ button:disabled {
   z-index: 5;
   bottom: calc(80px + env(safe-area-inset-bottom));
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -1099,6 +1100,17 @@ button:disabled {
   border-radius: 15px;
   box-shadow: 0 15px 45px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(16px);
+}
+
+/* Why the launch button is disabled, since it is the one control on the page
+   that cannot speak for itself. */
+.submit-blocked-reason {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.64rem;
+  line-height: 1.35;
+  text-align: center;
 }
 
 .launch-summary {
@@ -2070,6 +2082,10 @@ button:disabled {
   min-height: 0;
   grid-template-rows: minmax(0, 1fr) auto auto auto;
   overflow: hidden;
+  /* The home-indicator inset belongs to the workspace, not to whichever child
+     happens to be last. FULL hides the Prompt dock, which used to leave the
+     keybar as the bottom element with no inset at all. */
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .terminal-canvas {
@@ -2499,7 +2515,7 @@ button:disabled {
 
 .prompt-dock {
   position: relative;
-  padding: 8px 9px calc(7px + env(safe-area-inset-bottom));
+  padding: 8px 9px 7px;
   background: #0a100d;
   border-top: 1px solid var(--border);
 }
@@ -2544,13 +2560,6 @@ button:disabled {
 .prompt-send:disabled {
   color: #67736b;
   background: #1a231e;
-}
-
-.at-most-once-note {
-  margin: 4px 2px 0;
-  color: #5f6e65;
-  font-size: 0.57rem;
-  line-height: 1.3;
 }
 
 .prompt-notice {

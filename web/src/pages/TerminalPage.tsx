@@ -1341,10 +1341,6 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
                 {sendingPrompt ? '…' : 'Send'}
               </button>
             </div>
-            <p class="at-most-once-note">
-              Prompt actions use a request ID. Terminal keystrokes are sent once
-              and never replayed after uncertainty.
-            </p>
           </form>
         )}
       </main>

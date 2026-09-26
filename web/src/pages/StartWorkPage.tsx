@@ -388,6 +388,19 @@ export function StartWorkPage() {
               {submitting ? <span class="button-spinner" /> : null}
               {submitting ? 'Starting…' : 'Start Work'}
             </button>
+            {/* A disabled button with no stated reason is the one control on the
+                page that cannot explain itself. */}
+            {!canSubmit && !submitting && (
+              <p class="submit-blocked-reason">
+                {selectedRunner && !selectedRunner.available
+                  ? `${selectedRunner.name} is not installed on the Mac.`
+                  : !projectId
+                    ? 'Choose a Project.'
+                    : !runnerId
+                      ? 'Choose a Runner.'
+                      : 'Describe the work in the Prompt to enable launch.'}
+              </p>
+            )}
           </div>
         </form>
       )}
