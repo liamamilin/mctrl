@@ -46,6 +46,10 @@ type Server struct {
 	stopping         bool
 	lastControlErr   string
 	lastReconcileErr string
+	// terminalFullSize is the canonical full Session size the phone's FULL
+	// overview requests. It is separate from cfg because Settings can change it
+	// while the daemon runs, and every read goes through the mutex.
+	terminalFullSize config.TerminalSize
 }
 
 func NewServer(cfg config.Config, stateDir string) (*Server, error) {
@@ -118,8 +122,10 @@ func newServer(cfg config.Config, stateDir string, adapter *tmux.Adapter) (*Serv
 		runners:     runner.NewRegistry(),
 		staticFS:    embeddedStatic(),
 		started:     time.Now().UTC(),
+
+		terminalFullSize: cfg.TerminalFullSize,
 	}
-	server.terminal = terminal.NewBridge(adapter, server.sessionHasManagedWork, server.devices.IsActive)
+	server.terminal = terminal.NewBridge(adapter, server.sessionHasManagedWork, server.TerminalFullSize, server.devices.IsActive)
 	if reconcileErr := server.prompts.reconcile(); reconcileErr != nil {
 		server.RecordReconcileError(reconcileErr)
 	}
@@ -172,6 +178,21 @@ func (s *Server) controlError() string {
 		return "reconciliation degraded"
 	}
 	return s.lastControlErr
+}
+
+// TerminalFullSize returns the canonical full Session size. The phone's FULL
+// overview asks tmux for max(this, current pane size).
+func (s *Server) TerminalFullSize() config.TerminalSize {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.terminalFullSize
+}
+
+// setTerminalFullSize stores a new canonical full Session size.
+func (s *Server) setTerminalFullSize(size config.TerminalSize) {
+	s.mu.Lock()
+	s.terminalFullSize = size
+	s.mu.Unlock()
 }
 
 // sessionHasManagedWork reports whether a tmux Session identifier or display
@@ -316,6 +337,8 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 		s.handleMe(w, r)
 	case len(parts) == 1 && parts[0] == "host" && r.Method == http.MethodGet:
 		s.handleHost(w, r)
+	case len(parts) == 2 && parts[0] == "settings" && parts[1] == "terminal-size" && r.Method == http.MethodPut:
+		s.handleTerminalSizeUpdate(w, r)
 	case len(parts) == 1 && parts[0] == "projects" && r.Method == http.MethodGet:
 		s.handleProjects(w, r)
 	case len(parts) == 1 && parts[0] == "projects" && r.Method == http.MethodPost:

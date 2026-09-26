@@ -82,13 +82,18 @@ FULL would collapse into LOCAL.
 FULL asks tmux for:
 
 ```text
-max(canonical full size, current pane size)
+max(configured full size, current pane size)
 ```
 
-The canonical full size is 120×40, which is also the size a Managed Work pane is
-launched at and the initial size of a disposable attach PTY. All three come from
-one constant so they cannot drift. A pane larger than the canonical size stays
-authoritative because a desktop client asked for it.
+The configured size is `terminal_full_size` (default `240×60`) and is the same
+value a Managed Work pane is launched at and the initial size of a disposable
+attach PTY, so the three cannot drift. A pane larger than the configured size
+stays authoritative because a desktop client asked for it.
+
+The default is deliberately close to a real desktop terminal: programs lay
+themselves out by width and drop panels below their own thresholds, so a narrow
+"full" view shows strictly less than the desktop. It is configurable from
+Settings because mctrl cannot know a program's threshold.
 
 `GET /api/v1/host` advertises the canonical size as `terminal_full_size`.
 

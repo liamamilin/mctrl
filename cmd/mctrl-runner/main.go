@@ -65,6 +65,17 @@ func makeStdinRaw() func() {
 	}
 }
 
+// launchTerminalSize reads the configured full Session size, falling back to the
+// documented default when the config cannot be read. A Work must still launch
+// when the config is unreadable; the phone's FULL view is the only thing that
+// depends on this value being exact.
+func launchTerminalSize(stateDir string) config.TerminalSize {
+	if cfg, err := config.Load(filepath.Join(stateDir, "config.json")); err == nil {
+		return cfg.TerminalFullSize
+	}
+	return config.DefaultFullTerminalSize()
+}
+
 func supervise(workFile, expectedAttemptID string) error {
 	restoreStdin := makeStdinRaw()
 	defer restoreStdin()
@@ -88,6 +99,9 @@ func supervise(workFile, expectedAttemptID string) error {
 		}
 	}
 	store := work.NewStore(stateDir)
+	// The launch size is also the canonical full Session size the phone's FULL
+	// overview asks for, so both decisions read the same configuration.
+	launchSize := terminal.CanonicalWinsize(launchTerminalSize(stateDir))
 	spec, claimedPath, err := store.ClaimLaunchSpec(preliminary.WorkID)
 	if err != nil {
 		return fmt.Errorf("claim launch evidence: %w", err)
@@ -205,8 +219,8 @@ func supervise(workFile, expectedAttemptID string) error {
 		command.Env = append(command.Env, "MCTRL_READY_FILE="+readyFile)
 	}
 	// The launch size is also the canonical full Session size the phone's FULL
-	// overview asks for. Keep both decisions on the same constant.
-	initialSize := &pty.Winsize{Cols: terminal.DefaultFullCols, Rows: terminal.DefaultFullRows}
+	// overview asks for. Keep both decisions on the same value.
+	initialSize := &pty.Winsize{Cols: launchSize.Cols, Rows: launchSize.Rows}
 	if rows, cols, sizeErr := pty.Getsize(os.Stdin); sizeErr == nil && rows > 0 && cols > 0 {
 		initialSize.Rows = uint16(rows)
 		initialSize.Cols = uint16(cols)

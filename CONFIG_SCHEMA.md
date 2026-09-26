@@ -60,6 +60,7 @@ Example:
   "remote_availability": "on_ac",
   "start_after_login": true,
   "store_prompts": false,
+  "terminal_full_size": { "cols": 240, "rows": 60 },
   "public_url": "http://192.168.1.20:7681",
   "allowed_origins": []
 }
@@ -67,6 +68,9 @@ Example:
 
 The example shows an explicitly selected LAN listener. The V1 implementation default
 is `127.0.0.1`; `0.0.0.0` must be opted into through setup or configuration.
+
+A config file written before `terminal_full_size` existed still loads: an absent
+or zero value becomes the default `240×60`.
 
 ## Runtime profiles
 
@@ -85,6 +89,30 @@ identity. See [`VERSIONING.md`](VERSIONING.md).
 - on_ac
 - work_only
 - always
+
+## terminal_full_size
+
+The canonical full Session size, in character cells. One value drives three
+decisions that must not drift:
+
+- the size a Managed Work pane is launched at,
+- the initial size of a disposable attach PTY,
+- the size the phone's `FULL` overview asks tmux for.
+
+`FULL` requests `max(terminal_full_size, current pane size)`, so a Session whose
+desktop window is already larger keeps that larger size.
+
+The default is `240×60`, deliberately close to a real desktop terminal.
+Programs lay themselves out by width and drop panels below their own
+thresholds, so a narrow value makes the phone's `FULL` view show strictly less
+than the desktop. Widen it if a program still hides panels.
+
+Accepted range: 20–500 columns, 10–200 rows. The same range clamps every
+client-requested resize.
+
+Change it from **Settings → Full Session size**, or by editing this file and
+restarting the daemon. The Settings write takes effect immediately: the phone
+re-reads it on every `FULL` toggle.
 
 ## public_url
 

@@ -36,6 +36,30 @@ overview asks tmux for `max(terminal_full_size, current pane size)` instead of
 reading the pane back, because the phone's own viewport is what shrinks the shared
 window when no desktop client is attached. See `TMUX_CONTRACT.md`.
 
+## Settings
+
+### PUT /settings/terminal-size
+
+Changes the canonical full Session size used by the phone's `FULL` overview, by
+new Managed Work launches, and by new terminal attachments.
+
+```json
+{
+  "terminal_full_size": { "cols": 240, "rows": 60 }
+}
+```
+
+Requires a paired device and passes the normal Origin/CSRF policy. The value is
+validated against the supported range (20–500 columns, 10–200 rows) and persisted
+to `config.json`; it takes effect without a daemon restart. See
+`CONFIG_SCHEMA.md`.
+
+Errors:
+
+- `INVALID_TERMINAL_SIZE` — the size is outside the supported range
+- `CONFIG_WRITE_FAILED` — the daemon could not persist the change, and the
+  effective value is left untouched
+
 ## Projects
 
 ### GET /projects

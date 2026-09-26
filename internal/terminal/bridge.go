@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/websocket"
 	"golang.org/x/term"
 
+	"mctrl/internal/config"
 	"mctrl/internal/tmux"
 )
 
@@ -28,6 +29,7 @@ type Bridge struct {
 	connections  map[uint64]connection
 	deviceActive func(string) bool
 	managedWork  func(string) bool
+	fullSize     func() config.TerminalSize
 }
 
 type connection struct {
@@ -38,13 +40,30 @@ type connection struct {
 
 // NewBridge creates the disposable terminal attachment surface. managedWork
 // reports whether a Session hosts non-terminal Managed Work, which is what
-// makes its pane's line discipline mctrl's to maintain.
-func NewBridge(adapter *tmux.Adapter, managedWork func(string) bool, activeCheck ...func(string) bool) *Bridge {
-	bridge := &Bridge{tmux: adapter, connections: make(map[uint64]connection), managedWork: managedWork}
+// makes its pane's line discipline mctrl's to maintain. fullSize supplies the
+// canonical full Session size, which the phone can change while the daemon runs.
+func NewBridge(adapter *tmux.Adapter, managedWork func(string) bool, fullSize func() config.TerminalSize, activeCheck ...func(string) bool) *Bridge {
+	bridge := &Bridge{
+		tmux:        adapter,
+		connections: make(map[uint64]connection),
+		managedWork: managedWork,
+		fullSize:    fullSize,
+	}
+	if fullSize == nil {
+		bridge.fullSize = config.DefaultFullTerminalSize
+	}
 	if len(activeCheck) > 0 {
 		bridge.deviceActive = activeCheck[0]
 	}
 	return bridge
+}
+
+// canonicalFullSize is the configured full Session size, always clamped.
+func (b *Bridge) canonicalFullSize() pty.Winsize {
+	if b.fullSize == nil {
+		return CanonicalWinsize(config.DefaultFullTerminalSize())
+	}
+	return CanonicalWinsize(b.fullSize())
 }
 
 type resizeMessage struct {
@@ -258,7 +277,7 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 		_ = writeControl(errorMessage{Type: "error", Code: terminalAttachFailed})
 		return
 	}
-	ptmx, err := startRawPTY(cmd, DefaultFullWinsize())
+	ptmx, err := startRawPTY(cmd, b.canonicalFullSize())
 	if err != nil {
 		_ = writeControl(errorMessage{Type: "error", Code: terminalAttachFailed})
 		return

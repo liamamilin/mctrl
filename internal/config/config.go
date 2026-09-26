@@ -29,6 +29,64 @@ const (
 	AvailabilityAlways   RemoteAvailability = "always"
 )
 
+// TerminalSize is a terminal geometry in character cells. It describes the
+// canonical full Session size, never the phone's own viewport.
+type TerminalSize struct {
+	Cols int `json:"cols"`
+	Rows int `json:"rows"`
+}
+
+const (
+	// These bounds apply to every terminal geometry, configured or requested.
+	MinTerminalCols = 20
+	MaxTerminalCols = 500
+	MinTerminalRows = 10
+	MaxTerminalRows = 200
+
+	// DefaultFullTerminalSize is deliberately close to a real desktop terminal.
+	// Programs lay themselves out by width and drop panels below their own
+	// thresholds, so a "full" phone view that is too narrow shows strictly less
+	// than the desktop. A Session whose pane is already larger still wins over
+	// this value; see internal/terminal.FullWinsize.
+	DefaultFullTerminalCols = 240
+	DefaultFullTerminalRows = 60
+)
+
+// DefaultFullTerminalSize is the canonical full Session size used when a config
+// file does not specify one.
+func DefaultFullTerminalSize() TerminalSize {
+	return TerminalSize{Cols: DefaultFullTerminalCols, Rows: DefaultFullTerminalRows}
+}
+
+// Validate reports whether the size can be laid out by a terminal.
+func (s TerminalSize) Validate() error {
+	if s.Cols < MinTerminalCols || s.Cols > MaxTerminalCols {
+		return fmt.Errorf("terminal cols must be between %d and %d, got %d", MinTerminalCols, MaxTerminalCols, s.Cols)
+	}
+	if s.Rows < MinTerminalRows || s.Rows > MaxTerminalRows {
+		return fmt.Errorf("terminal rows must be between %d and %d, got %d", MinTerminalRows, MaxTerminalRows, s.Rows)
+	}
+	return nil
+}
+
+// Clamped returns the size limited to the supported range. Callers that accept
+// untrusted input should prefer Validate and surface the error instead.
+func (s TerminalSize) Clamped() TerminalSize {
+	clamp := func(value, low, high int) int {
+		if value < low {
+			return low
+		}
+		if value > high {
+			return high
+		}
+		return value
+	}
+	return TerminalSize{
+		Cols: clamp(s.Cols, MinTerminalCols, MaxTerminalCols),
+		Rows: clamp(s.Rows, MinTerminalRows, MaxTerminalRows),
+	}
+}
+
 type Config struct {
 	SchemaVersion      int                `json:"schema_version"`
 	DeviceName         string             `json:"device_name"`
@@ -38,6 +96,7 @@ type Config struct {
 	RemoteAvailability RemoteAvailability `json:"remote_availability"`
 	StartAfterLogin    bool               `json:"start_after_login"`
 	StorePrompts       bool               `json:"store_prompts"`
+	TerminalFullSize   TerminalSize       `json:"terminal_full_size"`
 	PublicURL          string             `json:"public_url,omitempty"`
 	AllowedOrigins     []string           `json:"allowed_origins,omitempty"`
 }
@@ -53,6 +112,7 @@ func Default() Config {
 		RemoteAvailability: AvailabilityOnAC,
 		StartAfterLogin:    true,
 		StorePrompts:       false,
+		TerminalFullSize:   DefaultFullTerminalSize(),
 		PublicURL:          "",
 		AllowedOrigins:     nil,
 	}
@@ -84,6 +144,9 @@ func (c Config) Validate() error {
 	}
 	if c.Port < 1 || c.Port > 65535 {
 		return fmt.Errorf("port must be between 1 and 65535, got %d", c.Port)
+	}
+	if err := c.TerminalFullSize.Validate(); err != nil {
+		return fmt.Errorf("terminal_full_size: %w", err)
 	}
 	switch c.TransportProfile {
 	case TransportTrustedLANHTTP, TransportTLSTerminated:
@@ -256,10 +319,21 @@ func Load(path string) (Config, error) {
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		return Config{}, fmt.Errorf("parse config: %w", err)
 	}
+	cfg = cfg.withDefaults()
 	if err := cfg.Validate(); err != nil {
 		return Config{}, err
 	}
 	return cfg, nil
+}
+
+// withDefaults fills in fields a config file written before they existed.
+// Without it an older config would fail validation on a zero value and the
+// daemon would refuse to start.
+func (c Config) withDefaults() Config {
+	if c.TerminalFullSize == (TerminalSize{}) {
+		c.TerminalFullSize = DefaultFullTerminalSize()
+	}
+	return c
 }
 
 func Save(path string, cfg Config) error {

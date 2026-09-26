@@ -85,6 +85,8 @@ Required:
   window has already shrunk to phone size
 - the overview label reports the size being shown, and the Session title shows the
   session name rather than a bare tmux id
+- Settings changes the full Session size, it persists, and FULL uses it on the
+  next toggle without a daemon restart
 - keys reach a Managed Work program one at a time, without pressing Return first
 - Return submits in the program instead of inserting a line break
 - the input is not echoed twice over the program's own output

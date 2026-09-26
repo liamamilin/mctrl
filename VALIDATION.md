@@ -118,10 +118,18 @@ Result: 0 vulnerabilities.
 
 ## Full Session overview validation
 
-- `GET /api/v1/host` advertises the canonical full size, and it equals the size a
+- `GET /api/v1/host` advertises the configured full size, and it equals the size a
   Managed Work pane is launched at
-- FULL asks for `max(canonical, pane)`: a phone-shrunk pane is raised back to the
-  canonical size, while a larger desktop pane stays authoritative
+- FULL asks for `max(configured, pane)`: a phone-shrunk pane is raised back to the
+  configured size, while a larger desktop pane stays authoritative
+- the default is desktop-like (`240×60`), so a program that drops panels below a
+  narrow threshold still shows them in FULL
+- Settings can change the size, and the change persists to `config.json` and takes
+  effect without a daemon restart
+- an out-of-range size is rejected with a stable code and leaves the effective
+  value untouched
+- the endpoint requires a paired device and a valid CSRF token
+- a config file written before `terminal_full_size` existed still loads
 - the fit scale never exceeds 1, so a Session already smaller than the phone is
   never magnified
 - the overview label reports the size actually being shown

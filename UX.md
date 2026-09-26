@@ -87,12 +87,17 @@ The Session title shows the tmux session **name**, never the bare id (`$0`, `$1`
 
 `LOCAL` sizes the terminal to the phone viewport, so the program re-renders for
 the phone and stays readable. `FULL` shows the whole Session at once, scaled
-down to fit, and is labelled with the size it is showing (`120×40`).
+down to fit, and is labelled with the size it is showing (`240×60`).
 
-`FULL` asks the Mac for `max(120×40, current pane size)` instead of reading the
-pane back, because the phone's own `LOCAL` size is what shrinks the shared window
-when no desktop client is attached. Without that rule `FULL` and `LOCAL` would be
-identical and `FULL` would have nothing to show. See `TMUX_CONTRACT.md`.
+`FULL` asks the Mac for `max(terminal_full_size, current pane size)` instead of
+reading the pane back, because the phone's own `LOCAL` size is what shrinks the
+shared window when no desktop client is attached. Without that rule `FULL` and
+`LOCAL` would be identical and `FULL` would have nothing to show. See
+`TMUX_CONTRACT.md`.
+
+The size is editable in **Settings → Full Session size**. Widen it if a program
+still drops panels, because programs lay themselves out by width and mctrl cannot
+know their thresholds. See `CONFIG_SCHEMA.md`.
 
 ## Reconnect
 

@@ -18,8 +18,9 @@ import type { ActivePane, TerminalSize } from '../types';
 const RECONNECT_DELAYS = [500, 1000, 2000, 5000, 10000] as const;
 
 // Mirrors the Mac's canonical full Session size. The /host response is
-// authoritative; this only keeps FULL usable before that response arrives.
-const FALLBACK_FULL_SIZE: TerminalSize = { cols: 120, rows: 40 };
+// authoritative — Settings can change it while the daemon runs — so this only
+// keeps FULL usable before that response arrives or when it cannot be read.
+const FALLBACK_FULL_SIZE: TerminalSize = { cols: 240, rows: 60 };
 
 const TERMINAL_LIMITS = {
   minCols: 20,

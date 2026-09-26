@@ -20,7 +20,6 @@ import (
 	"mctrl/internal/config"
 	"mctrl/internal/project"
 	"mctrl/internal/runner"
-	"mctrl/internal/terminal"
 	"mctrl/internal/tmux"
 	"mctrl/internal/version"
 	"mctrl/internal/work"
@@ -204,7 +203,7 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleHost(w http.ResponseWriter, _ *http.Request) {
 	info := s.HostInfo()
-	full := terminal.DefaultFullWinsize()
+	full := s.TerminalFullSize()
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"name":         info.Name,
 		"hostname":     info.Hostname,
@@ -220,6 +219,46 @@ func (s *Server) handleHost(w http.ResponseWriter, _ *http.Request) {
 		"terminal_full_size": map[string]interface{}{
 			"cols": full.Cols,
 			"rows": full.Rows,
+		},
+	})
+}
+
+type terminalSizeRequest struct {
+	Cols int `json:"cols"`
+	Rows int `json:"rows"`
+}
+
+// handleTerminalSizeUpdate changes the canonical full Session size. It is the
+// first configuration value the phone can write, so it persists to config.json
+// and takes effect without a daemon restart: the phone re-reads /host on every
+// FULL toggle, and the next attachment uses the new attach PTY size.
+func (s *Server) handleTerminalSizeUpdate(w http.ResponseWriter, r *http.Request) {
+	var request terminalSizeRequest
+	if err := readJSONBody(r, &request); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error(), nil)
+		return
+	}
+	size := config.TerminalSize{Cols: request.Cols, Rows: request.Rows}
+	if err := size.Validate(); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_TERMINAL_SIZE", err.Error(), nil)
+		return
+	}
+
+	// Persist before publishing in memory: a Settings change that reports
+	// success must survive a restart, and a failed write must not leave the
+	// daemon and config.json disagreeing.
+	updated := s.cfg
+	updated.TerminalFullSize = size
+	if err := config.Save(filepath.Join(s.stateDir, "config.json"), updated); err != nil {
+		s.RecordControlError(err)
+		writeError(w, http.StatusInternalServerError, "CONFIG_WRITE_FAILED", "Could not save the terminal size", nil)
+		return
+	}
+	s.setTerminalFullSize(size)
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"terminal_full_size": map[string]interface{}{
+			"cols": size.Cols,
+			"rows": size.Rows,
 		},
 	})
 }

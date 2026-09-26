@@ -10,10 +10,20 @@ import {
   getRunners,
   RUNTIME_PROFILE,
   revokeDevice,
+  updateTerminalSize,
 } from '../api';
 import { formatDate } from '../format';
 import type { Host, PairedDevice, Project, Runner } from '../types';
 import { ErrorNotice, LoadingBlock, StatusDot, TransportNotice } from '../components/ui';
+
+// Mirrors the Mac's accepted range so the form cannot submit a value the daemon
+// will reject.
+const TERMINAL_SIZE_LIMITS = {
+  minCols: 20,
+  maxCols: 500,
+  minRows: 10,
+  maxRows: 200,
+} as const;
 
 export function SettingsPage() {
   const [host, setHost] = useState<Host>();
@@ -28,6 +38,11 @@ export function SettingsPage() {
   const [projectRemoving, setProjectRemoving] = useState('');
   const [projectError, setProjectError] = useState('');
   const [projectNotice, setProjectNotice] = useState('');
+  const [terminalCols, setTerminalCols] = useState('240');
+  const [terminalRows, setTerminalRows] = useState('60');
+  const [terminalSizeSaving, setTerminalSizeSaving] = useState(false);
+  const [terminalSizeError, setTerminalSizeError] = useState('');
+  const [terminalSizeNotice, setTerminalSizeNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [revoking, setRevoking] = useState('');
@@ -65,6 +80,10 @@ export function SettingsPage() {
         ]);
       if (currentLoad !== loadId.current) return;
       setHost(nextHost);
+      if (nextHost.terminal_full_size) {
+        setTerminalCols(String(nextHost.terminal_full_size.cols));
+        setTerminalRows(String(nextHost.terminal_full_size.rows));
+      }
       setDevices(nextDevices);
       setDeviceHistory(nextHistory);
       setProjects(nextProjects);
@@ -107,6 +126,46 @@ export function SettingsPage() {
     const timer = window.setInterval(update, 1000);
     return () => window.clearInterval(timer);
   }, [browserLinkExpiry]);
+
+  const saveTerminalSize = async (event: Event) => {
+    event.preventDefault();
+    const cols = Number(terminalCols);
+    const rows = Number(terminalRows);
+    if (
+      !Number.isInteger(cols) ||
+      !Number.isInteger(rows) ||
+      cols < TERMINAL_SIZE_LIMITS.minCols ||
+      cols > TERMINAL_SIZE_LIMITS.maxCols ||
+      rows < TERMINAL_SIZE_LIMITS.minRows ||
+      rows > TERMINAL_SIZE_LIMITS.maxRows
+    ) {
+      setTerminalSizeError(
+        `Use ${TERMINAL_SIZE_LIMITS.minCols}-${TERMINAL_SIZE_LIMITS.maxCols} columns and ${TERMINAL_SIZE_LIMITS.minRows}-${TERMINAL_SIZE_LIMITS.maxRows} rows.`,
+      );
+      setTerminalSizeNotice('');
+      return;
+    }
+    setTerminalSizeSaving(true);
+    setTerminalSizeError('');
+    setTerminalSizeNotice('');
+    try {
+      const saved = await updateTerminalSize({ cols, rows });
+      setTerminalCols(String(saved.cols));
+      setTerminalRows(String(saved.rows));
+      setHost((current) =>
+        current ? { ...current, terminal_full_size: saved } : current,
+      );
+      setTerminalSizeNotice(
+        `FULL now asks for ${saved.cols}×${saved.rows}. It applies the next time you switch a Session to FULL.`,
+      );
+    } catch (caught) {
+      setTerminalSizeError(
+        caught instanceof Error ? caught.message : 'Could not save the terminal size.',
+      );
+    } finally {
+      setTerminalSizeSaving(false);
+    }
+  };
 
   const createBrowserLink = async () => {
     setCreatingLink(true);
@@ -296,6 +355,77 @@ export function SettingsPage() {
               Remote Ready only protects against ordinary idle system sleep
               when the configured policy is active. It does not wake or revive
               an unreachable Mac.
+            </p>
+          </section>
+
+          <section class="settings-section" aria-labelledby="terminal-size-title">
+            <div class="section-heading compact-heading">
+              <div>
+                <h2 id="terminal-size-title">Full Session size</h2>
+                <p>
+                  The size FULL asks tmux for, then scales to fit the phone.
+                  Programs drop panels below their own width thresholds, so a
+                  narrow value shows less than your desktop. A Session whose
+                  desktop window is already larger still wins.
+                </p>
+              </div>
+            </div>
+
+            {terminalSizeError && (
+              <ErrorNotice
+                title="Terminal size was not saved"
+                message={terminalSizeError}
+              />
+            )}
+            {terminalSizeNotice && (
+              <p class="browser-link-notice" role="status">
+                {terminalSizeNotice}
+              </p>
+            )}
+
+            <form class="card terminal-size-form" onSubmit={saveTerminalSize}>
+              <label class="field">
+                <span>Columns</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={terminalCols}
+                  onInput={(event) => setTerminalCols(event.currentTarget.value)}
+                  min={TERMINAL_SIZE_LIMITS.minCols}
+                  max={TERMINAL_SIZE_LIMITS.maxCols}
+                  step={1}
+                  disabled={terminalSizeSaving}
+                  required
+                />
+              </label>
+              <label class="field">
+                <span>Rows</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={terminalRows}
+                  onInput={(event) => setTerminalRows(event.currentTarget.value)}
+                  min={TERMINAL_SIZE_LIMITS.minRows}
+                  max={TERMINAL_SIZE_LIMITS.maxRows}
+                  step={1}
+                  disabled={terminalSizeSaving}
+                  required
+                />
+              </label>
+              <button
+                class="button button-primary"
+                type="submit"
+                disabled={terminalSizeSaving}
+              >
+                {terminalSizeSaving ? 'Saving…' : 'Save size'}
+              </button>
+            </form>
+            <p class="settings-footnote">
+              FULL is requesting {host?.terminal_full_size?.cols ?? '—'}×
+              {host?.terminal_full_size?.rows ?? '—'} right now. New Managed Work
+              launches at this size too. Allowed range {TERMINAL_SIZE_LIMITS.minCols}
+              –{TERMINAL_SIZE_LIMITS.maxCols} columns and{' '}
+              {TERMINAL_SIZE_LIMITS.minRows}–{TERMINAL_SIZE_LIMITS.maxRows} rows.
             </p>
           </section>
 

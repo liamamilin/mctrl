@@ -9,6 +9,7 @@ import type {
   Project,
   Runner,
   Session,
+  TerminalSize,
 } from './types';
 
 export const API_BASE = '/api/v1';
@@ -495,6 +496,26 @@ export async function sendSessionPrompt(
     );
   }
   return result;
+}
+
+export async function updateTerminalSize(body: {
+  cols: number;
+  rows: number;
+}): Promise<TerminalSize> {
+  const payload = await request<unknown>('/settings/terminal-size', {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
+  const record = isRecord(payload) ? payload : {};
+  const size = isRecord(record.terminal_full_size)
+    ? record.terminal_full_size
+    : record;
+  const cols = Number(size.cols);
+  const rows = Number(size.rows);
+  return {
+    cols: Number.isFinite(cols) ? cols : body.cols,
+    rows: Number.isFinite(rows) ? rows : body.rows,
+  };
 }
 
 export async function getDevices(): Promise<PairedDevice[]> {
