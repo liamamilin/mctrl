@@ -87,9 +87,11 @@ Required:
 - an armed CTRL still modifies a character typed on the software keyboard
 - the digits of a Chinese keyboard select candidates and never reach the
   terminal; the same digits on a Latin keyboard arrive as `1`–`9`
-- the temporary `⌦ trace` control records a verdict for a letter, for `，`, and
-  for `1`, and the three verdicts are read back before the Chinese-keyboard
-  punctuation work continues
+- with `~/.mctrl/logs/INPUT_TRACE` absent, the daemon records no input frames
+- with it present, a letter, `，`, `1`, an arrow sequence and an empty frame are
+  each recorded with their byte count, text and hex, in order
+- the recording distinguishes a full-width `，` (`hex=ef bc 8c`) that arrived from
+  one that never left the phone
 - scrolling back shows the ↓ lines-back control, and one tap returns to the tail
 - the software keyboard does not cover the terminal, and the keybar stays above it
 - the FULL hint stays on one line

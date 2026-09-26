@@ -98,12 +98,9 @@ type a digit.
 **Punctuation is not fixed, and the cause is not yet known.** Two attempts to
 derive it from xterm's source were both wrong on the real phone: reading a
 library's control flow says what a browser would *do* with an event, not what iOS
-*delivers*. A temporary `⌦ trace` control over the canvas records the real event
-stream, grouped per keypress and reduced to one verdict per key, because the
-phone cannot copy a recording out and a screenshot of raw events is unreadable
-at phone size. It is to be removed once that stream is read. Until then, treat
-`mctrl`'s handling of a Chinese keyboard's punctuation as unknown rather than
-fixed.
+*delivers*. The diagnosis is now being measured on the Mac instead, by recording
+the input frames the phone sends. Until that is read, treat `mctrl`'s handling of
+a Chinese keyboard's punctuation as unknown rather than fixed.
 
 What mctrl does do, for whatever text does arrive, is convert the full-width
 ASCII block (U+FF01–U+FF5E) and the ideographic space to half-width: `：，／`

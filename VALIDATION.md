@@ -129,15 +129,25 @@ What is evidence and what is not:
 
 Two inferences from the xterm source were wrong, and the reason is worth
 recording: reading a library's control flow tells you what a browser *would* do
-with an event, not what iOS *delivers*. The next step is a recording, not another
-inference. A temporary `⌦ trace` control on the terminal page captures the real
-`keydown` / `beforeinput` / `input` / `composition*` stream for the helper
-textarea, grouped per keypress and reduced to one of three verdicts — carries
-text, delivered without text, or nothing delivered. Grouping and the verdict
-exist because the phone cannot copy the recording out: iOS blocks paste from a
-plain-HTTP page and the async clipboard API needs a secure context, which Trusted
-LAN HTTP deliberately is not. The control is to be removed once the stream is
-read.
+with an event, not what iOS *delivers*. The next step is a measurement, not
+another inference.
+
+A browser-side recorder was tried first and abandoned. It could not deliver its
+own result: iOS blocks copy and paste from a plain-HTTP page, and the async
+clipboard API needs a secure context, which Trusted LAN HTTP deliberately is not.
+Asking the user to read forty event lines off a phone screen is a design that
+fails regardless of the diagnosis being correct.
+
+The measurement therefore moved to the Mac, where the answer already passes
+through: `TraceTerminalInput` records every input frame the phone sends, in
+`internal/terminal/inputtrace.go`. It is off unless `~/.mctrl/logs/INPUT_TRACE`
+exists, so nothing is recorded by default and the cost when off is one failed
+stat per frame. It resolves its path through `config.StateDir()`, so the V1/V2
+profile split holds. Covered by tests for the disabled case, the recorded
+content, frame order, the size cap, and that it stays inside the state dir.
+
+The file is temporary and is to be deleted along with its one call site in
+`bridge.go` once the Chinese-keyboard question is settled.
 
 ## Raw keyboard transport validation
 

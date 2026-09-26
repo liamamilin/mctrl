@@ -327,6 +327,10 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 				return
 			}
 			if messageType == websocket.BinaryMessage {
+				// TEMPORARY INPUT DIAGNOSTIC — remove with inputtrace.go. Off
+				// unless the flag file exists, so the cost when unused is one
+				// failed stat per frame.
+				TraceTerminalInput(sessionID, data)
 				if _, writeErr := ptmx.Write(data); writeErr != nil {
 					return
 				}

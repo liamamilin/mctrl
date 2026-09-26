@@ -221,20 +221,29 @@ page now carries a temporary input diagnostic: the `⌦ trace` button over the
 canvas records the real `keydown` / `beforeinput` / `input` / `composition*`
 stream that iOS delivers to xterm's helper textarea.
 
-To use it: reload, open a terminal, tap **编辑**, press one key at a time
-(`a`, then `，`, then `1`), then tap **⌦ trace** and read the verdict for each
-key. The page reduces the recording to one of three words per key:
+The answer is recorded on the Mac, not on the phone. The phone cannot hand a
+recording over — iOS blocks copy and paste from a plain-HTTP page, and the async
+clipboard API needs a secure context, which Trusted LAN HTTP deliberately is not —
+but the daemon already sees every byte the phone sends, so that is where the
+question is settled.
 
-- **CARRIES TEXT** — an event delivered the character, so an interception point
-  exists and the defect is recoverable in the page.
-- **DELIVERED, NO TEXT** — events arrived but none carried the character.
-- **NOTHING DELIVERED** — only a keydown happened. The page is never told, and no
-  interception can help.
+Turn the trace on, press the keys, read it off:
 
-Copying the raw recording out of the phone is not possible: iOS blocks
-copy/paste from a plain-HTTP page and the async clipboard API needs a secure
-context, which Trusted LAN HTTP deliberately is not. That is why the recording is
-reduced to a verdict and sized to be read in a screenshot.
+```sh
+touch ~/.mctrl/logs/INPUT_TRACE     # enables; no daemon restart needed
+# press the keys on the phone
+cat ~/.mctrl/logs/input-trace.log
+rm ~/.mctrl/logs/INPUT_TRACE         # disables
+```
+
+Each line is one input frame: timestamp, Session, byte count, the text as typed,
+and the hex. The full-width comma appears as `，` with `hex=ef bc 8c`, which
+distinguishes "the phone sent the full-width character and something dropped it
+later" from "the phone never sent it".
+
+`rm` the log between rounds, because frames accumulate. There is no reset inside
+the tool: a stale recording must never be silently mixed into a new one. The file
+is capped, so a forgotten flag cannot fill the disk.
 
 To confirm the full-width conversion is what you are seeing, set
 `mctrl-terminal-half-width` to `off` in the page's `localStorage` and reload; the
