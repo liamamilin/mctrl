@@ -289,6 +289,81 @@ verified on the phone; the mechanism is certain from the code — `replayHistory
 unconditional per WebSocket, and `connect()` builds a new socket without
 recreating the Terminal.
 
+That reset must stay synchronous. Deferring it behind an xterm write callback
+would let the *new* attachment's replay be parsed first, so the reset would wipe
+the fresh history instead of the stale one, and replay would break on every
+re-attach.
+
+## Replayed history had to be captured at the client's width
+
+The replay handed the client lines it had to wrap a second time. Captured
+frames, off a real attach to a 240-column pane with a 46-column client, replayed
+as:
+
+```text
+2 3 4 5; do printf "LONGLINE%02d-%s\n" $i "$(p
+rintf "X%.0s" {1..200})"; done; printf "CJK-新
+ 建游戏项目-END\n"
+```
+
+Cause: the attach PTY is created at the canonical full size, so the pane is still
+240 columns wide when the capture runs. The client then re-wraps 240-column lines
+into 46 columns itself. tmux re-wraps its own history when the window narrows, so
+the capture has to happen after the resize. `ServeHTTP` now waits for the client's
+first resize message before capturing, bounded by `historySizeWait` so a client
+that never resizes still gets a working terminal.
+
+`TestTerminalWebSocketReplaysHistoryAtTheClientWidth` covers it. It sends the
+resize late on purpose: the web client sends it immediately, which hides the race
+this test exists for. Without the fix it fails with `replayed line is 157 columns
+wide`.
+
+**This is not the cause of the chopped lines reported from the phone.** See
+"What the phone screenshots actually were".
+
+## What the phone screenshots actually were
+
+Two reports of "the terminal shows chopped lines and `997;1m` garbage" were first
+misdiagnosed as client-side rendering defects. Both symptoms were then checked
+against the source of truth, and neither was an mctrl defect:
+
+- `capture-pane -e` on the affected Session showed `✗ 997;1n997;1n…` in the pane
+  itself, wrapped in the pane program's own bold-red highlighter. The text was
+  never corrupted in transit; the program had written it.
+- The `cd "…/god` / `ot-ai-smoke-test/新建游戏项目"` break was also the pane's own
+  content: the program rendered that line at the narrow width the phone's
+  attachment gives the pane, and the frame froze when the program exited. The
+  `capture-pane` output reproduced the phone screenshot line for line.
+- `TestBridgeDeliversOnlyClientBytesToThePane` and
+  `TestBridgePreservesEscapeSequenceBytes` record a real pane's stdin through the
+  real bridge and assert that only the client's own keystrokes arrive, byte for
+  byte, including a sequence split across frames. Both pass.
+- xterm.js's device-query replies (`CSI 6n` → `ESC[1;1R`, `CSI c` → `ESC[?1;2c`,
+  `CSI >c` → `ESC[>0;276;0c`, `CSI 5n` → `ESC[0n`) were captured at 46x20, 46x33
+  and 240x60. None produces the reported text.
+
+Two wrong fixes were nearly shipped on the strength of that first diagnosis, and
+both are recorded here so the next person does not repeat them:
+
+- deferring `terminal.reset()` until xterm's write queue drained, which would
+  wipe the fresh replay as described above
+- a floor on FULL's fit scale, described in the next section
+
+## FULL's fit scale is unreadable, and that is the feature
+
+Measured in the browser at 393x852, FULL applies `scale(0.209265)` to the
+1878x1080 content: a 13pt font renders at 2.72pt, and the tmux status line — the
+only row with ink across all 240 columns — becomes a solid bar across the screen.
+That was treated as a defect, and `MIN_OVERVIEW_SCALE` was added to keep the text
+legible.
+
+It was rejected on the phone. At a floor of 0.5 the stage is 939pt wide, so FULL
+shows 45 of the 240 columns and the user has to pan sideways for the rest. "The
+whole Session at once" is the feature: an unreadable overview is still an
+overview, and a partial one is just LOCAL with extra steps. Reading the output is
+what LOCAL and the pinch gesture are for. The measurement stands; the conclusion
+drawn from it did not.
+
 ## Window and pane inventory
 
 The phone shows only the active window's active pane, which read as a limitation

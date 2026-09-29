@@ -80,6 +80,14 @@ So the replayed lines sit above the live view and survive the redraw. Bounds:
   short of it. tmux overwrites those rows immediately, so the overlap is
   cosmetic
 
+The capture must run **after** the client's own size has been applied. The attach
+PTY is created at the canonical full size, so until the client's resize arrives
+the pane is still at its full width, and a full-width capture hands the client
+lines it has to re-wrap itself — which chops them wherever the boundary falls,
+mid-token and mid-CJK. tmux re-wraps its own history when the window narrows, so
+capturing after the resize is what makes each line arrive at the width it will be
+shown at. The wait must be bounded, so a client that never resizes still attaches.
+
 A full-screen TUI repaints the same rows, so its tmux history is many near-identical
 frames rather than a transcript. The replay is still correct — it is what tmux
 holds — but it is not a conversation log. See UX.md.

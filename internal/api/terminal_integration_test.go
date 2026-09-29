@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
 
@@ -76,6 +77,108 @@ func TestTerminalWebSocketAttachesToRealTmux(t *testing.T) {
 		}
 	}
 	t.Fatalf("terminal output did not contain ready marker: %q", output.String())
+}
+
+// A phone attaches at 46 columns, but the attach PTY starts at the canonical full
+// size, so the pane is still 240 columns wide when the attachment begins. A
+// replay captured at that width hands the client lines it must wrap again itself,
+// which chops them wherever the boundary lands, mid-word and mid-CJK. The
+// capture therefore has to wait for the client's own size.
+func TestTerminalWebSocketReplaysHistoryAtTheClientWidth(t *testing.T) {
+	adapter, socket := isolateTestTmux(t)
+	root := t.TempDir()
+	cfg := config.Default()
+	cfg.RemoteAvailability = config.AvailabilityWorkOnly
+	server, err := newServer(cfg, root, adapter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer server.Close()
+	name := "mctrl-width-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	// A line long enough to be chopped at 46 columns, produced before any
+	// client attaches, so the replay has to carry it.
+	script := `i=1; while [ $i -le 60 ]; do printf 'wide-%s-%s\n' "$i" "$(printf 'X%.0s' $(seq 1 150))"; i=$((i+1)); done; sleep 10`
+	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", script})
+	if err != nil {
+		t.Fatalf("tmux managed session: %v", err)
+	}
+	defer testTmuxCommand(socket, "kill-session", "-t", name).Run()
+
+	for attempt := 0; attempt < 40; attempt++ {
+		history, captureErr := testTmuxCommand(socket, "capture-pane", "-p", "-t", id, "-S", "-500").CombinedOutput()
+		if captureErr != nil {
+			t.Fatalf("capture history: %v", captureErr)
+		}
+		if strings.Contains(string(history), "wide-1") {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	pairing, err := auth.CreatePairing(root, time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	paired, err := auth.NewRegistry(root).Pair(root, pairing.Token, "Width Test Phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	httpServer := httptest.NewServer(server)
+	defer httpServer.Close()
+	wsURL := "ws" + strings.TrimPrefix(httpServer.URL, "http") + "/api/v1/sessions/" + id + "/terminal"
+	header := http.Header{}
+	header.Set("Origin", httpServer.URL)
+	header.Set("Cookie", auth.SessionCookieName+"="+paired.SessionToken)
+	conn, _, err := (&websocket.Dialer{HandshakeTimeout: 3 * time.Second}).DialContext(ctx, wsURL, header)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+
+	// The phone's viewport size, sent late on purpose. The web client sends it
+	// immediately, which hides the race this test exists for: a capture issued
+	// before the size lands sees the pane at its full width and the client then
+	// has to re-wrap every line itself. Delaying the message makes that ordering
+	// deterministic instead of scheduler-dependent.
+	time.Sleep(150 * time.Millisecond)
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(`{"type":"resize","cols":46,"rows":33}`)); err != nil {
+		t.Fatal(err)
+	}
+
+	// Positive signal only: a read deadline that expires leaves a gorilla
+	// connection unusable, so this waits for the marker rather than for silence.
+	_ = conn.SetReadDeadline(time.Now().Add(15 * time.Second))
+	var replay strings.Builder
+	found := false
+	for i := 0; i < 128; i++ {
+		messageType, data, readErr := conn.ReadMessage()
+		if readErr != nil {
+			t.Fatalf("read before the replay arrived: %v (got %q)", readErr, replay.String())
+		}
+		if messageType != websocket.BinaryMessage {
+			continue
+		}
+		// A capture at the pane's own 240 columns is a sequence of long lines.
+		// The client would have to wrap each one again.
+		if len(data) > 0 && !strings.Contains(replay.String(), "\x1b") && strings.Contains(string(data), "wide-1-") {
+			replay.Write(data)
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("the replayed history never reached the client: %q", replay.String())
+	}
+	// The markers are ASCII, so a rune count is the column count the terminal
+	// would use for them.
+	for _, line := range strings.Split(replay.String(), "\r\n") {
+		if width := utf8.RuneCountInString(line); width > 46 {
+			t.Errorf("replayed line is %d columns wide, so a 46-column client re-wraps and chops it: %q", width, line)
+		}
+	}
 }
 
 // A phone that attaches late can only scroll to output it caused itself, because

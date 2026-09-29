@@ -229,6 +229,12 @@ func startRawPTY(cmd *exec.Cmd, size pty.Winsize) (*os.File, error) {
 // the replay is sent before the first live paint, so it should stay small.
 const historyReplayLines = 500
 
+// historySizeWait bounds how long an attach waits for the client's first size
+// before replaying anyway. The web client sends its size the moment the socket
+// opens, so this costs a well-behaved client nothing; it only bounds a client
+// that never resizes, which must still get a working terminal.
+const historySizeWait = 300 * time.Millisecond
+
 // replayHistory returns the pane's recent output as terminal input, so it lands
 // in the client's scrollback when written. Lines are separated with CRLF
 // because a terminal only scrolls — and therefore only records history — when
@@ -325,42 +331,21 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 		return conn.WriteMessage(websocket.BinaryMessage, data)
 	}
 
-	// Seed the client's scrollback before the live stream starts.
-	//
-	// A fresh attach only carries the pane's visible grid. The client's
-	// scrollback begins empty and fills from output that arrives *after* the
-	// attach, so scrolling up on the phone can only ever reach output the phone
-	// itself caused. Everything that happened before the phone connected stays
-	// in tmux, which is why the Mac can scroll and the phone cannot.
-	//
-	// tmux redraws the screen with CSI 2 J, which clears the visible screen but
-	// not the scrollback, and it does not send CSI 3 J. That is what makes this
-	// work: the replayed lines sit above the live view and survive the redraw.
-	// Verified against a real attach, not assumed.
-	//
-	// The replay covers the visible screen too, because CapturePane has no way to
-	// stop short of it. tmux overwrites those rows immediately afterwards, so the
-	// overlap costs a few kilobytes and nothing else.
-	if replay := b.replayHistory(ctx, sessionID); len(replay) > 0 {
-		_ = writeBinary(replay)
-	}
-
 	readDone := make(chan struct{})
-	go func() {
-		defer close(readDone)
-		buffer := make([]byte, 32*1024)
-		for {
-			n, readErr := ptmx.Read(buffer)
-			if n > 0 {
-				if err := writeBinary(buffer[:n]); err != nil {
-					return
-				}
-			}
-			if readErr != nil {
-				return
-			}
-		}
-	}()
+
+	// Seed the client's scrollback before the live stream starts, captured after
+	// tmux has resized the window to the client's size, or the client receives a
+	// screen of lines it then re-wraps itself.
+	//
+	// The attach PTY is created at the canonical full size, so until the
+	// client's own size arrives, the pane is still 240 columns wide. Replaying
+	// that verbatim into a 46-column phone terminal wraps every long line again
+	// and chops it wherever the boundary falls, mid-word and mid-CJK. Measured:
+	// `"$(p` / `rintf …` and `CJK-新` / ` 建游戏项目-END`. tmux re-wraps its own
+	// history when the window narrows, so capturing after the resize is what
+	// makes the lines arrive at the width they will actually be shown at.
+	clientSized := make(chan struct{})
+	var clientSizedOnce sync.Once
 
 	go func() {
 		defer cancel()
@@ -386,6 +371,62 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request, sessionID, de
 			if json.Unmarshal(data, &resize) == nil && resize.Type == "resize" && resize.Cols > 0 && resize.Rows > 0 {
 				clamped := ClampWinsize(int(resize.Cols), int(resize.Rows))
 				_ = pty.Setsize(ptmx, &clamped)
+				clientSizedOnce.Do(func() { close(clientSized) })
+			}
+		}
+	}()
+
+	// tmux applies the resize asynchronously, so a capture issued the instant
+	// the size message lands can still see the old width. This is short enough
+	// to be invisible and long enough for the resize to land.
+	timer := time.NewTimer(historySizeWait)
+	defer timer.Stop()
+	select {
+	case <-clientSized:
+		time.Sleep(50 * time.Millisecond)
+	case <-timer.C:
+	case <-ctx.Done():
+		return
+	}
+
+	// Seed the client's scrollback before the live stream starts.
+	//
+	// A fresh attach only carries the pane's visible grid. The client's
+	// scrollback begins empty and fills from output that arrives *after* the
+	// attach, so scrolling up on the phone can only ever reach output the phone
+	// itself caused. Everything that happened before the phone connected stays
+	// in tmux, which is why the Mac can scroll and the phone cannot.
+	//
+	// tmux redraws the screen with CSI 2 J, which clears the visible screen but
+	// not the scrollback, and it does not send CSI 3 J. That is what makes this
+	// work: the replayed lines sit above the live view and survive the redraw.
+	// Verified against a real attach, not assumed.
+	//
+	// The replay covers the visible screen too, because CapturePane has no way to
+	// stop short of it. tmux overwrites those rows immediately afterwards, so the
+	// overlap costs a few kilobytes and nothing else.
+	//
+	// A full-screen program switches the client into the alternate screen with
+	// CSI ?1049h, which has no scrollback at all, so the replay is only reachable
+	// for a Session that stays on the primary screen. That is why the keybar also
+	// carries PageUp and PageDown: a TUI keeps its own history, and that is the
+	// only way to reach it.
+	if replay := b.replayHistory(ctx, sessionID); len(replay) > 0 {
+		_ = writeBinary(replay)
+	}
+
+	go func() {
+		defer close(readDone)
+		buffer := make([]byte, 32*1024)
+		for {
+			n, readErr := ptmx.Read(buffer)
+			if n > 0 {
+				if err := writeBinary(buffer[:n]); err != nil {
+					return
+				}
+			}
+			if readErr != nil {
+				return
 			}
 		}
 	}()
