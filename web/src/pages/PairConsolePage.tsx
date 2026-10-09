@@ -3,15 +3,25 @@ import { getPairingQR, RUNTIME_PROFILE } from '../api';
 import { formatDate } from '../format';
 import { TransportNotice } from '../components/ui';
 
+function usesLocalHostname(value: string): boolean {
+  try {
+    return new URL(value).hostname.endsWith('.local');
+  } catch {
+    return false;
+  }
+}
+
 export function PairConsolePage({ initialToken }: { initialToken?: string }) {
   const [qrDataURL, setQRDataURL] = useState('');
   const [pairURL, setPairURL] = useState('');
+  const [fallbackURL, setFallbackURL] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copyNotice, setCopyNotice] = useState('');
   const codeInput = useRef<HTMLInputElement>(null);
   const urlInput = useRef<HTMLInputElement>(null);
+  const fallbackInput = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const token = initialToken?.trim() ?? '';
@@ -31,6 +41,7 @@ export function PairConsolePage({ initialToken }: { initialToken?: string }) {
       const result = await getPairingQR(token);
       setQRDataURL(result.data_url);
       setPairURL(result.pair_url);
+      setFallbackURL(result.fallback_pair_url ?? '');
       setExpiresAt(result.expires_at ?? '');
     } catch (caught) {
       setQRDataURL('');
@@ -92,7 +103,7 @@ export function PairConsolePage({ initialToken }: { initialToken?: string }) {
 
         <section class="pair-console-card card">
           {loading ? (
-            <div class="pair-console-state">Rendering secure QR code…</div>
+            <div class="pair-console-state">Rendering pairing QR code…</div>
           ) : qrDataURL ? (
             <>
               <img
@@ -133,8 +144,8 @@ export function PairConsolePage({ initialToken }: { initialToken?: string }) {
                 </div>
               )}
               {pairURL && (
-                <div class="pair-console-code-box">
-                  <span>Can’t scan? Open this address on the iPhone</span>
+                <div class="pair-console-code-box pair-console-address-box">
+                  <span>Phone address · also available in the QR code</span>
                   <div>
                     <input
                       ref={urlInput}
@@ -155,8 +166,34 @@ export function PairConsolePage({ initialToken }: { initialToken?: string }) {
                     </button>
                   </div>
                   <small>Then enter the pairing code above on the phone.</small>
+                  {usesLocalHostname(pairURL) && <small>
+                    Keep both devices on the same Wi-Fi. Use this address when
+                    adding mctrl to your iPhone Home Screen; it follows the Mac
+                    when its IP changes, while the Mac’s local name stays the same.
+                  </small>}
                 </div>
               )}
+              {fallbackURL && <details class="pair-console-code-box pair-console-address-box">
+                <summary>If the phone address does not open</summary>
+                <p>Some networks cannot resolve local names. Open this current
+                  IP address and enter the same pairing code. This backup address
+                  can change when the Mac reconnects.</p>
+                <div>
+                  <input
+                    ref={fallbackInput}
+                    type="text"
+                    value={fallbackURL}
+                    readOnly
+                    aria-label="mctrl fallback pairing address"
+                    onFocus={(event) => event.currentTarget.select()}
+                  />
+                  <button
+                    class="button button-secondary button-small"
+                    type="button"
+                    onClick={() => void copyValue(fallbackURL, fallbackInput.current, 'Backup address')}
+                  >Copy backup address</button>
+                </div>
+              </details>}
               {copyNotice && (
                 <p class="pair-console-copy-notice" role="status">
                   {copyNotice}

@@ -57,17 +57,22 @@ func (s *Server) handlePairQR(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "PAIR_TOKEN_EXPIRED", "Pair token is invalid or expired", nil)
 		return
 	}
-	pairURL := config.AdvertisedPairURL(s.cfg) + "#token=" + url.QueryEscape(strings.TrimSpace(request.Token))
+	addresses := config.AdvertisedPairAddresses(s.cfg)
+	pairURL := addresses.Primary + "#token=" + url.QueryEscape(strings.TrimSpace(request.Token))
 	png, err := qrcode.Encode(pairURL, qrcode.Medium, 512)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Could not render pairing QR code", nil)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]interface{}{
+	payload := map[string]interface{}{
 		"data_url":   "data:image/png;base64," + base64.StdEncoding.EncodeToString(png),
-		"pair_url":   config.AdvertisedPairURL(s.cfg),
+		"pair_url":   addresses.Primary,
 		"expires_at": pairing.ExpiresAt,
-	})
+	}
+	if addresses.Fallback != "" {
+		payload["fallback_pair_url"] = addresses.Fallback
+	}
+	writeJSON(w, http.StatusOK, payload)
 }
 
 const deviceLinkTTL = 2 * time.Minute

@@ -75,6 +75,8 @@ Example:
 ```text
 Server       running
 Address      http://milin-macbook.local:7681
+Listener     0.0.0.0:7681
+LAN fallback http://192.168.1.20:7681
 Transport    Trusted LAN HTTP
 Sessions     4
 Projects     3
@@ -118,6 +120,14 @@ The installer does not edit shell or WezTerm configuration.
 - print QR code
 - print expiration
 - close after success/expiry
+
+For an unconfigured Trusted-LAN wildcard listener, prefer the macOS Bonjour
+LocalHostName with `.local` so the browser origin survives DHCP IP changes.
+Print the current numeric LAN address as an optional fallback for networks
+without Bonjour resolution; it uses the same one-time code. `status` separates
+the browser Address, Listener and optional LAN fallback. Public origins,
+explicit listener addresses, loopback mode and TLS deployment are retained.
+The Mac Console itself continues to open on loopback when no public URL is set.
 
 ## doctor
 

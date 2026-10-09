@@ -530,7 +530,12 @@ func runStatus(_ []string) error {
 	fmt.Printf("State        %s\n", stateDir)
 	fmt.Printf("LaunchAgent  %s\n", profile.LaunchAgentLabel)
 	fmt.Printf("Server       %s\n", serverStatus)
-	fmt.Printf("Address      http://%s\n", cfg.Address())
+	addresses := config.AdvertisedPairAddresses(cfg)
+	fmt.Printf("Address      %s\n", strings.TrimSuffix(addresses.Primary, "/pair"))
+	fmt.Printf("Listener     %s\n", cfg.Address())
+	if addresses.Fallback != "" {
+		fmt.Printf("LAN fallback %s\n", strings.TrimSuffix(addresses.Fallback, "/pair"))
+	}
 	fmt.Printf("Transport    %s\n", transportLabel(cfg.TransportProfile))
 	if cfg.PublicURL != "" {
 		fmt.Printf("Public URL   %s\n", cfg.PublicURL)
@@ -602,12 +607,16 @@ func runPair(args []string) error {
 	if err != nil {
 		return err
 	}
-	pairURL := advertisedPairURL(cfg) + "#token=" + url.QueryEscape(pairing.Token)
+	addresses := config.AdvertisedPairAddresses(cfg)
+	pairURL := addresses.Primary + "#token=" + url.QueryEscape(pairing.Token)
 	profile, _ := config.ActiveProfile()
 	fmt.Printf("Profile:       %s\n", profile.Name)
 	fmt.Printf("Pairing token: %s\n", pairing.Token)
 	fmt.Printf("Expires:       %s\n", pairing.ExpiresAt.Format(time.RFC3339))
 	fmt.Printf("Open:          %s\n", pairURL)
+	if addresses.Fallback != "" {
+		fmt.Printf("LAN fallback:  %s (enter the same pairing code; this IP can change)\n", addresses.Fallback)
+	}
 	if *openBrowser {
 		consoleURL := pairingConsoleURL(cfg, pairing.Token)
 		if err := exec.Command("open", consoleURL).Start(); err != nil {

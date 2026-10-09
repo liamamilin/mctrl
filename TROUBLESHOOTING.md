@@ -19,6 +19,25 @@ These commands do not stop tmux Sessions or Managed Work.
 - On macOS, check the firewall if another local process can connect but the phone
   cannot.
 
+### A saved phone address stopped working after the Mac reconnected
+
+The router may assign a new DHCP IP. Run `mctrl status`: **Address** is the
+preferred browser entry; **Listener** is the bind address and `0.0.0.0` is not
+a phone destination. In normal LAN mode the entry uses macOS's Bonjour
+`LocalHostName.local`, while **LAN fallback** reports the current numeric IP.
+
+Open `mctrl pair --open`, scan the hostname QR, and pair once at this new origin.
+Replace the old numeric-IP Home Screen icon/bookmark with the hostname entry.
+Sessions keep running while changing the browser entry.
+
+If `.local` does not open on the phone, confirm both devices are on the same
+reachable network. Expand **If the phone address does not open** in the Mac
+Pair Console, then use the current IP and the same one-time code. Some guest
+networks/VPN configurations restrict local name discovery. Refreshing the Console
+updates its backup IP. A configured `public_url` takes precedence, and an explicit
+IP listener is kept as-is. The stable name follows IP changes only while the
+Mac's local hostname is unchanged and Bonjour is reachable.
+
 ## The Mac pairing launcher does not open the Pair Console
 
 Run `make mac-launcher`, then double-click `dist/Mctrl Pair.app`. For V2, run

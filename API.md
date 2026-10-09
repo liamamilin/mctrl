@@ -260,6 +260,14 @@ the same browser installation reuses its device record and rotates credentials.
   Console; validates the current one-time token and returns PNG QR data plus the
   manual phone Pair URL without consuming the token
 
+The QR response has `data_url`, `pair_url`, `expires_at`, and optional
+`fallback_pair_url`. With an unconfigured Trusted-LAN wildcard listener, the QR
+encodes the Mac's Bonjour hostname and token. `pair_url` is the token-free manual
+address; the optional fallback is the current numeric LAN address and accepts the
+same code. Configured public URLs and explicit/loopback listeners do not gain an
+alternate origin, and TLS mode never adds a plaintext LAN fallback. All existing
+loopback, Origin, expiry and single-use checks remain in force.
+
 The V1 UI sends:
 
 ```json

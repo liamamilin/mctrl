@@ -101,6 +101,10 @@ Required:
 - physical iPhone selection handles, native Copy menu, IME composition, and draft-to-terminal keyboard switching
 - pair
 - Mac Pair Console renders QR, copyable code and manual phone URL
+- LAN pairing keeps the Bonjour origin across DHCP IP changes and refreshes the numeric fallback
+- explicit/public/TLS/loopback origins retain their address policy without an unintended LAN fallback
+- QR and manual backup share one expiring, single-use code; QR reads do not consume it
+- moving a numeric-IP Home Screen entry to the hostname requires pairing at the new browser origin
 - Pair Console QR endpoint rejects non-loopback requests
 - re-pair same browser installation reuses one active device record
 - revoked history is absent from Settings

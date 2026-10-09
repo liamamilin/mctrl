@@ -1907,10 +1907,37 @@ button:disabled {
   font-weight: 700;
 }
 
+.pair-console-code-box summary {
+  min-height: 44px;
+  padding: 12px 0;
+  cursor: pointer;
+  color: var(--text-soft);
+  font-size: 0.76rem;
+}
+
+.pair-console-code-box p {
+  margin: 8px 0;
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.pair-console-code-box .button {
+  min-height: 44px;
+}
+
 .pair-console-code-box > div {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
+}
+
+.pair-console-address-box > div {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pair-console-address-box .button {
+  justify-self: end;
 }
 
 .pair-console-code-box input {

@@ -1,5 +1,56 @@
 # Validation Record
 
+## Stable LAN phone entry after DHCP changes — 2026-10-09
+
+Reported failure: the phone still opened `192.168.2.105:17681`, while the Mac's
+DHCP address was now `192.168.2.226`. The running daemon, page and assets were
+healthy; both new external tmux Sessions were discoverable.
+
+Implemented: ordinary Trusted-LAN wildcard listeners now prefer macOS's
+Bonjour `LocalHostName.local`. The CLI status separates the preferred browser
+Address from the bind Listener and current numeric LAN fallback. Pair QR and
+manual address share this preferred origin. The Mac Console offers a copyable
+IP backup using the same one-time code, and Refresh updates that backup. Address
+fields have a full row; copy targets are at least 44px. Explicit public origins,
+explicit binds, loopback and TLS are preserved. No auth or tmux boundary changed.
+
+Validation:
+
+- `.tools/go1.27.1/bin/go test ./internal/config ./internal/api ./cmd/mctrl -run
+  'TestLANPairing|TestPairAddress|TestLocalHostname|TestPairQR|TestPairConsole|TestAdvertisedPair|TestPairingConsole'
+  -count=1`: passed. A simulated `.105` → `.226` address change retains the
+  preferred name; IPv6/loopback/custom public/TLS cases and invalid names pass.
+  QR bytes encode the preferred origin, QR reads do not consume the token, and
+  manual pairing through the backup consumes that same single-use window.
+- `make release-check`: passed on the final build, including Go tests/vet/race,
+  real tmux/PTY coverage, frontend typecheck/build, normalizer, CLI smoke,
+  Pair.app signature, embedded resources and binary checksums.
+- `npm --prefix web run test:browser -- pairing.spec.ts`: **4 passed**, two per
+  Chromium/WebKit. Covers stable manual URL, refreshed backup IP, native copy
+  fallback, loopback compatibility and 393 × 852 layout. The displayed backup
+  fits without internal horizontal scrolling and copy targets measure 44px.
+  Both browser screenshots were visually reviewed; this targeted run adds to
+  the previously recorded 48-case workflow baseline, not a fresh full-suite run.
+- Deployed version: `1.0.0 / 6b9cb2e-dirty / 2026-10-09T15:48:48Z`. The actual
+  daemon QR now advertises `http://MiLinsMacBook.local:17681/pair`, with
+  `http://192.168.2.226:17681/pair` as backup. Hostname health/page/SW returned
+  200; JS/CSS/SW bytes match the final embedded resources. Pair.app binaries
+  match `bin/`. A fresh hostname QR Console was opened without logging its token.
+- Deployment retained all eight Work identity/state/archive/exit records, all
+  three pane identities/PIDs and four live baseline processes. CLI still reports
+  three Sessions and RemoteReady `on_ac`.
+
+Frontend cache: `mctrl-shell-06bfe41d180de77e`; JS: `index-B_UY19SZ.js`.
+Local deployment/runtime evidence: `bin/stable-pairing-preview/`; browser
+screenshots: `web/test-results/` (temporary fixtures, no live pairing token).
+
+Exit criterion met on the Mac: pairing now uses a stable origin across DHCP
+address changes with an explicit backup. Physical-iPhone Bonjour resolution
+still needs confirmation on this Wi-Fi. The operator must pair once at the new
+origin and replace an old numeric-IP Home Screen entry; origins do not share
+browser credentials. Local-name changes or a network blocking Bonjour still
+require updating/falling back. No router or Wi-Fi settings were changed.
+
 ## Desktop → phone continuation polish — 2026-10-09
 
 Deployed build: `1.0.0 / 34ee1f9-dirty / 2026-10-09T15:02:08Z`.

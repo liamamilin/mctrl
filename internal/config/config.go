@@ -217,24 +217,7 @@ func (c Config) Address() string {
 }
 
 func AdvertisedPairURL(c Config) string {
-	if publicURL := strings.TrimRight(strings.TrimSpace(c.PublicURL), "/"); publicURL != "" {
-		return publicURL + "/pair"
-	}
-	scheme := "http"
-	if c.TransportProfile == TransportTLSTerminated {
-		scheme = "https"
-	}
-	host := c.ListenAddress
-	if host == "" || host == "0.0.0.0" || host == "::" {
-		if address := lanAddress(); address != "" {
-			host = address
-		} else if name, err := os.Hostname(); err == nil && name != "" {
-			host = name
-		} else {
-			host = "127.0.0.1"
-		}
-	}
-	return scheme + "://" + net.JoinHostPort(host, strconv.Itoa(c.Port)) + "/pair"
+	return AdvertisedPairAddresses(c).Primary
 }
 
 func lanAddress() string {

@@ -120,6 +120,17 @@ The equivalent CLI is:
 ./bin/mctrl pair --open
 ```
 
+In Trusted-LAN mode, the QR and phone address prefer the Mac's Bonjour name,
+such as `http://My-Mac.local:17681`, so a DHCP IP change does not change the saved
+phone entry. Keep both devices on the same reachable Wi-Fi. The Pair Console
+also shows the current IP under **If the phone address does not open**; use it
+with the same pairing code if the network cannot resolve `.local` names.
+
+When moving from an old numeric-IP bookmark or Home Screen icon, pair once at
+the hostname address and add that address to the Home Screen again. Browser
+credentials belong to each origin. Changing the Mac's local name changes this
+entry too. An explicitly configured public URL or listener address is respected.
+
 ### 4. Install the short Mac command
 
 ```sh
@@ -374,11 +385,12 @@ scripts/               build and release scripts
 `1.0.0` · V1 stable baseline
 
 The real-iPhone Trusted-LAN path has been exercised. All three workflows above
-are implemented. The latest local validation passed `make release-check` and
+are implemented. Workflow validation passed `make release-check` and
 48 Chromium/WebKit tests, covering desktop continuation, mobile launch/input,
 recovery, durability, reconnect and Prompt uncertainty. Lost Work can be reviewed
 and archived in Settings without inventing an exit result or blocking its Project
-indefinitely. Detailed evidence and dates are in [`VALIDATION.md`](VALIDATION.md).
+indefinitely. Stable-hostname pairing passed four additional Chromium/WebKit
+checks. Detailed evidence and dates are in [`VALIDATION.md`](VALIDATION.md).
 
 Final TLS/WSS deployment, fresh physical-iPhone copy/keyboard/IME checks, and
 authenticated Codex/OpenCode provider integration remain release gates. The

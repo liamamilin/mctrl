@@ -600,6 +600,7 @@ export async function revokeDevice(deviceId: string): Promise<void> {
 export async function getPairingQR(token: string): Promise<{
   data_url: string;
   pair_url: string;
+  fallback_pair_url?: string;
   expires_at?: string;
 }> {
   const payload = await request<unknown>('/pair/qr', {
@@ -614,6 +615,7 @@ export async function getPairingQR(token: string): Promise<{
   return {
     data_url: dataURL,
     pair_url: asString(record.pair_url),
+    fallback_pair_url: asOptionalString(record.fallback_pair_url),
     expires_at: asOptionalString(record.expires_at),
   };
 }
