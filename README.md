@@ -35,6 +35,7 @@ mctrl is **not** an SSH client, cloud IDE, or remote desktop.
 It is a focused control plane for a Mac that is already running your development
 environment:
 
+- **Start on the Mac** with `mctrl here`, then continue the same session on your phone.
 - **Resume** an existing tmux session from your phone.
 - **Observe** recent terminal output without taking over the desktop.
 - **Intervene** through a real terminal when a task needs attention.
@@ -49,7 +50,8 @@ environment:
 | | |
 |---|---|
 | **Observe & Resume** | Discover real tmux Sessions, active commands, working directories, windows, panes, and recent output. |
-| **Managed Work** | Launch a registered Project with a Runner and Prompt while `mctrl-runner` owns the real child process. |
+| **Desktop → phone → desktop** | `mctrl here` prepares a session in your current directory; the phone provides a command to return to that same session. |
+| **Managed Work** | Open a registered Project interactively or submit a task while `mctrl-runner` owns the real child process. |
 | **Durable by design** | Work survives phone disconnects and daemon restarts; tmux remains the source of Session truth. |
 | **Terminal escalation** | `LOCAL` provides a readable interactive viewport. `FULL` fits, zooms, and pans the complete desktop-sized pane. |
 | **Safe prompting** | Structured Prompt actions are idempotent. Raw terminal input is never replayed after uncertain delivery. |
@@ -118,66 +120,102 @@ The equivalent CLI is:
 ./bin/mctrl pair --open
 ```
 
-### 4. Register a Project
-
-On the phone, open **Settings → Projects**, enter a display name and the
-absolute path of an existing directory on the Mac (or `~` for the Mac user's
-home directory), then tap **Register Project** and **Start in this directory**.
-The launch form returns with that Project selected. Starting from **Start →
-Register a Project** opens the registration section directly.
-
-A Project is only a future launch target. It can have multiple Sessions, and
-unregistering it does not close them. To terminate a Session and its processes,
-open **Session detail → End this session → Close Session** explicitly.
-
-The Mac CLI remains available for first-time setup or batch registration:
+### 4. Install the short Mac command
 
 ```sh
-./bin/mctrl project add /path/to/project --name 'My Project'
-./bin/mctrl project list
+./scripts/install-cli.sh
 ```
 
-### 5. Start or continue working
+This links `~/.local/bin/mctrl` to the built CLI. The installer preserves any
+different file already at that location and leaves your shell configuration
+unchanged. If the command is unavailable, add `~/.local/bin` to your `PATH`.
+For the current terminal:
 
-- **Phone interaction:** choose a Project and Shell, Codex or OpenCode. Shell
-  opens in the displayed directory; Codex/OpenCode default to **Open & interact**.
-  Launch opens Terminal directly. A remembered Project is preselected next time.
-- **Submit a task:** choose Codex/OpenCode → **Run a task**, enter the Prompt,
-  and launch. Session output opens directly; read output and process exit facts
-  when returning.
-- **Continue desktop work:** install the short command once after building:
+```sh
+export PATH="$HOME/.local/bin:$PATH"
+```
 
-  ```sh
-  ./scripts/install-cli.sh
-  ```
+Keep the same line in your shell startup file to make it persistent. Rebuilding
+the repository updates the binary used by the link.
 
-  Then, in WezTerm or another terminal:
+## Choose Your Workflow
 
-  ```sh
-  cd /path/to/project
-  mctrl here
-  codex
-  ```
+### Start on the Mac, continue on the phone
 
-  The Session appears on the phone automatically. Repeating `mctrl here` from
-  the same directory resumes it; Ctrl+B, then D leaves it running. The phone's
-  **Continue on your Mac** section provides the exact return command when needed.
-  An already running ordinary terminal process cannot be attached this way.
-  The helper uses the daemon's recorded connection and selected profile, while
-  explicit socket overrides remain available.
+1. Open a new WezTerm tab (or another terminal), enter your project directory,
+   and run:
+
+   ```sh
+   cd /path/to/project
+   mctrl here
+   ```
+
+2. In the shell that opens, start your usual tool, for example `codex` or
+   `opencode`. `mctrl here` creates or resumes the directory's tmux Session;
+   no separate tmux command or Project registration is needed.
+3. On the phone, open **Home**, select the Session, read its output, and tap
+   **Open Terminal** to continue interacting. You can leave the Mac attached,
+   or press **Ctrl+B, then D** there to detach while keeping the work running.
+4. Back on the Mac, run `mctrl here` from the original project directory again.
+   Alternatively, copy the command from **Session detail → Continue on your
+   Mac** and run it in a new terminal tab. Both reconnect to the existing Session.
+
+The helper uses the daemon's recorded tmux connection and selected profile.
+An already running process in an ordinary terminal must first be restarted
+inside a tmux Session to follow this route. These Sessions are external tmux
+Sessions; they do not create Managed Work records or Runner-owned power
+assertions. The Mac still needs to stay awake and reachable.
+
+### Start an interactive session from the phone
+
+1. Tap **Start → Register a Project** if the directory is not registered yet.
+   Enter a display name and an existing Mac directory's absolute path (or `~`
+   for the Mac user's home), tap **Register Project**, then **Start in this
+   directory**. The launch form returns with the new Project selected.
+2. Choose the Project and a Runner. **Shell** opens in the displayed directory;
+   **Codex/OpenCode → Open & interact** opens the tool there directly.
+3. Tap **Start Work** to enter Terminal. Interact, leave the App, and return
+   to the same Session later. The last successfully selected Project is remembered.
+
+Selecting the Project sets the starting directory, so a separate `cd` is only
+needed when changing directories during the session. You can also register from
+the Mac:
+
+```sh
+mctrl project add /path/to/project --name 'My Project'
+mctrl project list
+```
+
+### Submit a task from the phone and review it later
+
+1. Choose a registered Project and **Codex/OpenCode → Run a task**.
+2. Enter the task text and tap **Start Work**. The Session output page opens.
+3. Leave the App and return to review output and process exit facts. A process
+   exiting successfully does not establish that the task achieved its goal.
+
+Codex/OpenCode must already have working authentication and provider settings
+on the Mac. Runner detection confirms installation, not account availability.
+
+### Copy output, change directories, and return
 
 Home offers **Continue last session** when its live identity still matches. The
 Session page puts recent output before folded process details and termination.
 
 In Terminal, tap **Copy** to select output or copy the current path. **Use
 selection in draft** inserts at the draft caret or replaces its selection while
-preserving surrounding text; **Prepare cd
-command** quotes a selected directory for a supported Shell. Review the draft,
-tap **Insert**, then press **⏎** when ready. Insert preserves text and does not
+preserving surrounding text; **Prepare cd command** quotes a selected directory
+for a supported Shell. Review the draft, tap **Insert**, then press **⏎** when
+ready. Insert preserves text and does not
 append Return. Multiline insertion requires observed program paste support.
 On HTTP, native text selection remains available when clipboard access fails.
 Preview refresh preserves selected text and older output until **Show latest
 output** is tapped. Returning to the App refreshes session facts immediately.
+
+Closing the App or detaching leaves the Session running. **Session detail →
+End this session → Close Session** terminates it and its processes. Unregistering
+a Project removes a future launch target and does not close its Sessions.
+If Work loses its Session, review it in **Settings → Work needing attention**;
+confirmed lost Work can be archived while retaining its original history.
 
 ## Everyday CLI
 
@@ -192,6 +230,9 @@ mctrl devices                # show active and revoked device audit records
 mctrl restart                # restart only the daemon
 mctrl uninstall              # stop mctrl without deleting arbitrary tmux Sessions
 ```
+
+To return to a specific Session, use the full `mctrl resume` command copied from
+the phone's **Continue on your Mac** section.
 
 ## Version Isolation
 
@@ -300,6 +341,8 @@ npm run dev
 Documentation:
 
 - [`DEVELOPMENT.md`](DEVELOPMENT.md)
+- [`CLI_SPEC.md`](CLI_SPEC.md)
+- [`docs/usage-flow-audit.md`](docs/usage-flow-audit.md)
 - [`ARCHITECTURE.md`](ARCHITECTURE.md)
 - [`PRODUCT.md`](PRODUCT.md)
 - [`API.md`](API.md)
@@ -330,12 +373,14 @@ scripts/               build and release scripts
 
 `1.0.0` · V1 stable baseline
 
-The real-iPhone Trusted-LAN path has been exercised. Chromium/WebKit regression
-tests cover recovery, durability, reconnect and Prompt uncertainty. Empty Agent
-Prompts open interactive CLIs. Lost Work can be reviewed and archived in Settings
-without inventing an exit result or blocking its Project indefinitely.
+The real-iPhone Trusted-LAN path has been exercised. All three workflows above
+are implemented. The latest local validation passed `make release-check` and
+48 Chromium/WebKit tests, covering desktop continuation, mobile launch/input,
+recovery, durability, reconnect and Prompt uncertainty. Lost Work can be reviewed
+and archived in Settings without inventing an exit result or blocking its Project
+indefinitely. Detailed evidence and dates are in [`VALIDATION.md`](VALIDATION.md).
 
-Final TLS/WSS deployment, the remaining real-iPhone interaction matrix, and
+Final TLS/WSS deployment, fresh physical-iPhone copy/keyboard/IME checks, and
 authenticated Codex/OpenCode provider integration remain release gates. The
 2026-10-09 provider probes were blocked by the configured Codex model/account
 combination and OpenCode Go subscription requirements; see `VALIDATION.md`.
