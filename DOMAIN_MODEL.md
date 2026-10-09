@@ -87,6 +87,10 @@ Unknown recovery state may include:
 }
 ```
 
+Lost Work may carry `archived_at` after explicit operator resolution. This is
+administrative metadata, not a new process state or an observed exit. Archived
+records retain history and idempotency but do not occupy a Project.
+
 ## Runner
 
 ```json

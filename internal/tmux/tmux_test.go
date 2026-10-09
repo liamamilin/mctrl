@@ -156,6 +156,35 @@ func TestInspectSessionUsesActiveWindowPane(t *testing.T) {
 	}
 }
 
+func TestInspectSessionObservesProgramBracketedPasteMode(t *testing.T) {
+	adapter, socket := newTestAdapter(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	defer testTmuxCommand(socket, "kill-server").Run()
+	for _, enabled := range []bool{false, true} {
+		name := "paste-off"
+		command := "sleep 30"
+		if enabled {
+			name = "paste-on"
+			command = "printf '\\033[?2004h'; sleep 30"
+		}
+		if _, err := adapter.run(ctx, "new-session", "-d", "-s", name, "/bin/sh", "-c", command); err != nil {
+			t.Fatal(err)
+		}
+		deadline := time.Now().Add(3 * time.Second)
+		for {
+			session, err := adapter.InspectSession(ctx, name)
+			if err == nil && session.ActivePane != nil && session.ActivePane.BracketedPaste != nil && *session.ActivePane.BracketedPaste == enabled {
+				break
+			}
+			if time.Now().After(deadline) {
+				t.Fatalf("pane %s did not report its paste mode: %+v, %v", name, session.ActivePane, err)
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
+	}
+}
+
 // The Session page shows a read-only window and pane inventory, so every pane
 // must carry the window it belongs to. Without the index and name the UI could
 // only count, which is what it did before.
@@ -300,7 +329,7 @@ func TestRealTmuxSessionLifecycle(t *testing.T) {
 	name := "mctrl-test-" + strings.ReplaceAll(time.Now().UTC().Format("150405.000000"), ".", "")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "sleep 1"})
+	id, err := adapter.CreateManagedSession(ctx, name, t.TempDir(), []string{"/bin/sh", "-c", "printf 'managed preview\\n'; sleep 1"})
 	defer func() {
 		_ = testTmuxCommand(socket, "kill-session", "-t", name).Run()
 	}()
@@ -328,11 +357,57 @@ func TestRealTmuxSessionLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("capture pane: %v", err)
 	}
-	if len(lines) == 0 {
-		t.Fatal("capture returned no lines")
+	if !strings.Contains(strings.Join(lines, "\n"), "managed preview") {
+		t.Fatalf("capture lost short output: %q", lines)
 	}
 	time.Sleep(1500 * time.Millisecond)
 	if exists, existsErr := adapter.SessionExists(ctx, id); existsErr != nil || !exists {
 		t.Fatalf("managed session did not remain after command exit: exists=%v err=%v", exists, existsErr)
+	}
+}
+
+func TestPreviewKeepsShortOutputBeforeApplyingLineLimit(t *testing.T) {
+	adapter, _ := newTestAdapter(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if _, err := adapter.run(ctx, "new-session", "-d", "-s", "short-preview", "-x", "80", "-y", "100", "/bin/sh", "-c", "printf 'first\\n\\n\\033[31mlast\\033[0m\\n'; sleep 30"); err != nil {
+		t.Fatal(err)
+	}
+	pane, err := adapter.run(ctx, "display-message", "-p", "-t", "short-preview", "#{pane_id}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	pane = strings.TrimSpace(pane)
+	var lines []string
+	for {
+		lines, err = adapter.CapturePane(ctx, pane, 3)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(lines) > 0 && lines[len(lines)-1] == "last" {
+			break
+		}
+		if ctx.Err() != nil {
+			t.Fatalf("short output not observed: %q", lines)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if strings.Join(lines, "\n") != "first\n\nlast" {
+		t.Fatalf("preview changed interior spacing: %q", lines)
+	}
+	lines, err = adapter.CapturePane(ctx, pane, 1)
+	if err != nil || len(lines) != 1 || lines[0] != "last" {
+		t.Fatalf("one-line preview = %q, err=%v", lines, err)
+	}
+	if _, err := adapter.run(ctx, "new-window", "-t", "short-preview", "-n", "empty", "sleep 30"); err != nil {
+		t.Fatal(err)
+	}
+	pane, err = adapter.run(ctx, "display-message", "-p", "-t", "short-preview:empty", "#{pane_id}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	lines, err = adapter.CapturePane(ctx, strings.TrimSpace(pane), 20)
+	if err != nil || lines == nil || len(lines) != 0 {
+		t.Fatalf("empty pane preview = %q, err=%v", lines, err)
 	}
 }

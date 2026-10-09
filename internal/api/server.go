@@ -110,6 +110,9 @@ func newServer(cfg config.Config, stateDir string, adapter *tmux.Adapter) (*Serv
 	if err := auth.NewRegistry(stateDir).Validate(); err != nil {
 		return nil, fmt.Errorf("validate device registry: %w", err)
 	}
+	if err := config.SaveDesktopConnection(stateDir, profile.Name, adapter.Socket()); err != nil {
+		return nil, err
+	}
 	server := &Server{
 		cfg:         cfg,
 		stateDir:    stateDir,
@@ -208,7 +211,7 @@ func (s *Server) sessionHasManagedWork(sessionID string) bool {
 		return false
 	}
 	for _, item := range items {
-		if item.Terminal() {
+		if !item.Active() {
 			continue
 		}
 		if item.SessionID == sessionID || item.SessionName == sessionID {
@@ -245,7 +248,7 @@ func (s *Server) HostInfo() host.Info {
 	case config.AvailabilityWorkOnly:
 		if items, err := s.works.List(); err == nil {
 			for _, item := range items {
-				if item.KeepAwake && (item.State == work.StateStarting || item.State == work.StateRunning) && power.WorkAssertionActive(item.RunnerPID) {
+				if item.Active() && item.KeepAwake && (item.State == work.StateStarting || item.State == work.StateRunning) && power.WorkAssertionActive(item.RunnerPID) {
 					ready = true
 					break
 				}
@@ -365,6 +368,8 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 		s.handleWorkCreate(w, r)
 	case len(parts) == 2 && parts[0] == "work" && r.Method == http.MethodGet:
 		s.handleWorkGet(w, r, mustUnescape(parts[1]))
+	case len(parts) == 3 && parts[0] == "work" && parts[2] == "archive" && r.Method == http.MethodPost:
+		s.handleWorkArchive(w, r, mustUnescape(parts[1]))
 	case len(parts) == 2 && parts[0] == "devices" && parts[1] == "links" && r.Method == http.MethodPost:
 		s.handleDeviceLinkCreate(w, r)
 	case len(parts) == 2 && parts[0] == "devices" && parts[1] == "history" && r.Method == http.MethodGet:

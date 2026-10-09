@@ -1,43 +1,9 @@
-// Verifies the shipped normalizeHalfWidth against the characters that were
-// actually observed arriving from the phone, and against the ones that must not
-// be touched. Run: node scripts/check-normalizer.mjs
-//
-// The function is duplicated here rather than imported because the page is
-// TypeScript and this repo has no test runner. If the two ever disagree, this
-// file is the stale one.
-
-function normalizeHalfWidth(data) {
-  let result = '';
-  for (const character of data) {
-    const code = character.codePointAt(0) ?? 0;
-    if (code >= 0xff01 && code <= 0xff5e) {
-      result += String.fromCharCode(code - 0xfee0);
-      continue;
-    }
-    if (code === 0x3000) {
-      result += ' ';
-      continue;
-    }
-    if (code === 0x3001) {
-      result += ',';
-      continue;
-    }
-    if (code === 0x3002) {
-      result += '.';
-      continue;
-    }
-    if (code === 0x2018 || code === 0x2019) {
-      result += "'";
-      continue;
-    }
-    if (code === 0x201c || code === 0x201d) {
-      result += '"';
-      continue;
-    }
-    result += character;
-  }
-  return result;
-}
+// Compile and test the same function imported by TerminalPage.
+import { readFile } from 'node:fs/promises';
+import ts from 'typescript';
+const source = await readFile(new URL('../src/terminal-input.ts', import.meta.url), 'utf8');
+const { outputText } = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } });
+const { normalizeHalfWidth } = await import('data:text/javascript;base64,' + Buffer.from(outputText).toString('base64'));
 
 const hex = (ch) =>
   'U+' + ch.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');

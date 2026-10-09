@@ -122,12 +122,13 @@ The equivalent CLI is:
 
 On the phone, open **Settings → Projects**, enter a display name and the
 absolute path of an existing directory on the Mac (or `~` for the Mac user's
-home directory), then tap **Register Project**. The Start Work page will then
-show the target.
+home directory), then tap **Register Project** and **Start in this directory**.
+The launch form returns with that Project selected. Starting from **Start →
+Register a Project** opens the registration section directly.
 
 A Project is only a future launch target. It can have multiple Sessions, and
 unregistering it does not close them. To terminate a Session and its processes,
-open the Session detail page and use **Close Session** explicitly.
+open **Session detail → End this session → Close Session** explicitly.
 
 The Mac CLI remains available for first-time setup or batch registration:
 
@@ -136,8 +137,47 @@ The Mac CLI remains available for first-time setup or batch registration:
 ./bin/mctrl project list
 ```
 
-Open **Start Work** on the phone, select the Project and Runner, enter a Prompt,
-and launch.
+### 5. Start or continue working
+
+- **Phone interaction:** choose a Project and Shell, Codex or OpenCode. Shell
+  opens in the displayed directory; Codex/OpenCode default to **Open & interact**.
+  Launch opens Terminal directly. A remembered Project is preselected next time.
+- **Submit a task:** choose Codex/OpenCode → **Run a task**, enter the Prompt,
+  and launch. Session output opens directly; read output and process exit facts
+  when returning.
+- **Continue desktop work:** install the short command once after building:
+
+  ```sh
+  ./scripts/install-cli.sh
+  ```
+
+  Then, in WezTerm or another terminal:
+
+  ```sh
+  cd /path/to/project
+  mctrl here
+  codex
+  ```
+
+  The Session appears on the phone automatically. Repeating `mctrl here` from
+  the same directory resumes it; Ctrl+B, then D leaves it running. The phone's
+  **Continue on your Mac** section provides the exact return command when needed.
+  An already running ordinary terminal process cannot be attached this way.
+  The helper uses the daemon's recorded connection and selected profile, while
+  explicit socket overrides remain available.
+
+Home offers **Continue last session** when its live identity still matches. The
+Session page puts recent output before folded process details and termination.
+
+In Terminal, tap **Copy** to select output or copy the current path. **Use
+selection in draft** inserts at the draft caret or replaces its selection while
+preserving surrounding text; **Prepare cd
+command** quotes a selected directory for a supported Shell. Review the draft,
+tap **Insert**, then press **⏎** when ready. Insert preserves text and does not
+append Return. Multiline insertion requires observed program paste support.
+On HTTP, native text selection remains available when clipboard access fails.
+Preview refresh preserves selected text and older output until **Show latest
+output** is tapped. Returning to the App refreshes session facts immediately.
 
 ## Everyday CLI
 
@@ -146,6 +186,7 @@ mctrl status                 # daemon, transport, Sessions, Projects, devices
 mctrl doctor                 # local diagnostics
 mctrl pair                   # print a one-time phone Pair URL and QR
 mctrl pair --open            # open the Mac Pair Console
+mctrl here                   # create/resume a phone-accessible shell here
 mctrl project list           # list registered Projects
 mctrl devices                # show active and revoked device audit records
 mctrl restart                # restart only the daemon
@@ -244,6 +285,7 @@ make build PROFILE=v2  # build isolated V2 binaries under bin/v2
 make mac-launcher PROFILE=v2  # build Mctrl V2 Pair.app
 make test           # Go tests + vet + strict TypeScript
 make test-race      # race detector, including real tmux integration
+make test-browser   # Chromium/WebKit regression (install browser runtimes first)
 make release-check  # complete deterministic V1 release gate
 ```
 
@@ -288,9 +330,15 @@ scripts/               build and release scripts
 
 `1.0.0` · V1 stable baseline
 
-The real-iPhone Trusted-LAN path has been exercised. Playwright Chromium/WebKit,
-a final TLS/WSS deployment, and authenticated Codex/OpenCode Runner integration
-remain environment-specific release gates.
+The real-iPhone Trusted-LAN path has been exercised. Chromium/WebKit regression
+tests cover recovery, durability, reconnect and Prompt uncertainty. Empty Agent
+Prompts open interactive CLIs. Lost Work can be reviewed and archived in Settings
+without inventing an exit result or blocking its Project indefinitely.
+
+Final TLS/WSS deployment, the remaining real-iPhone interaction matrix, and
+authenticated Codex/OpenCode provider integration remain release gates. The
+2026-10-09 provider probes were blocked by the configured Codex model/account
+combination and OpenCode Go subscription requirements; see `VALIDATION.md`.
 
 ## License
 

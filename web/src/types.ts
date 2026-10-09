@@ -9,6 +9,7 @@ export interface Host {
   public_url?: string;
   version?: string;
   profile?: string;
+  desktop_start_command?: string;
   terminal_full_size?: TerminalSize;
 }
 
@@ -31,6 +32,9 @@ export interface Runner {
 }
 
 export interface ActivePane {
+  id?: string;
+  bracketed_paste?: boolean;
+  dead?: boolean;
   command?: string;
   cwd?: string;
   width?: number;
@@ -60,6 +64,7 @@ export interface Session {
   windows: number;
   panes: number;
   attached: boolean;
+  desktop_resume_command?: string;
   active_pane?: ActivePane;
   pane_details?: PaneDetail[];
   active_command?: string;
@@ -81,12 +86,14 @@ export interface ManagedWork {
   finished_at?: string;
   runner_pid?: number;
   child_pid?: number;
+  child_cwd?: string;
   exit_code?: number;
   exit_signal?: number;
   keep_awake?: boolean;
   launch_stage?: string;
   termination_reason?: string;
   recovery_status?: string;
+  archived_at?: string;
   prompt_delivery?: string;
   error_code?: string;
   error_message?: string;

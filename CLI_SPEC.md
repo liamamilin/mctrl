@@ -9,6 +9,8 @@ mctrl status
 mctrl pair
 mctrl doctor
 mctrl logs
+mctrl here [--socket <path>]
+mctrl resume [--socket <path>] --name <observed-name> <session-id>
 
 mctrl project add <path> [--name <name>] [--runner <id>]
 mctrl project remove <id>                         # unregister; never closes Sessions
@@ -68,7 +70,6 @@ must exist and be a directory, and `~` expands to the Mac user's home directory.
 `mctrl doctor` reports a live Work whose Project id is missing, and prints the
 exact restore command to run.
 
-
 Example:
 
 ```text
@@ -86,6 +87,30 @@ RemoteReady  on_ac
 `mctrl profile` reports the selected profile, state directory, config path,
 LaunchAgent label, tmux socket, Pair app name, and bundle identifier. V1 is the
 backward-compatible default; V2 uses port `17682` and isolated state by default.
+
+## here / resume
+
+`mctrl here` opens a normal external tmux Shell in the current physical directory.
+It derives a readable, directory-specific name; different paths with the same
+basename stay separate. Repeating it resumes the same Session and its process,
+without sending commands, resetting the directory, registering a Project or
+creating Managed Work. The user then starts a harness normally.
+
+The daemon records its effective connection in private `desktop.json` under the
+profile state directory. This is a routing hint; tmux remains Session authority.
+An explicit `--socket` or non-default `MCTRL_TMUX_SOCKET` overrides the hint.
+Profile defaults are used when no hint exists. A mismatched hint is refused.
+
+`mctrl resume` is copied from the phone's **Continue on your Mac** section. Its
+socket, profile, stable Session ID and observed name identify the same Session;
+it refuses a changed name and never creates or respawns a process. Both commands
+require an interactive terminal. Already being in the target Session is a no-op;
+other nested or cross-server tmux contexts ask the user to open a new terminal
+tab, preserving current clients and windows.
+
+Build, then install the short command using `scripts/install-cli.sh`. It creates
+a link in `~/.local/bin` and preserves any different existing file at that path.
+The installer does not edit shell or WezTerm configuration.
 
 ## pair
 

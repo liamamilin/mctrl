@@ -122,7 +122,7 @@ func supervise(workFile, expectedAttemptID string) error {
 		item.ProjectPath != spec.ProjectPath || item.KeepAwake != spec.KeepAwake {
 		return errors.New("launch evidence does not match the current Work attempt")
 	}
-	if (item.State != work.StateAccepted && item.State != work.StateStarting) ||
+	if item.ArchivedAt != nil || (item.State != work.StateAccepted && item.State != work.StateStarting) ||
 		(item.RunnerPID != 0 && item.RunnerPID != runnerPID) || item.ChildPID != 0 {
 		return fmt.Errorf("Work is not eligible for launch: state=%s runner_pid=%d child_pid=%d", item.State, item.RunnerPID, item.ChildPID)
 	}
@@ -134,7 +134,7 @@ func supervise(workFile, expectedAttemptID string) error {
 		defer logFile.Close()
 	}
 	item, err = store.UpdateIf(spec.WorkID, spec.AttemptID, []work.State{work.StateAccepted, work.StateStarting}, func(current *work.Work) error {
-		if (current.RunnerPID != 0 && current.RunnerPID != runnerPID) || current.ChildPID != 0 {
+		if current.ArchivedAt != nil || (current.RunnerPID != 0 && current.RunnerPID != runnerPID) || current.ChildPID != 0 {
 			return work.ErrStateConflict
 		}
 		current.State = work.StateStarting

@@ -13,11 +13,11 @@ else
 endif
 APP_PATH := dist/$(APP_NAME).app
 VERSION ?= $(PROFILE_VERSION)
-COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || printf none)
+COMMIT ?= $(shell commit=$$(git rev-parse --short HEAD 2>/dev/null || printf none); if test -n "$$(git status --porcelain --untracked-files=normal 2>/dev/null)"; then printf '%s-dirty' "$$commit"; else printf '%s' "$$commit"; fi)
 BUILD_TIME ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 GO_LDFLAGS := -X mctrl/internal/version.Version=$(VERSION) -X mctrl/internal/version.Commit=$(COMMIT) -X mctrl/internal/version.BuildTime=$(BUILD_TIME)
 
-.PHONY: build build-go build-web check-release-deps mac-launcher test test-go test-race test-web release-check smoke-cli smoke-launcher verify-assets web-deps
+.PHONY: build build-go build-web check-release-deps mac-launcher test test-go test-race test-web test-browser release-check smoke-cli smoke-launcher verify-assets web-deps
 
 web-deps: web/node_modules/.mctrl-deps
 
@@ -50,6 +50,7 @@ build-web: web-deps
 
 verify-assets: build-go
 	cd web && $(NODE) scripts/finalize-dist.mjs --verify-only ../internal/api/assets
+	cd "$(BIN_DIR)" && shasum -a 256 mctrl mctrl-runner > SHA256SUMS
 
 test: test-go test-web
 
@@ -63,6 +64,9 @@ test-race:
 test-web: web-deps
 	cd web && $(NPM) run typecheck
 	cd web && $(NODE) scripts/check-normalizer.mjs
+
+test-browser: build
+	cd web && $(NPM) run test:browser
 
 check-release-deps:
 	@test "$$($(GO) env GOVERSION)" = "go1.27.1" || { echo "release-check requires Go 1.27.1"; exit 1; }
@@ -120,4 +124,4 @@ release-check: check-release-deps
 	$(MAKE) test-race
 	$(MAKE) smoke-cli
 	$(MAKE) smoke-launcher
-	cd "$(BIN_DIR)" && shasum -a 256 mctrl mctrl-runner > SHA256SUMS
+	cd "$(BIN_DIR)" && shasum -a 256 -c SHA256SUMS

@@ -27,3 +27,7 @@ jobs:
         run: brew install tmux
       - name: Release check
         run: make release-check
+      - name: Install browser runtimes
+        run: cd web && npx playwright install chromium webkit
+      - name: Browser regression tests
+        run: make test-browser

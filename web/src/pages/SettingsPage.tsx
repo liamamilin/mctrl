@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import {
+  archiveWork,
   createDeviceLink,
   createProject,
   deleteProject,
@@ -14,7 +15,8 @@ import {
   updateTerminalSize,
 } from '../api';
 import { formatDate } from '../format';
-import type { Host, PairedDevice, Project, Runner } from '../types';
+import type { Host, ManagedWork, PairedDevice, Project, Runner } from '../types';
+import { activeWorkCounts, isActiveWork } from '../work-status';
 import { ErrorNotice, LoadingBlock, StatusDot, TransportNotice } from '../components/ui';
 
 // Mirrors the Mac's accepted range so the form cannot submit a value the daemon
@@ -35,6 +37,12 @@ export function SettingsPage() {
     Record<string, number>
   >({});
   const [runners, setRunners] = useState<Runner[]>([]);
+  const [works, setWorks] = useState<ManagedWork[]>([]);
+  const [workLoadError, setWorkLoadError] = useState('');
+  const [archiveConfirm, setArchiveConfirm] = useState('');
+  const [archiving, setArchiving] = useState('');
+  const [archiveError, setArchiveError] = useState('');
+  const [archiveNotice, setArchiveNotice] = useState('');
   const [projectName, setProjectName] = useState('');
   const [projectPath, setProjectPath] = useState('~');
   const [projectRunner, setProjectRunner] = useState('shell');
@@ -46,6 +54,7 @@ export function SettingsPage() {
   // bottom of the project list.
   const [projectError, setProjectError] = useState('');
   const [projectNotice, setProjectNotice] = useState('');
+  const [lastRegistered, setLastRegistered] = useState<Project>();
   const [unregisterNotice, setUnregisterNotice] = useState('');
   const [unregisterError, setUnregisterError] = useState('');
   const [terminalCols, setTerminalCols] = useState('240');
@@ -70,6 +79,14 @@ export function SettingsPage() {
   const [revokeNotice, setRevokeNotice] = useState('');
   const loadId = useRef(0);
   const browserLinkInput = useRef<HTMLInputElement>(null);
+  const settingsQuery = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
+  const requestedSection = settingsQuery.get('section');
+  const returnToStart = settingsQuery.get('return') === 'start';
+  useEffect(() => {
+    if (loading || !requestedSection) return;
+    const id = requestedSection === 'projects' ? 'projects-title' : requestedSection === 'recovery' ? 'lost-work-title' : '';
+    if (id) requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }));
+  }, [loading, requestedSection]);
 
   const load = useCallback(async () => {
     const currentLoad = ++loadId.current;
@@ -95,32 +112,20 @@ export function SettingsPage() {
         ]);
       if (currentLoad !== loadId.current) return;
       setHost(nextHost);
-      // The API refuses to unregister a Project that has active Managed Work, so
-      // the page counts that Work up front instead of letting the user press a
-      // button that can only fail. Verified against the live store: three
-      // RUNNING Works on project-E_zCrQ produce a count of 3.
+      setWorkLoadError('');
       void getWork()
         .then((work) => {
           if (currentLoad !== loadId.current) return;
-          const counts: Record<string, number> = {};
-          for (const entry of work) {
-            if (
-              entry.state !== 'RUNNING' &&
-              entry.state !== 'STARTING' &&
-              entry.state !== 'ACCEPTED'
-            ) {
-              continue;
-            }
-            if (entry.project_id) {
-              counts[entry.project_id] = (counts[entry.project_id] ?? 0) + 1;
-            }
-          }
-          setActiveWorkByProject(counts);
+          setWorks(work);
+          setActiveWorkByProject(activeWorkCounts(work));
         })
         .catch(() => {
+          if (currentLoad !== loadId.current) return;
           // A count that cannot be read must not block the control; the API
           // remains the authority and will refuse if it disagrees.
           setActiveWorkByProject({});
+          setWorks([]);
+          setWorkLoadError('Work status could not be loaded. Refresh before resolving lost Work.');
         });
       if (nextHost.terminal_full_size) {
         setTerminalCols(String(nextHost.terminal_full_size.cols));
@@ -318,6 +323,7 @@ export function SettingsPage() {
       setProjectName('');
       setProjectPath('~');
       setProjectNotice(`Registered “${created.name}”. It is now available in Start Work.`);
+      setLastRegistered(created);
     } catch (caught) {
       setProjectError(
         caught instanceof Error ? caught.message : 'Could not register the Project.',
@@ -354,12 +360,32 @@ export function SettingsPage() {
 
   const browserLinkClock = `${Math.floor(browserLinkSeconds / 60)}:${String(browserLinkSeconds % 60).padStart(2, '0')}`;
 
+  const resolveLostWork = async (item: ManagedWork) => {
+    setArchiving(item.id);
+    setArchiveError('');
+    setArchiveNotice('');
+    try {
+      const archived = await archiveWork(item.id);
+      const next = works.map((work) => work.id === item.id ? archived : work);
+      setWorks(next);
+      setActiveWorkByProject(activeWorkCounts(next));
+      setArchiveConfirm('');
+      setArchiveNotice('Lost Work archived. Its history is retained and it no longer blocks the Project.');
+    } catch (caught) {
+      setArchiveError(caught instanceof Error ? caught.message : 'Could not archive Work.');
+    } finally {
+      setArchiving('');
+    }
+  };
+  const lostWorks = works.filter((work) => isActiveWork(work) && work.recovery_status);
+  const archivedWorks = works.filter((work) => work.archived_at);
+
   return (
     <div class="page-stack">
       <header class="page-heading">
         <div class="section-kicker">This connection</div>
         <h1>Settings</h1>
-        <p>Transport facts, Project targets, and paired-device access.</p>
+        <p>Transport facts, Project targets, Work recovery, and paired-device access.</p>
       </header>
 
       {loading ? (
@@ -489,6 +515,7 @@ export function SettingsPage() {
               <div>
                 <h2 id="projects-title">Projects</h2>
                 <p>Only registered Mac paths can be launched from the phone.</p>
+                {returnToStart && <a class="back-link" href="#/start">‹ Back to Start Work</a>}
               </div>
               <button
                 class="icon-button"
@@ -506,6 +533,7 @@ export function SettingsPage() {
             {projectNotice && (
               <p class="browser-link-notice" role="status">
                 {projectNotice}
+                {lastRegistered && <a class="button button-primary button-small registered-start" href={`#/start?project=${encodeURIComponent(lastRegistered.id)}`}>Start in this directory ›</a>}
               </p>
             )}
 
@@ -600,6 +628,7 @@ export function SettingsPage() {
                       )}
                     </div>
                     <div class="project-card-actions">
+                      <a class="button button-secondary button-small" href={`#/start?project=${encodeURIComponent(project.id)}`}>Start here</a>
                       {activeWorkByProject[project.id] ? (
                         <span class="project-in-use">
                           {activeWorkByProject[project.id]} active Work
@@ -690,6 +719,56 @@ export function SettingsPage() {
                   </p>
                 )}
               </div>
+            )}
+          </section>
+
+          <section class="settings-section" aria-labelledby="lost-work-title">
+            <div class="section-heading compact-heading">
+              <div>
+                <h2 id="lost-work-title">Work needing attention</h2>
+                <p>Resolve lost records before unregistering their Projects.</p>
+              </div>
+              <button class="icon-button" type="button" onClick={() => void load()} aria-label="Refresh Work status">↻</button>
+            </div>
+            {workLoadError && <ErrorNotice message={workLoadError} />}
+            {archiveNotice && <p class="browser-link-notice" role="status">{archiveNotice}</p>}
+            {lostWorks.length === 0 && !workLoadError && <p class="settings-footnote">No Work needs recovery.</p>}
+            <div class="project-list">
+              {lostWorks.map((work) => (
+                <article class="card" key={work.id}>
+                  <h3>{projects.find((project) => project.id === work.project_id)?.name ?? 'Unregistered Project'}</h3>
+                  <p>Needs review · {work.runner_id ?? 'Runner'} · exit result unknown</p>
+                  <code>{work.id}</code>
+                  <p class="settings-footnote">{work.recovery_status}</p>
+                  {archiveConfirm === work.id ? (
+                    <div class="inline-confirm" role="alertdialog" aria-label="Confirm archive lost Work">
+                      <p>Archive this lost Work? The Mac will check that its Session and processes are gone. History remains available and its exit result stays unknown.</p>
+                      <div class="inline-confirm-actions">
+                        <button class="button button-secondary button-small" type="button" disabled={Boolean(archiving)} onClick={() => { setArchiveConfirm(''); setArchiveError(''); }}>Cancel</button>
+                        <button class="button button-danger button-small" type="button" disabled={Boolean(archiving)} onClick={() => void resolveLostWork(work)}>{archiving ? 'Checking…' : 'Archive lost Work'}</button>
+                      </div>
+                      {archiveError && <p class="inline-confirm-error" role="alert">{archiveError}</p>}
+                    </div>
+                  ) : (
+                    <button class="button button-secondary button-small" type="button" disabled={Boolean(archiving)} onClick={() => { setArchiveConfirm(work.id); setArchiveError(''); setArchiveNotice(''); }}>Review and archive</button>
+                  )}
+                </article>
+              ))}
+            </div>
+            {archivedWorks.length > 0 && (
+              <details class="device-history">
+                <summary>Archived Work · {archivedWorks.length}</summary>
+                <div class="project-list">
+                  {archivedWorks.map((work) => (
+                    <article class="card" key={work.id}>
+                      <h3>{projects.find((project) => project.id === work.project_id)?.name ?? 'Unregistered Project'}</h3>
+                      <code>{work.id}</code>
+                      <p>{work.exit_code === undefined ? 'Exit result unknown' : `Exit code ${work.exit_code}`}</p>
+                      <p class="settings-footnote">Archived {formatDate(work.archived_at)}</p>
+                    </article>
+                  ))}
+                </div>
+              </details>
             )}
           </section>
 

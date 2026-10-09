@@ -62,6 +62,20 @@ Runtime profile details and cutover rules are in [`VERSIONING.md`](VERSIONING.md
 ```sh
 make test
 make test-race
+make test-browser
+```
+
+Browser tests require `cd web && npx playwright install chromium webkit`. They use
+temporary state, independent tmux sockets and a real interactive shell without
+personal login dotfiles. The mobile-size suite covers lost-Work archival,
+Project unregister, browser close and daemon restart durability, raw input
+reconnect, FULL controls and uncertain Prompt retention.
+
+Authenticated Runner probes use the operator's configured credentials/provider
+in disposable directories and are explicitly enabled:
+
+```sh
+MCTRL_LIVE_RUNNERS=1 .tools/go1.27.1/bin/go test -run TestAuthenticatedAgentContracts -v -count=1 -timeout=5m ./internal/runner
 ```
 
 The full deterministic release gate is:
@@ -74,6 +88,9 @@ It verifies the pinned Go toolchain, CGO, macOS, Node.js 22+, npm and tmux; veri
 Go modules; runs tests/vet/race; rebuilds the frontend; embeds and verifies the
 assets; builds both binaries; runs stateless CLI smoke checks; and builds/verifies
 the lightweight macOS pairing launcher bundle.
+
+Each supported build refreshes `SHA256SUMS` in the selected binary directory.
+Uncommitted source is marked with `-dirty` in the binary commit identity.
 
 Real tmux integration tests skip when the `tmux` executable is absent during ordinary
 `go test` runs, but `make release-check` refuses to continue without tmux so a

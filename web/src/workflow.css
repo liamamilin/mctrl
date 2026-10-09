@@ -1,0 +1,77 @@
+.copy-text { min-width: 0; margin: 10px 0; }
+.copy-text-label { display: block; margin-bottom: 6px; color: var(--muted); font-size: .68rem; }
+.copy-text textarea {
+  display: block; width: 100%; min-width: 0; padding: 10px; resize: none;
+  color: var(--text); background: #080e0b; border: 1px solid var(--border);
+  border-radius: 9px; font: 16px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text;
+}
+.copy-text-output textarea { height: 190px; overflow: auto; -webkit-overflow-scrolling: touch; }
+.copy-text:not(.copy-text-output) { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
+.copy-text:not(.copy-text-output) .copy-text-actions { margin: 0; }
+.copy-text:not(.copy-text-output) .copy-text-notice { grid-column: 1 / -1; }
+.copy-text-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.copy-text-actions .button { min-height: 44px; padding: 8px 10px; font-size: .72rem; }
+.copy-text-notice, .directory-hint { margin: 7px 0 0; color: var(--text-soft); font-size: .7rem; line-height: 1.5; }
+.selected-fact .copy-text { margin: 0; }
+.selected-fact { padding: 12px; white-space: normal; }
+.copy-text textarea[wrap="off"] { white-space: pre; overflow-x: auto; }
+.launch-mode { padding: 18px; }
+.launch-mode h2 { font-size: .95rem; margin: 0 0 12px; }
+.launch-mode p, .desktop-handoff p, .session-end-section p { color: var(--text-soft); font-size: .8rem; line-height: 1.6; }
+.launch-mode small { display: block; color: var(--muted); font-size: .68rem; line-height: 1.5; }
+.mode-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mode-options button { min-height: 44px; padding: 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; color: var(--text-soft); font-size: .76rem; }
+.mode-options .selected { color: var(--accent); border-color: var(--accent); background: rgba(121, 230, 165, .08); }
+.launch-form .runner-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.launch-form .runner-option { min-height: 64px; padding: 8px 4px; display: flex; justify-content: center; text-align: center; }
+.launch-form .runner-option strong { font-size: .74rem; }
+.launch-form .runner-option .radio-indicator, .launch-form .runner-option small, .launch-form .runner-option .availability-dot { display: none; }
+.launch-form .runner-option.unavailable small { display: block; font-size: .6rem; }
+.registered-start { display: block; width: fit-content; margin-top: 10px; }
+#projects-title, #lost-work-title { scroll-margin-top: 82px; }
+.session-human-context { margin: 6px 0 10px; font-size: .7rem; color: var(--muted); overflow-wrap: anywhere; }
+.session-process-summary { color: var(--accent); font-size: .8rem; }
+.session-technical-details, .process-details { margin-top: 12px; }
+.session-technical-details summary, .process-details summary, .desktop-handoff summary, .session-end-section summary { cursor: pointer; padding: 10px 0; font-size: .8rem; color: var(--text-soft); }
+.session-technical-details .fact-grid { margin-top: 10px; }
+.process-details > .work-card { margin-top: 12px; }
+.session-end-section, .desktop-handoff { padding: 12px 18px; }
+.session-end-section summary { color: var(--danger); }
+.resume-card { display: grid; gap: 7px; padding: 16px 18px; border-color: rgba(121, 230, 165, .28); }
+.resume-card > strong { font-size: 1rem; overflow-wrap: anywhere; }
+.resume-card > span:not(.section-kicker) { font-size: .72rem; color: var(--text-soft); overflow-wrap: anywhere; }
+.resume-card .resume-action { color: var(--accent) !important; }
+.attention-link { padding: 12px 16px; border-radius: 10px; background: var(--warning-bg); color: var(--warning); font-size: .8rem; }
+.terminal-header { grid-template-columns: 32px minmax(0, 1fr) auto auto; gap: 7px; }
+.terminal-copy-button { align-self: center; min-height: 44px; min-width: 44px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); color: var(--accent); font-size: .7rem; }
+.terminal-output-dialog {
+  position: fixed; inset: auto 0 0; margin: 0 auto; width: min(100%, 640px);
+  max-height: min(88dvh, 850px); padding: 18px 16px calc(16px + env(safe-area-inset-bottom));
+  overflow: auto; background: #101a14; color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: 18px 18px 0 0;
+}
+.terminal-output-dialog::backdrop { background: rgba(0, 0, 0, .6); }
+.terminal-output-dialog h2 { margin: 0; font-size: 1rem; }
+.terminal-output-dialog .copy-text-output textarea { height: clamp(150px, 30dvh, 300px); }
+.draft-help { color: var(--muted); font-size: .62rem; margin-bottom: 5px; }
+.draft-send-return { display: block; margin: 5px 0 0 auto; font-size: .65rem; }
+.draft-notice { margin: 5px 0 0; color: var(--text-soft); font-size: .65rem; line-height: 1.4; }
+@media (max-width: 360px) {
+  .form-section-title { flex-wrap: wrap; }
+  .copy-text-actions .button { font-size: .63rem; padding: 7px 8px; }
+}
+
+.launch-form .form-section { display: block; padding: 15px 17px; }
+.launch-form .form-section-number { display: none; }
+.launch-form .selected-fact { padding: 0; background: transparent; gap: 0; }
+.launch-form .directory-hint { margin-top: 5px; }
+.launch-form .launch-mode { margin-top: 14px; padding: 14px 0 0; border-top: 1px solid var(--border); }
+.launch-form .launch-mode h2 { font-size: .8rem; margin-bottom: 10px; }
+.copy-text.copy-text-with-draft:not(.copy-text-output) { display: block; }
+.copy-text.copy-text-with-draft:not(.copy-text-output) .copy-text-actions { margin-top: 7px; }
+.copy-text-update { display: grid; gap: 8px; margin-top: 8px; color: var(--text-soft); font-size: .72rem; }
+.copy-text-update .button { justify-self: start; min-height: 44px; }
+.output-captured-at { font-size: .65rem; }
+.terminal-title > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.launch-failed-mark { color: var(--danger); background: var(--danger-bg); }

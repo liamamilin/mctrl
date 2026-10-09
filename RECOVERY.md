@@ -80,3 +80,20 @@ The result contains the observed exit code or signal and cannot be reused by
 another attempt. If the process stops between those writes, reconciliation
 rebuilds Work from the result. Once final exit facts are persisted, the daemon
 trusts them unless validation detects corruption or a mismatch.
+
+## Resolving a lost record
+
+Settings → Work needing attention allows an operator to review and archive lost
+Work after inline confirmation. The Mac rechecks Session and process evidence
+under the launch and record locks. It refuses while anything is alive or its
+absence cannot be verified.
+
+Archival adds `archived_at` without inventing an exit result or changing the Work
+state machine. The record no longer blocks Project unregister; history and the
+request-id mapping remain. An old Launch retry or stale launch evidence cannot
+start it again. Late canonical results may still supply real exit facts.
+
+```sh
+mctrl work list
+mctrl work archive --confirm <work-id>
+```

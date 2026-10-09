@@ -61,8 +61,10 @@ type Work struct {
 	PromptDelivery     PromptDelivery `json:"prompt_delivery"`
 	TerminationReason  string         `json:"termination_reason,omitempty"`
 	RecoveryStatus     string         `json:"recovery_status,omitempty"`
-	ErrorCode          string         `json:"error_code,omitempty"`
-	ErrorMessage       string         `json:"error_message,omitempty"`
+	// Archival is an operator decision about a lost record, never an exit fact.
+	ArchivedAt   *time.Time `json:"archived_at,omitempty"`
+	ErrorCode    string     `json:"error_code,omitempty"`
+	ErrorMessage string     `json:"error_message,omitempty"`
 	// Prompt is never returned by the API. It is only persisted when the
 	// operator explicitly enables store_prompts.
 	Prompt string `json:"prompt,omitempty"`
@@ -128,6 +130,8 @@ func (w Work) Terminal() bool {
 	return w.State == StateExited || w.State == StateLaunchFailed
 }
 
+func (w Work) Active() bool { return !w.Terminal() && w.ArchivedAt == nil }
+
 func (w Work) DTO() map[string]interface{} {
 	result := map[string]interface{}{
 		"id":              w.ID,
@@ -167,6 +171,9 @@ func (w Work) DTO() map[string]interface{} {
 	}
 	if w.RecoveryStatus != "" {
 		result["recovery_status"] = w.RecoveryStatus
+	}
+	if w.ArchivedAt != nil {
+		result["archived_at"] = w.ArchivedAt
 	}
 	if w.ErrorCode != "" {
 		result["error_code"] = w.ErrorCode

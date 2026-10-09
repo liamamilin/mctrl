@@ -85,7 +85,7 @@ export function App() {
     return <LinkBrowserPage initialToken={route.linkToken} />;
   }
   if (route.name === 'terminal') {
-    return <TerminalPage sessionId={route.sessionId} />;
+    return <TerminalPage key={route.sessionId} sessionId={route.sessionId} />;
   }
 
   return (

@@ -72,7 +72,7 @@ the user's home directory and stores the resolved absolute path.
 ### DELETE /projects/:id
 
 Unregisters a Project from future launches. Existing Sessions and Work are not
-closed. If the Project still has non-terminal Managed Work, the request returns
+closed. If the Project still has non-terminal, unarchived Managed Work, the request returns
 `409 PROJECT_IN_USE` and nothing is removed.
 
 ## Runners
@@ -92,6 +92,19 @@ closed. If the Project still has non-terminal Managed Work, the request returns
 ### GET /sessions
 
 ### GET /sessions/:id
+
+Session `active_pane` and `pane_details` include optional `bracketed_paste`, the
+pane's actual `bracket_paste_flag` observation. Missing means unknown, not enabled.
+This is separate from the tmux client's paste framing. Clients must check current
+program support before inserting multiline drafts.
+
+Session `managed_work` may include optional `child_cwd`. It is a read-only,
+bounded observation of the registered child of a RUNNING, unarchived Work, only
+when the active pane belongs to its Runner. Runner/Attempt identity and child
+ownership are verified, and child ownership is checked again after reading. It is omitted on observation
+failure and never persisted to Work history. tmux's pane `cwd` remains its own
+fact, and may be the Runner's starting directory rather than a Shell's cwd after
+`cd`. `/work` does not promise this ephemeral directory field.
 
 ### POST /sessions/:id/close
 
@@ -127,12 +140,38 @@ Defaults:
 - Detail: 100
 
 Preview is plain text with terminal escape sequences stripped.
+Trailing blank pane rows are removed before applying the requested line limit,
+so short output remains visible in a tall pane. Interior blank lines are kept;
+an empty pane returns an empty `lines` array.
+
+Desktop continuation fields are optional and read-only:
+
+- `GET /host`: `desktop_start_command` (`mctrl here`, including profile when needed).
+- `GET /sessions` and `GET /sessions/:id`: `desktop_resume_command`, quoting the
+  daemon's effective socket and observed Session ID/name. Copying it performs no
+  execution; the user runs it locally on the Mac, where identity is checked again.
 
 ## Work
 
 ### GET /work
 
 ### GET /work/:id
+
+### POST /work/:id/archive
+
+```json
+{ "confirm": true }
+```
+
+Archives a lost Work after verifying its Session identifiers and Runner/child
+processes are absent. Authentication, Origin and CSRF rules apply. Existing
+Sessions, live processes, uncertain observation, fresh launches, or exit evidence
+awaiting reconciliation return `409 WORK_ARCHIVE_UNSAFE`.
+
+The response adds `archived_at`. Archival preserves state, launch-stage and exit
+facts, history, and the request-id mapping, but removes Project occupancy. It is
+idempotent; old Launch requests cannot restart archived Work. Late canonical exit
+evidence is still applied.
 
 ### POST /work
 
@@ -266,6 +305,7 @@ Stable V1 codes:
 - WORK_NOT_FOUND
 - WORK_LAUNCH_FAILED
 - WORK_ATTEMPT_CHANGED
+- WORK_ARCHIVE_UNSAFE
 - IDEMPOTENCY_KEY_REUSED
 - PROMPT_DELIVERY_FAILED
 - TERMINAL_ATTACH_FAILED

@@ -1,3 +1,4 @@
+import { normalizeHalfWidth } from '../terminal-input';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { JSX } from 'preact';
 import { FitAddon } from '@xterm/addon-fit';
@@ -8,13 +9,17 @@ import {
   ApiError,
   getHost,
   getSession,
+  getProjects,
   isUncertainOutcome,
   runtimeStorageKey,
   sendSessionPrompt,
 } from '../api';
 import { makeRequestId } from '../format';
 import { sessionPath } from '../router';
-import type { ActivePane, TerminalSize } from '../types';
+import type { ActivePane, Project, Session, TerminalSize } from '../types';
+import { TerminalOutput } from '../components/TerminalOutput';
+import { rememberSession } from '../session-history';
+import { useForegroundRefresh } from '../use-foreground-refresh';
 
 const RECONNECT_DELAYS = [500, 1000, 2000, 5000, 10000] as const;
 
@@ -63,70 +68,6 @@ function overviewTargetSize(
       FALLBACK_FULL_SIZE.rows,
     ),
   };
-}
-
-// Terminals want half-width ASCII, and a Chinese IME does not send it.
-//
-// Measured on the phone, with the daemon recording every frame the browser
-// sends: a Chinese keyboard delivers letters and Return and delivers nothing at
-// all for the digit row or for punctuation. Those keys never produce a DOM
-// event, so no conversion here can help and none is attempted for them. The
-// English keyboard sends `1` as 0x31 and `,` as 0x2C, which is why switching
-// keyboards works.
-//
-// What this does fix is the text that does arrive in the wrong width. A Chinese
-// keyboard with an English layout active, a paste, or a hardware keyboard
-// produces real characters, and they are full-width or CJK punctuation. A
-// program that binds `.` or `,` never sees `。` or `、`.
-//
-// Three blocks are covered, and only characters with one unambiguous ASCII
-// equivalent are converted:
-//
-//   U+FF01..U+FF5E  full-width forms        → ASCII 0x21..0x7E
-//   U+3000..U+3003  ideographic punctuation → space , . (and 〃 untouched)
-//   U+2018..U+201D  curly quotes            → ' and "
-//
-// Everything else is left exactly as typed: CJK text, CJK brackets such as
-// 「」【】, the em dash and the ellipsis, and the circled digits a long press
-// produces. Those are meaningful characters, not width errors.
-//
-// Set mctrl-terminal-half-width to "off" in localStorage to send raw bytes.
-function normalizeHalfWidth(data: string): string {
-  let result = '';
-  for (const character of data) {
-    const code = character.codePointAt(0) ?? 0;
-    if (code >= 0xff01 && code <= 0xff5e) {
-      // U+FF01..U+FF5E map onto ASCII 0x21..0x7E.
-      result += String.fromCharCode(code - 0xfee0);
-      continue;
-    }
-    if (code === 0x3000) {
-      result += ' ';
-      continue;
-    }
-    if (code === 0x3001) {
-      // 、 ideographic comma
-      result += ',';
-      continue;
-    }
-    if (code === 0x3002) {
-      // 。 ideographic full stop. This is the character a Chinese keyboard
-      // sends for the period key, and it sits below the full-width block, so
-      // covering only U+FF01..U+FF5E let it through unchanged.
-      result += '.';
-      continue;
-    }
-    if (code === 0x2018 || code === 0x2019) {
-      result += "'";
-      continue;
-    }
-    if (code === 0x201c || code === 0x201d) {
-      result += '"';
-      continue;
-    }
-    result += character;
-  }
-  return result;
 }
 
 // The escape hatch for a program that genuinely wants full-width input. There is
@@ -205,7 +146,13 @@ function clearPendingPrompt(key: string): void {
 
 export function TerminalPage({ sessionId }: { sessionId: string }) {
   const terminalHost = useRef<HTMLDivElement>(null);
+  const draftField = useRef<HTMLTextAreaElement>(null);
+  const draftRange = useRef({ start: 0, end: 0 });
+  const refreshFacts = useRef<() => void>(() => undefined);
   const sendRaw = useRef<(data: string) => boolean>(() => false);
+  const insertText = useRef<(text: string, programPasteReady?: boolean) => string>(() => 'Reconnect before inserting text.');
+  const workInputReady = useRef(false);
+  const setInputEnabled = useRef<(ready: boolean) => void>(() => undefined);
   const focusTerminal = useRef<() => void>(() => undefined);
   const toggleOverview = useRef<() => void>(() => undefined);
   // The terminal instance itself stays inside the effect; only the one
@@ -231,6 +178,14 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     undefined,
   );
   const [sessionLabel, setSessionLabel] = useState('');
+  const [sessionFacts, setSessionFacts] = useState<Session>();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [outputOpen, setOutputOpen] = useState(false);
+  const [draftNotice, setDraftNotice] = useState('');
+  const [bracketedPaste, setBracketedPaste] = useState(false);
+  const [programPasteReady, setProgramPasteReady] = useState(false);
+  const [insertingDraft, setInsertingDraft] = useState(false);
+  const [inputReady, setInputReady] = useState(false);
   const [scrolledBack, setScrolledBack] = useState(0);
   const [keyboardInset, setKeyboardInset] = useState(0);
   // Read once per mount: it is an escape hatch, not a preference the user is
@@ -238,6 +193,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const [halfWidth] = useState(halfWidthEnabled);
   const [prompt, setPrompt] = useState('');
   const [sendingPrompt, setSendingPrompt] = useState(false);
+  const needsMultilinePaste = /[\r\n\t]/u.test(prompt);
   const [promptNotice, setPromptNotice] = useState<PromptNotice | undefined>(() =>
     initialPromptRequest
       ? {
@@ -252,6 +208,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     const pending = readPendingPrompt(promptStorageKey);
     promptRequest.current = pending;
     setPrompt('');
+    setDraftNotice('');
+    setOutputOpen(false);
+    setBracketedPaste(false);
     setOverview(false);
     setOverviewBusy(false);
     setOverviewError('');
@@ -271,16 +230,48 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   // header is never a bare identifier.
   useEffect(() => {
     let cancelled = false;
+    void getProjects().then(value => { if (!cancelled) setProjects(value); }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [sessionId]);
+  useForegroundRefresh(() => refreshFacts.current());
+
+  useEffect(() => {
+    let cancelled = false;
+    let running = false;
+    let requested = false;
+    let timer: number | undefined;
+    workInputReady.current = false;
+    setInputReady(false);
     setSessionLabel('');
-    void getSession(sessionId)
-      .then((session) => {
-        if (!cancelled) setSessionLabel(session.name || sessionId);
-      })
-      .catch(() => {
-        if (!cancelled) setSessionLabel('');
-      });
+    setSessionFacts(undefined);
+    const load = async () => {
+      if (running) { requested = true; return; }
+      running = true;
+      window.clearTimeout(timer);
+      let retrySoon = false;
+      try {
+        const session = await getSession(sessionId);
+        if (cancelled) return;
+        setSessionLabel(session.name || sessionId);
+        setSessionFacts(session);
+        rememberSession(session);
+        const work = session.managed_work ?? session.work;
+        const starting = Boolean(work && (['ACCEPTED', 'STARTING'].includes(work.state) || (work.state === 'RUNNING' && ['pending', 'started'].includes(work.prompt_delivery ?? ''))));
+        retrySoon = starting;
+        workInputReady.current = !starting;
+        setInputReady(!starting);
+        setInputEnabled.current(!starting);
+      } catch { /* Keep the last facts while a connection is unavailable. */ }
+      running = false;
+      if (!cancelled) timer = window.setTimeout(() => void load(), requested ? 0 : retrySoon ? 500 : 10_000);
+      requested = false;
+    };
+    refreshFacts.current = () => void load();
+    void load();
     return () => {
       cancelled = true;
+      refreshFacts.current = () => undefined;
+      window.clearTimeout(timer);
     };
   }, [sessionId]);
 
@@ -347,6 +338,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       throw new Error('Terminal element was not created.');
     }
     terminal.options.disableStdin = true;
+    setInputEnabled.current = (ready) => {
+      terminal.options.disableStdin = !ready || inputIsBlocked || socket?.readyState !== WebSocket.OPEN || stopped;
+    };
 
     // The 编辑 button must reach the terminal's own hidden input, otherwise iOS
     // keeps the software keyboard aimed at another field.
@@ -461,7 +455,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           overviewFitScale = measureOverviewFitScale();
           host.scrollLeft = 0;
           host.scrollTop = 0;
-          terminal.options.disableStdin = inputIsBlocked || stopped;
+          terminal.options.disableStdin = !workInputReady.current || inputIsBlocked || stopped;
           terminal.refresh(0, Math.max(0, full.rows - 1));
           setOverview(true);
           sendTerminalResize();
@@ -469,7 +463,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
         } else {
           overviewMode = false;
           clearOverviewLayout();
-          terminal.options.disableStdin = inputIsBlocked || stopped;
+          terminal.options.disableStdin = !workInputReady.current || inputIsBlocked || stopped;
           setOverview(false);
           try {
             fitAddon.fit();
@@ -482,7 +476,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
         overviewMode = false;
         clearOverviewLayout();
         setOverview(false);
-        terminal.options.disableStdin = inputIsBlocked;
+        terminal.options.disableStdin = !workInputReady.current || inputIsBlocked;
         try {
           fitAddon.fit();
         } catch {
@@ -575,6 +569,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     const send = (data: string): boolean => {
       if (
         disposed ||
+        !workInputReady.current ||
         inputIsBlocked ||
         socket?.readyState !== WebSocket.OPEN
       ) {
@@ -593,7 +588,10 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
 
     // One path for typed text, so the keybar and the software keyboard cannot
     // drift apart.
+    let inserting = false;
+    let inserted = false;
     const sendTyped = (text: string) => {
+      if (inserting) { inserted = send(text); return; }
       const transformed = withControlModifier(
         halfWidth ? normalizeHalfWidth(text) : text,
         controlArmed.current,
@@ -603,10 +601,28 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
 
     sendRaw.current = send;
     const rawDisposable = terminal.onData(sendTyped);
+    const pasteModeTimer = window.setInterval(() => {
+      setBracketedPaste(terminal.modes.bracketedPasteMode);
+    }, 250);
+    insertText.current = (text: string, programReady = false) => {
+      if (!workInputReady.current || inputIsBlocked || socket?.readyState !== WebSocket.OPEN) return 'Wait for startup and reconnect before inserting text. The draft has not been sent.';
+      if (/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/u.test(text)) return 'Remove control characters before inserting this text.';
+      if (/[\r\n\t]/u.test(text) && (!programReady || !terminal.modes.bracketedPasteMode)) {
+        return 'This program does not accept a multiline paste safely. Insert a single line, or use the terminal keyboard.';
+      }
+      inserted = false;
+      inserting = true;
+      try { terminal.paste(text); } finally { inserting = false; }
+      if (!inserted) return 'Insertion could not be confirmed. Inspect the terminal before trying again; nothing will be resent.';
+      controlArmed.current = false;
+      setControlArmedState(false);
+      return '';
+    };
     const binaryDisposable = terminal.onBinary((data) => {
       const bytes = Uint8Array.from(data, (character) => character.charCodeAt(0));
       if (
         disposed ||
+        !workInputReady.current ||
         inputIsBlocked ||
         socket?.readyState !== WebSocket.OPEN
       ) {
@@ -756,7 +772,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           hadConnection = true;
           openedAt = Date.now();
           inputIsBlocked = false;
-          terminal.options.disableStdin = inputIsBlocked || stopped;
+          terminal.options.disableStdin = !workInputReady.current || inputIsBlocked || stopped;
           setInputBlocked(false);
           setInputWarning('');
           setProtocolMessage('');
@@ -939,8 +955,11 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       toggleOverview.current = () => undefined;
       focusTerminal.current = () => undefined;
       rawDisposable.dispose();
+      window.clearInterval(pasteModeTimer);
       binaryDisposable.dispose();
       sendRaw.current = () => false;
+      insertText.current = () => 'Reconnect before inserting text.';
+      setInputEnabled.current = () => undefined;
       if (socket) {
         socket.onclose = null;
         socket.close(1000, 'terminal page closed');
@@ -955,6 +974,47 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       setControlArmedState(false);
     }
   }, [connection]);
+
+  // tmux enables paste framing for its client even when the active program
+  // has not. Observe the pane's actual mode separately while a multiline
+  // draft is present; an unavailable/older tmux cannot authorize this paste.
+  useEffect(() => {
+    let cancelled = false;
+    let timer: number | undefined;
+    setProgramPasteReady(false);
+    if (!needsMultilinePaste || connection !== 'connected' || !inputReady) return;
+    const observe = async () => {
+      let ready = false;
+      try { ready = (await getSession(sessionId)).active_pane?.bracketed_paste === true; } catch { /* Keep the draft. */ }
+      if (cancelled) return;
+      setProgramPasteReady(ready);
+      timer = window.setTimeout(() => void observe(), 500);
+    };
+    void observe();
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [sessionId, needsMultilinePaste, connection, inputReady]);
+
+  const insertDraft = async () => {
+    if (insertingDraft) return;
+    const text = prompt;
+    setInsertingDraft(true);
+    let ready = false;
+    try {
+      if (/[\r\n\t]/u.test(text)) {
+        ready = (await getSession(sessionId)).active_pane?.bracketed_paste === true;
+        if (!ready) {
+          setProgramPasteReady(false);
+          setDraftNotice('The program no longer accepts multiline paste. Your draft has not been sent.');
+          return;
+        }
+      }
+      const error = insertText.current(text, ready);
+      setDraftNotice(error || 'Inserted. Press ⏎ in the terminal when ready.');
+      if (!error) setPrompt('');
+    } catch {
+      setDraftNotice('Could not confirm paste support. Your draft has not been sent.');
+    } finally { setInsertingDraft(false); }
+  };
 
   const pressKey = (data: string) => {
     if (!sendRaw.current(halfWidth ? normalizeHalfWidth(data) : data)) return;
@@ -1019,14 +1079,46 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     }
   };
 
-  const terminalInputDisabled = connection !== 'connected' || inputBlocked;
+  const terminalInputDisabled = connection !== 'connected' || inputBlocked || !inputReady;
+  const associated = sessionFacts?.managed_work ?? sessionFacts?.work;
+  const project = projects.find(item => item.id === associated?.project_id);
+  const currentCommand = sessionFacts?.active_command || sessionFacts?.active_pane?.command || '';
+  const shellCommand = /^(?:-)?(?:sh|bash|zsh|fish|ksh|dash)$/u.test(currentCommand);
+  const shellSendSupported = associated
+    ? associated.runner_id === 'shell' && (shellCommand || currentCommand === 'mctrl-runner')
+    : shellCommand;
   const promptUncertain = promptNotice?.kind === 'uncertain';
+  const multilineBlocked = needsMultilinePaste && (!bracketedPaste || !programPasteReady);
   const promptDisabled =
-    terminalInputDisabled || overview || sendingPrompt || promptUncertain;
+    terminalInputDisabled || overview || sendingPrompt || insertingDraft || promptUncertain;
   // FULL is a whole-Session view; the Structured Prompt dock would only take
   // space there. An unconfirmed prompt still has to stay reachable, because it
   // is the one thing in that dock the user may have to act on.
   const showPromptDock = !overview || promptUncertain;
+
+  const rememberDraftRange = () => {
+    const element = draftField.current;
+    draftRange.current = element
+      ? { start: element.selectionStart, end: element.selectionEnd }
+      : { start: prompt.length, end: prompt.length };
+  };
+  const useOutputText = (text: string) => {
+    const start = Math.min(draftRange.current.start, prompt.length);
+    const end = Math.min(draftRange.current.end, prompt.length);
+    const next = prompt.slice(0, start) + text + prompt.slice(end);
+    const caret = start + text.length;
+    setPrompt(next);
+    draftRange.current = { start: caret, end: caret };
+    setDraftNotice('Added at your cursor. Review the draft before inserting.');
+    setOutputOpen(false);
+    if (overview) toggleOverview.current();
+    const element = draftField.current;
+    if (element) {
+      element.value = next;
+      element.focus({ preventScroll: true });
+      element.setSelectionRange(caret, caret);
+    }
+  };
 
   return (
     <div
@@ -1048,13 +1140,14 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           ‹
         </a>
         <div class="terminal-title">
-          <span>Session</span>
-          <strong>{sessionLabel || sessionId}</strong>
+          <span>{project ? `${associated?.runner_id} · ${sessionLabel}` : 'Session'}</span>
+          <strong>{project?.name ?? (sessionLabel || sessionId)}</strong>
         </div>
         <div class={`connection-pill connection-${connection}`}>
           <span aria-hidden="true" />
-          {connection === 'connected' ? 'Live' : connection}
+          {connection === 'connected' ? inputReady ? 'Live' : 'Starting' : connection}
         </div>
+        <button class="terminal-copy-button" type="button" onClick={() => { rememberDraftRange(); setOutputOpen(true); }} aria-label="Copy output and current path">Copy</button>
       </header>
 
       <main class="terminal-workspace">
@@ -1285,7 +1378,8 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
         </div>
 
         {showPromptDock && (
-          <form class="prompt-dock" onSubmit={submitPrompt}>
+          <form class="prompt-dock" onSubmit={(event) => event.preventDefault()}>
+            <div class="draft-help">{inputReady ? 'Compose here, insert into the terminal, then press ⏎.' : 'Waiting for the session to finish starting. No input is queued.'}</div>
             {promptNotice && (
               <div
                 class={`prompt-notice prompt-notice-${promptNotice.kind}`}
@@ -1320,30 +1414,45 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             )}
             <div class="prompt-input-row">
               <textarea
+                ref={draftField}
                 value={prompt}
-                onInput={(event) => setPrompt(event.currentTarget.value)}
+                onInput={(event) => {
+                  setPrompt(event.currentTarget.value);
+                  setDraftNotice('');
+                  draftRange.current = { start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd };
+                }}
+                onSelect={rememberDraftRange}
+                spellcheck={false}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
                 rows={2}
                 placeholder={
                   overview
-                    ? 'Structured Prompt is available in LOCAL mode'
+                    ? 'Switch to LOCAL to insert text'
                     : connection === 'connected'
-                      ? 'Prompt this session…'
-                      : 'Reconnect to send a prompt'
+                      ? 'Command or message…'
+                      : 'Reconnect to insert text'
                 }
                 disabled={promptDisabled}
-                aria-label="Structured session prompt"
+                aria-label="Terminal text"
               />
               <button
                 class="prompt-send"
-                type="submit"
-                disabled={promptDisabled || !prompt.trim()}
+                type="button"
+                disabled={promptDisabled || !prompt.trim() || multilineBlocked}
+                onClick={() => void insertDraft()}
               >
-                {sendingPrompt ? '…' : 'Send'}
+                Insert
               </button>
             </div>
+            {multilineBlocked && <p class="draft-notice" role="status">This program does not accept a multiline paste safely. Insert a single line, or use the terminal keyboard.</p>}
+            {shellSendSupported && <button class="text-button draft-send-return" type="button" disabled={promptDisabled || !prompt.trim()} onClick={(event) => void submitPrompt(event)}>Send to shell + Return</button>}
+            {draftNotice && <p class="draft-notice" role="status">{draftNotice}</p>}
           </form>
         )}
       </main>
+      {outputOpen && <TerminalOutput sessionId={sessionId} onClose={() => setOutputOpen(false)} onUse={useOutputText} onDirectory={shellSendSupported ? text => useOutputText(`cd -- '${text.replaceAll("'", "'\\''")}'`) : undefined} />}
     </div>
   );
 }

@@ -1,5 +1,218 @@
 # Validation Record
 
+## Desktop → phone continuation polish — 2026-10-09
+
+Deployed build: `1.0.0 / 34ee1f9-dirty / 2026-10-09T15:02:08Z`.
+Earlier uncommitted repairs and both mobile-flow rounds are preserved.
+
+Implemented: `mctrl here` creates or resumes a directory-specific external tmux
+Shell using the daemon's recorded connection. Different paths with the same
+basename stay separate; the same physical directory retains its Session and
+process. It registers no Project, creates no Managed Work, and sends no harness
+command. The phone provides a short desktop-start instruction and a per-Session
+return command. `mctrl resume` checks the observed name and stable ID before
+attaching, retaining the socket/profile. Inside another tmux context it asks for
+a new terminal tab rather than switching an ambiguous client. The installer
+creates a guarded `~/.local/bin/mctrl` link without editing shell/WezTerm config.
+
+Validation:
+
+- `.tools/go1.27.1/bin/go test ./cmd/mctrl ./internal/tmux ./internal/config`:
+  passed. Native PTYs exercise here, detach, repeated here and resume, retaining
+  the same Session/Shell PID. Stale names and noninteractive input are refused;
+  different directories remain separate. Quoted socket/name arguments, native
+  TERM preservation, private connection permissions and profile matching pass.
+- `.tools/go1.27.1/bin/go test ./internal/api`: passed. The daemon records its
+  actual custom socket and emits matching read-only start/return fields through
+  the existing authenticated Host/Session endpoints.
+- `MCTRL_LIVE_RUNNERS=1 npm --prefix web run test:browser`: **48 passed**, 24 per
+  Chromium/WebKit. New desktop cases cover copy without mutations and phone input
+  in the original external Shell without creating Work or replacing its PID.
+  All prior durability, input, launch and installed interactive-Agent cases pass.
+- Mobile screenshot fixture: **1 passed**, 393 × 852, no horizontal overflow,
+  return-copy button height 44px. Both new sections were visually inspected.
+- Installer checked in a temporary directory: repeated install succeeds; an
+  existing different file remains unchanged and installation refuses to replace
+  it.
+- `make release-check`: passed (Go tests/vet/race, frontend typecheck/build,
+  normalizer, embedded resources, isolated CLI smoke, Pair.app signature and
+  binary checksums). The first attempt was not executed because automatic review
+  temporarily lacked quota; a normal retry after the user's Continue succeeded.
+- Installed CLI resolves to the current binary and reports the deployed build.
+  V1 daemon update returned healthy status 200, matching JS and service worker.
+  Both Pair.app binaries match `bin/`. All eight selected Work facts and the
+  existing pane `$533 %566 38658` remain unchanged. Runner 38658, child 38677 and
+  caffeinate child 38676 remain alive; five archived records retain exit facts.
+
+Frontend cache: `mctrl-shell-7113156009bbcd72`; JS: `index-4FQGO7Ms.js`.
+Evidence is in `bin/desktop-preview/`, including screenshots, layout and runtime
+before/after records. Screenshot command:
+
+```sh
+node web/node_modules/@playwright/test/cli.js test --config /private/tmp/mctrl-desktop-polish-20261009/playwright.config.mjs
+```
+
+Exit criterion met: a desktop directory enters a phone-accessible Session through
+one short command; repeated entry/return retains the process; phone continuation
+operates the same external Session. This does not migrate an already running
+ordinary terminal process. Recent Session still records this phone's visits.
+Fresh physical-iPhone copy/keyboard/IME evidence, authenticated model-provider
+acceptance and real TLS/WSS remain the previously recorded release gaps. No new
+product-boundary or durability conflict was introduced.
+
+## Usage-flow polish, second round — 2026-10-09
+
+Source base `34ee1f9`, retaining the earlier uncommitted repairs and first-round
+UX changes. Deployed binaries identify as
+`1.0.0 / 34ee1f9-dirty / 2026-10-09T11:42:47Z`.
+
+Implemented:
+
+- Interactive launch opens Terminal directly; task launch opens Session output.
+  Accepted Work without a Session is followed through GET observations of that
+  same identity, with a bounded observation window and manual status check.
+  Rapid taps create one POST. Leaving either a pending launch request or its
+  follow-up page prevents late navigation; observed launch failure never retries.
+- Output/path transfer replaces the draft selection or inserts at its caret,
+  preserving surrounding text and returning focus without sending input. Copy
+  actions have 44px touch targets and the sheet path field has its own full row.
+- Preview captures remove trailing pane padding before applying the line limit.
+  This fixes short output disappearing on Home, while keeping interior blank
+  lines. Native preview fields start at the tail and retain their snapshot while
+  reading older content or selecting text; Show latest output explicitly updates
+  it. The copy sheet displays the capture time.
+- Returning to the foreground refreshes Home, Session and Terminal facts through
+  reads only. Terminal uses the Project name when available, with Runner and
+  actual tmux identity retained as secondary context.
+
+Validation:
+
+- `.tools/go1.27.1/bin/go test ./internal/tmux`: passed, including real 100-row
+  pane coverage for short output, line limits, interior blank lines and an empty
+  pane.
+- `MCTRL_LIVE_RUNNERS=1 npm --prefix web run test:browser`: **44 passed**, 22 in
+  each of Chromium and WebKit. New coverage includes draft caret/selection and
+  focus, stable selected snapshots, foreground refresh without mutations, rapid
+  launch taps, accepted Work observation, both late-response navigation cases,
+  observed failure, and task output routing. Existing durability/input tests and
+  installed interactive Agent startup probes also passed.
+- Mobile screenshot fixture: **1 passed**. At 393 × 852, launch mode buttons end
+  at y=673 before the submit bar at y=698; Recent output starts at y=598. All six
+  copy/transfer actions measure 44px tall. The 320 × 720 terminal and 393px Home
+  have no horizontal overflow. Screenshots were visually inspected.
+- `make release-check`: passed, including Go tests/vet/race, frontend typecheck
+  and normalizer, final embedded build, isolated CLI smoke, Pair app signature,
+  and both binary checksums. Cache is `mctrl-shell-1bbb5f6c596b3a82`, JS
+  `index-DsUgnTy_.js`.
+- Local V1 daemon updated and `/healthz` returned 200. Served JS bytes and
+  service worker match the final embedded files; Pair.app binaries match `bin/`.
+  All eight selected Work identity/state/archive/exit records remained unchanged.
+  The live Work retained Session `$533`, Runner 38658, child 38677 and its
+  caffeinate child 38676. Five archived records retain their original exit facts.
+
+Local evidence: `bin/ux-preview-round2/`, including `layout.json`, screenshots,
+`runtime-before.json` and `runtime-after.json`. Screenshot command:
+
+```sh
+node web/node_modules/@playwright/test/cli.js test --config /private/tmp/mctrl-ux-polish-20261009/playwright.config.mjs
+```
+
+Exit criterion met: all three supported routes remain continuous, late responses
+respect the user's current page, copy/reading workflows preserve context, and
+existing durability/no-replay checks pass. Physical iPhone native selection,
+Copy menu, keyboard activation and IME still need fresh device evidence.
+Authenticated provider/model acceptance and real TLS/WSS remain external release
+gaps. No new product-scope conflict was introduced.
+
+## Usage-flow polish — 2026-10-09
+
+Source base `34ee1f9`, uncommitted repairs and UX changes. Final binaries:
+`1.0.0 / 34ee1f9-dirty / 2026-10-09T11:12:32Z`.
+
+Implemented: directory registration returns to Start with its Project selected;
+remembered launch directory; explicit interactive/task modes; native output/path
+copy and draft transfer; quoted cd preparation; literal draft insertion with a
+separate Return; actual program paste-mode observation; startup input barrier;
+recent Session continuation/review; output before folded process/end controls.
+Directory observations follow the verified registered child after cd.
+
+Validation:
+
+- `make release-check`: passed, including new tmux paste-mode and child-directory
+  tests, Go vet/race, frontend checks, CLI smoke, Pair app signature and checksums.
+- `make build`: passed again after the final compact launch layout. Embedded
+  frontend cache is `mctrl-shell-2bd2d810dedaa398`, JS `index-C-uo_hzK.js`.
+- `MCTRL_LIVE_RUNNERS=1 npm --prefix web run test:browser`: **28 passed**, 14 each
+  in Chromium and WebKit. Covers real tmux output/bytes, copy fallback, directory
+  changes with Chinese/spaces/quotes, no implicit Return/replay, pending startup,
+  unsafe multiline blocking, literal framed paste, desktop continuation, ended
+  Session review, recovery/durability and installed Agent interactive startup.
+- Mobile screenshot walk-through: passed at 393 × 852 and a 320 × 720 terminal.
+  Launch mode buttons end at y=673, before the fixed submit bar at y=698; Recent
+  output begins at y=598 (baseline y=1269); the 320px terminal has no horizontal
+  overflow. Home card bounds also remain within the viewport.
+- `make smoke-launcher`: passed after the final build. Pair app binaries equal
+  `bin/` byte for byte; `shasum -a 256 -c SHA256SUMS`: both OK.
+- Local V1 daemon restarted onto this build and serves the matching frontend;
+  `/healthz` returned 200. All recorded Work identity/state/archive/exit facts
+  remain unchanged: live Session `$533`, Runner 38658, child 38677; five archived
+  records still retain their original unknown exit facts.
+
+Local visual evidence is in `bin/ux-preview/` (ignored runtime artifacts), with
+`layout.json` and `runtime-after.json`. The temporary screenshot fixture is
+`/private/tmp/mctrl-ux-polish-20261009/preview.spec.ts`.
+
+Exit criterion: the three supported routes can be followed continuously in the
+isolated browser fixtures while existing Work durability and input rules pass.
+This does not close the broader V1 release matrix. Physical iPhone selection
+handles/native Copy menu/IME/keyboard switching need fresh device evidence.
+Provider account/model acceptance and real TLS/WSS remain the previously recorded
+external gaps. No new product-scope conflict was introduced.
+
+## Repair validation — 2026-10-09
+
+Current source base: `34ee1f9`, with uncommitted repairs. Binaries identify this
+as `34ee1f9-dirty` instead of claiming the unchanged commit.
+
+- `make release-check`: passed (Go tests/vet/race, frontend checks/build, CLI
+  smoke, Pair app signature and binary checksums).
+- Final frontend build/typecheck and embedded asset verification: passed after
+  the state badge polish.
+- `MCTRL_LIVE_RUNNERS=1 npm --prefix web run test:browser`: 12 passed, six each
+  on Chromium and WebKit at mobile dimensions. Real browser processes are closed
+  for the persistence case, and real tmux output is counted for input replay.
+- Agent startup probes opened `codex-cli 0.154.0` and `opencode v2.0.24` in
+  interactive mode with empty Prompts. Codex may display its native directory
+  trust screen; the probe does not approve it or send a model task.
+- `make smoke-launcher`: passed after the final rebuild. Both binaries bundled
+  in `dist/Mctrl Pair.app` compare byte-for-byte equal to `bin/`; checksums match.
+- The normalizer test now compiles and imports the same source function used by
+  TerminalPage; 18 conversion cases and 23 untouched cases passed.
+
+The authenticated provider probe did **not** pass. Both CLIs emitted real errors:
+
+- Codex: configured `gpt-6.1-sol` is not supported with this ChatGPT account.
+- OpenCode: an active OpenCode Go subscription is required for its configured
+  model.
+
+Model/provider settings and credentials were left unchanged. These are external
+acceptance gaps, distinct from the passing interactive-startup contract.
+
+The installed V1 control plane was restarted onto the repaired binaries. The
+existing Work retained Session `$533`, Runner PID `38658` and child PID `38677`;
+its Work-owned power assertion remained active. Five records whose Session,
+Runner and child were absent were backed up, freshly rechecked and archived.
+Their Work state and unknown exit facts were retained. The registered `mctrl`
+Project now has zero unarchived Work references; `ai-research` has one live Work.
+No registered Project was removed.
+
+Backup: `bin/recovery-backup-2026-10-09T07-05-08-104Z/`, private permissions,
+including original Work records and a summary. The archival UI keeps a collapsed
+history. Final TLS/WSS, remaining physical-iPhone checks and V1/V2 simultaneous
+phone use remain unverified.
+
+The older dated evidence below is retained as historical context.
+
 Validation date: 2026-09-25
 
 Environment used for the final local gate:

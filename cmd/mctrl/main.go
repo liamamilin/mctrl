@@ -78,6 +78,12 @@ func main() {
 		err = runLogs(args)
 	case "project":
 		err = runProject(args)
+	case "work":
+		err = runWork(args)
+	case "here":
+		err = runHere(args)
+	case "resume":
+		err = runResume(args)
 	case "devices":
 		err = runDevices(args)
 	case "revoke":
@@ -118,6 +124,9 @@ Commands:
   mctrl doctor      diagnose the local installation
   mctrl logs        show daemon logs
   mctrl project     add/remove/list/restore registered Projects
+  mctrl work        list Work or archive a verified lost record
+  mctrl here        open or resume a phone-accessible shell in this directory
+  mctrl resume      reattach an existing Session from a copied phone command
   mctrl devices     list paired devices
   mctrl revoke      revoke a paired device
   mctrl restart     restart only the daemon
@@ -539,7 +548,7 @@ func runStatus(_ []string) error {
 		case config.AvailabilityWorkOnly:
 			if items, listErr := work.NewStore(stateDir).List(); listErr == nil {
 				for _, item := range items {
-					if item.KeepAwake && (item.State == work.StateStarting || item.State == work.StateRunning) && power.WorkAssertionActive(item.RunnerPID) {
+					if item.Active() && item.KeepAwake && (item.State == work.StateStarting || item.State == work.StateRunning) && power.WorkAssertionActive(item.RunnerPID) {
 						remoteReady = "work"
 						break
 					}
@@ -677,7 +686,7 @@ func runDoctor(_ []string) error {
 			fmt.Printf("Power:         %s (policy %s)\n", state, cfg.RemoteAvailability)
 			if works, worksErr := work.NewStore(stateDir).List(); worksErr == nil {
 				for _, item := range works {
-					if item.State == work.StateStarting || item.State == work.StateRunning {
+					if item.Active() && (item.State == work.StateStarting || item.State == work.StateRunning) {
 						fmt.Printf("Work assertion: %t (%s, pid %d)\n", power.WorkAssertionActive(item.RunnerPID), item.ID, item.RunnerPID)
 					}
 				}
@@ -710,7 +719,7 @@ func runDoctor(_ []string) error {
 			fmt.Println("Work:          unavailable")
 		} else {
 			for _, item := range works {
-				if item.Terminal() || item.ProjectID == "" || known[item.ProjectID] {
+				if !item.Active() || item.ProjectID == "" || known[item.ProjectID] {
 					continue
 				}
 				fmt.Printf("Dangling:      Work %s references unknown Project %s\n", item.ID, item.ProjectID)
@@ -833,7 +842,7 @@ func runProject(args []string) error {
 			return listErr
 		}
 		for _, item := range items {
-			if item.ProjectID == args[1] && !item.Terminal() {
+			if item.ProjectID == args[1] && item.Active() {
 				return fmt.Errorf("project has active Managed Work (%s); close or finish it before unregistering", item.ID)
 			}
 		}

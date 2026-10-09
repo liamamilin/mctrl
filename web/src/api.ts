@@ -232,6 +232,8 @@ function normalizeHost(payload: unknown): Host {
     transport: asOptionalString(record.transport),
     public_url: asOptionalString(record.public_url),
     version: asOptionalString(record.version),
+    profile: asOptionalString(record.profile),
+    desktop_start_command: asOptionalString(record.desktop_start_command),
   };
 }
 
@@ -269,6 +271,7 @@ function normalizeWork(payload: unknown): ManagedWork | undefined {
     finished_at: asOptionalString(payload.finished_at),
     runner_pid: asNumber(payload.runner_pid),
     child_pid: asNumber(payload.child_pid),
+    child_cwd: asOptionalString(payload.child_cwd),
     exit_code: asNumber(payload.exit_code),
     exit_signal: asNumber(payload.exit_signal),
     keep_awake:
@@ -276,6 +279,7 @@ function normalizeWork(payload: unknown): ManagedWork | undefined {
     launch_stage: asOptionalString(payload.launch_stage),
     termination_reason: asOptionalString(payload.termination_reason),
     recovery_status: asOptionalString(payload.recovery_status),
+    archived_at: asOptionalString(payload.archived_at),
     prompt_delivery: asOptionalString(payload.prompt_delivery),
     error_code: asOptionalString(payload.error_code),
     error_message: asOptionalString(payload.error_message),
@@ -294,12 +298,28 @@ function normalizeSession(payload: unknown): Session {
     windows: asNumber(record.windows) ?? 0,
     panes: asNumber(record.panes) ?? 0,
     attached: asBoolean(record.attached),
+    desktop_resume_command: asOptionalString(record.desktop_resume_command),
     active_pane: {
+      id: asOptionalString(activePane.id),
+      bracketed_paste: typeof activePane.bracketed_paste === 'boolean' ? activePane.bracketed_paste : undefined,
+      dead: asBoolean(activePane.dead),
       command: asOptionalString(activePane.command),
       cwd: asOptionalString(activePane.cwd),
       width: asNumber(activePane.width),
       height: asNumber(activePane.height),
     },
+    pane_details: Array.isArray(record.pane_details) ? record.pane_details.filter(isRecord).map(pane => ({
+      id: asString(pane.id),
+      window_id: asOptionalString(pane.window_id),
+      window_index: asNumber(pane.window_index),
+      window_name: asOptionalString(pane.window_name),
+      command: asOptionalString(pane.command),
+      cwd: asOptionalString(pane.cwd),
+      active: asBoolean(pane.active),
+      dead: asBoolean(pane.dead),
+      width: asNumber(pane.width),
+      height: asNumber(pane.height),
+    })) : undefined,
     active_command:
       asOptionalString(record.active_command) ??
       asOptionalString(activePane.command),
@@ -457,6 +477,16 @@ export async function getWork(): Promise<ManagedWork[]> {
     const work = normalizeWork(item);
     return work && work.id.length > 0 ? [work] : [];
   });
+}
+
+export async function archiveWork(workId: string): Promise<ManagedWork> {
+  const payload = await request<unknown>(`/work/${encodeURIComponent(workId)}/archive`, {
+    method: 'POST',
+    body: JSON.stringify({ confirm: true }),
+  });
+  const work = normalizeWork(payload);
+  if (!work) throw new Error('The Mac did not return the archived Work. Refresh to check its status.');
+  return work;
 }
 
 export async function getWorkItem(workId: string): Promise<ManagedWork> {

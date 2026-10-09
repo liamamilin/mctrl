@@ -27,6 +27,8 @@ Required:
 - discover external Session
 - multiple Sessions
 - active pane cwd
+- registered-child directory follows cd, preserves literal path text, and rejects unverified/archived processes
+- pane bracketed-paste mode distinguishes program capability from client framing
 - current command
 - capture preview
 - attach/detach
@@ -52,6 +54,12 @@ Required:
 - duplicate request_id
 - prompt delivery failure
 - no prompt replay after uncertain recovery
+- archival rejects live Session/Runner/child and uncertain observations
+- archival preserves unknown exit facts, request-id mapping and history
+- archived records no longer block Project unregister
+- late canonical exit results still apply to archived history
+- old Launch retries and stale launch files cannot revive an archived record
+- CLI archival requires confirmation and rejects another profile's state root
 
 ## Browser E2E
 
@@ -60,8 +68,37 @@ Playwright:
 - Chromium
 - WebKit mandatory
 
+Implemented automated regression cases are in `web/tests`. Run
+`make test-browser`; set `MCTRL_LIVE_RUNNERS=1` to include installed Agent
+interactive-startup probes. The remaining items below are the broader acceptance
+matrix, including checks that still require a physical iPhone.
+
 Required:
 
+- first Project registration opens its section and returns to the selected directory
+- a selected Project starts the Shell in its displayed directory
+- native output/path selection and copy fallback work without Clipboard API
+- selected directory text prepares a correctly quoted cd draft without executing
+- draft insertion preserves Unicode/quotes, adds no Return, and is never replayed
+- a client with paste framing but a program without it keeps multiline drafts blocked
+- a supporting program receives one framed multiline payload; Return is separate
+- pending startup facts block raw keys and drafts without queuing them
+- switching Sessions creates fresh terminal/input state
+- desktop tmux Sessions can be continued without registering or launching Work
+- native desktop PTY runs here/resume, keeps the same Session and Shell PID, and refuses a changed name
+- same directory reuses its Session; different directories with the same basename stay separate
+- private desktop connection hint matches the daemon's custom socket and selected profile
+- desktop start/return command copy does not execute or create Work from the phone
+- recent Session identities are checked against the live list before continuation
+- harness launch mode explicitly separates interactive startup from a required task Prompt
+- interactive launch opens Terminal; task launch opens Session output
+- accepted Work is followed using GET only; rapid taps create one launch request
+- leaving the launch page prevents late Session navigation; observed failure never retries automatically
+- output transfer replaces the draft selection and restores focus without sending input
+- previews follow latest content, preserve the selected snapshot during updates, and omit trailing blank pane rows
+- foreground return refreshes Home/Session/Terminal facts without launching or replaying input
+- output is visible before folded process/termination details on mobile dimensions
+- physical iPhone selection handles, native Copy menu, IME composition, and draft-to-terminal keyboard switching
 - pair
 - Mac Pair Console renders QR, copyable code and manual phone URL
 - Pair Console QR endpoint rejects non-loopback requests

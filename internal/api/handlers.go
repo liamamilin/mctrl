@@ -205,14 +205,15 @@ func (s *Server) handleHost(w http.ResponseWriter, _ *http.Request) {
 	info := s.HostInfo()
 	full := s.TerminalFullSize()
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"name":         info.Name,
-		"hostname":     info.Hostname,
-		"status":       info.Status,
-		"remote_ready": info.RemoteReady,
-		"transport":    s.cfg.TransportProfile,
-		"public_url":   s.cfg.PublicURL,
-		"version":      version.Version,
-		"profile":      s.profileName,
+		"name":                  info.Name,
+		"hostname":              info.Hostname,
+		"status":                info.Status,
+		"remote_ready":          info.RemoteReady,
+		"transport":             s.cfg.TransportProfile,
+		"public_url":            s.cfg.PublicURL,
+		"version":               version.Version,
+		"profile":               s.profileName,
+		"desktop_start_command": desktopStartCommand(s.profileName),
 		// The phone's FULL overview asks tmux for this size instead of
 		// trusting the pane's current size, which the phone itself shrinks when
 		// it is the only attached client.
@@ -307,7 +308,7 @@ func (s *Server) activeWorkForProject(projectID string) ([]work.Work, error) {
 	}
 	active := make([]work.Work, 0)
 	for _, item := range items {
-		if item.ProjectID == projectID && !item.Terminal() {
+		if item.ProjectID == projectID && item.Active() {
 			active = append(active, item)
 		}
 	}
@@ -364,7 +365,8 @@ func (s *Server) handleSessions(w http.ResponseWriter, r *http.Request) {
 			result = append(result, session)
 			continue
 		}
-		s.attachManagedWork(&inspected)
+		s.attachManagedWork(r.Context(), &inspected)
+		inspected.DesktopResumeCommand = s.tmux.DesktopResumeCommand(s.profileName, inspected.ID, inspected.Name)
 		result = append(result, inspected)
 	}
 	writeJSON(w, http.StatusOK, result)
@@ -376,7 +378,8 @@ func (s *Server) handleSession(w http.ResponseWriter, r *http.Request, id string
 		s.writeTmuxError(w, err)
 		return
 	}
-	s.attachManagedWork(&session)
+	s.attachManagedWork(r.Context(), &session)
+	session.DesktopResumeCommand = s.tmux.DesktopResumeCommand(s.profileName, session.ID, session.Name)
 	writeJSON(w, http.StatusOK, session)
 }
 
@@ -436,7 +439,7 @@ func (s *Server) workForSession(sessionID, sessionName string) (work.Work, bool)
 			(sessionName == "" || item.SessionName != sessionName) {
 			continue
 		}
-		if !item.Terminal() {
+		if item.Active() {
 			return item, true
 		}
 		if terminal == nil {
@@ -450,9 +453,19 @@ func (s *Server) workForSession(sessionID, sessionName string) (work.Work, bool)
 	return work.Work{}, false
 }
 
-func (s *Server) attachManagedWork(session *tmux.Session) {
+func (s *Server) attachManagedWork(ctx context.Context, session *tmux.Session) {
 	if item, ok := s.workForSession(session.ID, session.Name); ok {
-		session.ManagedWork = item.DTO()
+		facts := item.DTO()
+		// Observe only the pane hosting this runner; another window can have
+		// its own independent directory. Missing observations stay absent.
+		if session.ActivePane != nil && session.ActivePane.PID == item.RunnerPID {
+			observe, cancel := context.WithTimeout(ctx, time.Second)
+			if directory, err := work.CurrentDirectory(observe, item); err == nil {
+				facts["child_cwd"] = directory
+			}
+			cancel()
+		}
+		session.ManagedWork = facts
 	}
 }
 
@@ -697,6 +710,10 @@ func (s *Server) launchWithLock(item work.Work, projectInfo project.Project, req
 		if err != nil {
 			return err
 		}
+		if current.ArchivedAt != nil {
+			result = current
+			return nil
+		}
 		// Never create a second child for a Work whose runner was observed.
 		// ACCEPTED/early STARTING records are the only records eligible for
 		// launch resumption.
@@ -757,7 +774,7 @@ func (s *Server) handleWorkCreate(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusConflict, "IDEMPOTENCY_KEY_REUSED", payloadErr.Error(), nil)
 			return
 		}
-		if (existing.State == work.StateAccepted && existing.RunnerPID == 0 && existing.ChildPID == 0) || (existing.State == work.StateStarting && existing.RunnerPID == 0 && existing.ChildPID == 0) {
+		if existing.Active() && ((existing.State == work.StateAccepted && existing.RunnerPID == 0 && existing.ChildPID == 0) || (existing.State == work.StateStarting && existing.RunnerPID == 0 && existing.ChildPID == 0)) {
 			projectInfo, projectErr := s.projects.Get(existing.ProjectID)
 			if projectErr != nil {
 				writeJSON(w, http.StatusOK, existing.DTO())

@@ -63,6 +63,11 @@ func Reconcile(ctx context.Context, store *Store, adapter *tmux.Adapter) error {
 		} else if !errors.Is(resultErr, ErrNotFound) {
 			resultStatus = "result_invalid"
 		}
+		// Late canonical results may still supply real exit facts for archived
+		// history; otherwise an operator-resolved record needs no more probing.
+		if item.ArchivedAt != nil {
+			continue
+		}
 
 		if resultStatus != "" {
 			_, updateErr := store.UpdateIf(item.ID, item.AttemptID, activeStates(), func(current *Work) error {

@@ -51,45 +51,48 @@ func (a *Adapter) Available() bool {
 }
 
 type Pane struct {
-	ID           string `json:"id"`
-	WindowID     string `json:"window_id,omitempty"`
-	WindowIndex  int    `json:"window_index,omitempty"`
-	WindowName   string `json:"window_name,omitempty"`
-	PID          int    `json:"pid,omitempty"`
-	Command      string `json:"command"`
-	StartCommand string `json:"start_command,omitempty"`
-	Cwd          string `json:"cwd"`
-	Active       bool   `json:"active"`
-	WindowActive bool   `json:"-"`
-	Dead         bool   `json:"dead,omitempty"`
-	Width        int    `json:"width"`
-	Height       int    `json:"height"`
+	ID             string `json:"id"`
+	WindowID       string `json:"window_id,omitempty"`
+	WindowIndex    int    `json:"window_index,omitempty"`
+	WindowName     string `json:"window_name,omitempty"`
+	PID            int    `json:"pid,omitempty"`
+	Command        string `json:"command"`
+	StartCommand   string `json:"start_command,omitempty"`
+	Cwd            string `json:"cwd"`
+	Active         bool   `json:"active"`
+	WindowActive   bool   `json:"-"`
+	Dead           bool   `json:"dead,omitempty"`
+	Width          int    `json:"width"`
+	Height         int    `json:"height"`
+	BracketedPaste *bool  `json:"bracketed_paste,omitempty"`
 }
 
 type Session struct {
-	ID          string      `json:"id"`
-	Name        string      `json:"name"`
-	Windows     int         `json:"windows"`
-	Attached    bool        `json:"attached"`
-	Panes       []Pane      `json:"-"`
-	ActivePane  *Pane       `json:"active_pane,omitempty"`
-	ManagedWork interface{} `json:"managed_work,omitempty"`
+	ID                   string      `json:"id"`
+	Name                 string      `json:"name"`
+	Windows              int         `json:"windows"`
+	Attached             bool        `json:"attached"`
+	Panes                []Pane      `json:"-"`
+	ActivePane           *Pane       `json:"active_pane,omitempty"`
+	ManagedWork          interface{} `json:"managed_work,omitempty"`
+	DesktopResumeCommand string      `json:"desktop_resume_command,omitempty"`
 }
 
 // MarshalJSON exposes the API's scalar pane count while retaining detailed
 // pane facts under pane_details for the detail page.
 func (s Session) MarshalJSON() ([]byte, error) {
 	type response struct {
-		ID          string      `json:"id"`
-		Name        string      `json:"name"`
-		Windows     int         `json:"windows"`
-		Attached    bool        `json:"attached"`
-		Panes       int         `json:"panes"`
-		PaneDetails []Pane      `json:"pane_details,omitempty"`
-		ActivePane  *Pane       `json:"active_pane,omitempty"`
-		ManagedWork interface{} `json:"managed_work,omitempty"`
+		ID                   string      `json:"id"`
+		Name                 string      `json:"name"`
+		Windows              int         `json:"windows"`
+		Attached             bool        `json:"attached"`
+		Panes                int         `json:"panes"`
+		PaneDetails          []Pane      `json:"pane_details,omitempty"`
+		ActivePane           *Pane       `json:"active_pane,omitempty"`
+		ManagedWork          interface{} `json:"managed_work,omitempty"`
+		DesktopResumeCommand string      `json:"desktop_resume_command,omitempty"`
 	}
-	return json.Marshal(response{ID: s.ID, Name: s.Name, Windows: s.Windows, Attached: s.Attached, Panes: len(s.Panes), PaneDetails: s.Panes, ActivePane: s.ActivePane, ManagedWork: s.ManagedWork})
+	return json.Marshal(response{ID: s.ID, Name: s.Name, Windows: s.Windows, Attached: s.Attached, Panes: len(s.Panes), PaneDetails: s.Panes, ActivePane: s.ActivePane, ManagedWork: s.ManagedWork, DesktopResumeCommand: s.DesktopResumeCommand})
 }
 
 func (a *Adapter) ServerAvailable(ctx context.Context) error {
@@ -240,7 +243,7 @@ func (a *Adapter) listPanes(ctx context.Context, sessionID string) ([]Pane, erro
 	format, delimiter, err := recordFormat([]string{
 		"#{pane_id}", "#{window_id}", "#{window_active}", "#{pane_active}", "#{pane_dead}", "#{pane_pid}",
 		"#{pane_current_command}", "#{pane_current_path}", "#{pane_width}", "#{pane_height}", "#{pane_start_command}",
-		"#{window_index}", "#{window_name}",
+		"#{window_index}", "#{window_name}", "#{bracket_paste_flag}",
 	})
 	if err != nil {
 		return nil, err
@@ -252,7 +255,7 @@ func (a *Adapter) listPanes(ctx context.Context, sessionID string) ([]Pane, erro
 		}
 		return nil, err
 	}
-	records, err := parseRecords(output, delimiter, 13)
+	records, err := parseRecords(output, delimiter, 14)
 	if err != nil {
 		return nil, fmt.Errorf("parse tmux list-panes: %w", err)
 	}
@@ -262,11 +265,17 @@ func (a *Adapter) listPanes(ctx context.Context, sessionID string) ([]Pane, erro
 		width, _ := strconv.Atoi(values[8])
 		height, _ := strconv.Atoi(values[9])
 		windowIndex, _ := strconv.Atoi(values[11])
+		var bracketedPaste *bool
+		if values[13] == "0" || values[13] == "1" {
+			enabled := values[13] == "1"
+			bracketedPaste = &enabled
+		}
 		result = append(result, Pane{
 			ID: values[0], WindowID: values[1], WindowActive: values[2] == "1",
 			Active: values[3] == "1", Dead: values[4] == "1", PID: pid,
 			Command: values[6], Cwd: values[7], Width: width, Height: height,
 			StartCommand: values[10], WindowIndex: windowIndex, WindowName: values[12],
+			BracketedPaste: bracketedPaste,
 		})
 	}
 	return result, nil
@@ -284,14 +293,19 @@ func (a *Adapter) CapturePane(ctx context.Context, paneID string, lines int) ([]
 		return nil, err
 	}
 	raw := strings.Split(strings.TrimSuffix(output, "\n"), "\n")
-	if len(raw) > lines {
-		raw = raw[len(raw)-lines:]
-	}
 	for index := range raw {
 		raw[index] = StripANSI(raw[index])
 		if len(raw[index]) > 4096 {
 			raw[index] = raw[index][:4096]
 		}
+	}
+	// Empty screen rows below the output must not consume the requested tail.
+	// Keep spacing within the content; only remove the trailing pane padding.
+	for len(raw) > 0 && strings.TrimSpace(raw[len(raw)-1]) == "" {
+		raw = raw[:len(raw)-1]
+	}
+	if len(raw) > lines {
+		raw = raw[len(raw)-lines:]
 	}
 	return raw, nil
 }

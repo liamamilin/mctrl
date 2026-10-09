@@ -4,11 +4,17 @@ import {
   getSession,
   getSessionPreview,
   getWork,
+  getProjects,
 } from '../api';
 import { displayValue, formatDate, stateLabel } from '../format';
-import type { ManagedWork, Preview, Session } from '../types';
+import type { ManagedWork, Preview, Project, Session } from '../types';
 import { navigate, sessionPath } from '../router';
 import { ErrorNotice, LoadingBlock } from '../components/ui';
+import { CopyText } from '../components/CopyText';
+import { rememberSession } from '../session-history';
+import { sessionDirectory } from '../session-directory';
+import { previewContent } from '../preview-text';
+import { useForegroundRefresh } from '../use-foreground-refresh';
 
 function Fact({
   label,
@@ -38,7 +44,11 @@ function WorkFacts({ work }: { work: ManagedWork }) {
           <h2 id="work-title">Managed Work</h2>
         </div>
         <span class={`state-badge state-${work.state.toLowerCase()}`}>
-          {stateLabel(work.state)}
+          {work.archived_at
+            ? 'Archived'
+            : work.recovery_status && !['EXITED', 'LAUNCH_FAILED'].includes(work.state)
+              ? 'Needs review'
+              : stateLabel(work.state)}
         </span>
       </div>
       <div class="fact-grid">
@@ -50,6 +60,9 @@ function WorkFacts({ work }: { work: ManagedWork }) {
         <Fact label="Launch stage" value={work.launch_stage} />
         <Fact label="Prompt delivery" value={work.prompt_delivery} />
         <Fact label="Recovery status" value={work.recovery_status} />
+        {work.archived_at && (
+          <Fact label="Archived" value={formatDate(work.archived_at)} />
+        )}
         <Fact label="Started" value={formatDate(work.started_at ?? work.created_at)} />
         <Fact label="Exit code" value={work.exit_code} mono />
         <Fact label="Exit signal" value={work.exit_signal} mono />
@@ -162,6 +175,7 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
   const [session, setSession] = useState<Session>();
   const [preview, setPreview] = useState<Preview>();
   const [work, setWork] = useState<ManagedWork>();
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [previewError, setPreviewError] = useState('');
@@ -185,10 +199,11 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
     }
     setError('');
 
-    const [sessionResult, previewResult, workResult] = await Promise.allSettled([
+    const [sessionResult, previewResult, workResult, projectsResult] = await Promise.allSettled([
       getSession(sessionId),
       getSessionPreview(sessionId, previewLines),
       getWork(),
+      getProjects(),
     ]);
 
     if (currentLoad !== loadId.current) return;
@@ -204,6 +219,8 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
 
     const nextSession = sessionResult.value;
     setSession(nextSession);
+    rememberSession(nextSession);
+    if (projectsResult.status === 'fulfilled') setProjects(projectsResult.value);
     if (previewResult.status === 'fulfilled') {
       setPreview(previewResult.value);
     } else {
@@ -242,9 +259,13 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
       loadId.current += 1;
     };
   }, [load]);
+  useForegroundRefresh(() => void load(true));
 
   const command = session?.active_command || session?.active_pane?.command;
-  const cwd = session?.cwd || session?.active_pane?.cwd;
+  const directory = session ? sessionDirectory(session) : { path: '', label: 'Current path' };
+  const cwd = directory.path;
+  const project = projects.find(project => project.id === work?.project_id);
+  const workLabel = work?.archived_at ? 'Archived' : work?.recovery_status && !['EXITED', 'LAUNCH_FAILED'].includes(work.state) ? 'Needs review' : stateLabel(work?.state ?? '');
   const activeWork = Boolean(work && !['EXITED', 'LAUNCH_FAILED'].includes(work.state));
   const closeDescription = activeWork
     ? 'This Session has active Managed Work. Closing it will terminate the Work, shell, and all child processes.'
@@ -280,7 +301,8 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
         <div class="detail-title-row">
           <div>
             <div class="section-kicker">Session detail</div>
-            <h1>{session?.name ?? 'Session'}</h1>
+            <h1>{project?.name ?? session?.name ?? 'Session'}</h1>
+            {project && <p class="session-human-context">{work?.runner_id} · {session?.name}</p>}
           </div>
           <button
             class="icon-button"
@@ -304,6 +326,10 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
             <p class={`session-origin-badge ${work ? 'managed' : 'external'}`}>
               {work ? 'Managed Work Session' : 'External tmux Session'}
             </p>
+            {work && <p class="session-process-summary">{work.runner_id} · {workLabel}{work.exit_code !== undefined ? ` · exit ${work.exit_code}` : ''}</p>}
+            {cwd && <CopyText label={directory.label} value={cwd} />}
+            <details class="session-technical-details">
+              <summary>Session details · {session.windows} window{session.windows === 1 ? '' : 's'}</summary>
             <div class="fact-grid">
               <Fact label="Session name" value={session.name} />
               <Fact label="Active command" value={command || 'Unavailable'} mono />
@@ -312,6 +338,8 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
               <Fact label="Panes" value={session.panes} mono />
               <Fact label="Attached" value={session.attached} />
             </div>
+            <WindowInventory session={session} />
+            </details>
             <a
               class="button button-primary button-full open-terminal-button"
               href={`#${sessionPath(session.id, true)}`}
@@ -319,7 +347,31 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
               Open Terminal
               <span aria-hidden="true">›</span>
             </a>
-            <WindowInventory session={session} />
+          </section>
+
+          <section class="preview-card card" aria-labelledby="preview-title">
+            <div class="card-title-row">
+              <div><div class="section-kicker">Observe</div><h2 id="preview-title">Recent output</h2></div>
+            </div>
+            {previewError ? <ErrorNotice title="Preview unavailable" message={previewError} onRetry={() => void load()} />
+              : preview && previewContent(preview.lines).length > 0 ? <CopyText label="Output text" value={previewContent(preview.lines).join('\n')} multiline />
+              : <p class="empty-copy">No recent output was returned.</p>}
+            {previewLines < PREVIEW_MAX && !previewError && <button class="button button-secondary button-full preview-more" type="button" disabled={loadingMore} onClick={() => {
+              setLoadingMore(true); setPreviewLines(current => Math.min(PREVIEW_MAX, current + PREVIEW_PAGE));
+            }}>{loadingMore ? 'Loading…' : `Show ${Math.min(PREVIEW_PAGE, PREVIEW_MAX - previewLines)} more lines`}</button>}
+          </section>
+
+          {session.desktop_resume_command && <details class="desktop-handoff card">
+            <summary>Continue on your Mac</summary>
+            <p>Paste this command into WezTerm or another Mac terminal to continue this same session. It does not start your harness again.</p>
+            <CopyText label="Mac resume command" value={session.desktop_resume_command} />
+          </details>}
+
+          {work && <details class="process-details"><summary>Process details · {workLabel}</summary><WorkFacts work={work} /></details>}
+
+          <details class="session-end-section card">
+            <summary>End this session</summary>
+            <p>Leaving this page keeps your session running. End it only when you want to stop its processes.</p>
             <button
               class="button button-danger-quiet button-full close-session-button"
               type="button"
@@ -356,57 +408,7 @@ export function SessionPage({ sessionId }: { sessionId: string }) {
                 </div>
               </section>
             )}
-          </section>
-
-          {work && <WorkFacts work={work} />}
-
-          <section class="preview-card card" aria-labelledby="preview-title">
-            <div class="card-title-row">
-              <div>
-                <div class="section-kicker">Plain text</div>
-                <h2 id="preview-title">Recent output</h2>
-              </div>
-              <span class="muted-label">
-                {preview?.lines.length
-                  ? `${preview.lines.length} of ${previewLines} lines`
-                  : `${previewLines} lines`}
-                {preview?.captured_at ? ` · ${formatDate(preview.captured_at)}` : ''}
-              </span>
-            </div>
-            {previewError ? (
-              <ErrorNotice
-                title="Preview unavailable"
-                message={previewError}
-                onRetry={() => void load()}
-              />
-            ) : preview && preview.lines.length > 0 ? (
-              <pre class="output-preview">{preview.lines.join('\n')}</pre>
-            ) : (
-              <p class="empty-copy">No recent output was returned.</p>
-            )}
-            {/* More output only when there is plausibly more to get, and never
-                past what the API will serve. */}
-            {previewLines < PREVIEW_MAX && !previewError && (
-              <button
-                class="button button-secondary button-full preview-more"
-                type="button"
-                disabled={loadingMore}
-                onClick={() => {
-                  setLoadingMore(true);
-                  setPreviewLines((current) =>
-                    Math.min(PREVIEW_MAX, current + PREVIEW_PAGE),
-                  );
-                }}
-              >
-                {loadingMore
-                  ? 'Loading…'
-                  : `Show ${Math.min(
-                      PREVIEW_PAGE,
-                      PREVIEW_MAX - previewLines,
-                    )} more lines`}
-              </button>
-            )}
-          </section>
+          </details>
         </>
       ) : null}
     </div>

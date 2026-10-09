@@ -150,13 +150,19 @@ func (codexRunner) BuildLaunch(spec WorkSpec) (LaunchPlan, error) {
 		return LaunchPlan{}, err
 	}
 	args := []string{"exec", "--json", "--skip-git-repo-check", "-C", cwd}
-	if strings.TrimSpace(spec.Prompt) != "" {
+	strategy := PromptArgv
+	if strings.TrimSpace(spec.Prompt) == "" {
+		// No subcommand opens the installed CLI's interactive interface.
+		// exec without a prompt instead reads stdin; it is not an idle TUI.
+		args = []string{"-C", cwd}
+		strategy = PromptNone
+	} else {
 		// Codex's installed CLI explicitly supports an initial prompt as a
 		// positional argument. The observed contract is recorded in
 		// docs/runner-probes.md; no terminal replay is used.
 		args = append(args, "--", spec.Prompt)
 	}
-	return LaunchPlan{RunnerID: "codex", Executable: path, Args: args, Cwd: cwd, PromptStrategy: PromptArgv}, nil
+	return LaunchPlan{RunnerID: "codex", Executable: path, Args: args, Cwd: cwd, PromptStrategy: strategy}, nil
 }
 
 type opencodeRunner struct{}
@@ -181,10 +187,14 @@ func (opencodeRunner) BuildLaunch(spec WorkSpec) (LaunchPlan, error) {
 		return LaunchPlan{}, err
 	}
 	args := []string{"run", "--format", "json"}
-	if strings.TrimSpace(spec.Prompt) != "" {
+	strategy := PromptArgv
+	if strings.TrimSpace(spec.Prompt) == "" {
+		args = []string{"--standalone", cwd}
+		strategy = PromptNone
+	} else {
 		args = append(args, "--", spec.Prompt)
 	}
-	return LaunchPlan{RunnerID: "opencode", Executable: path, Args: args, Cwd: cwd, PromptStrategy: PromptArgv}, nil
+	return LaunchPlan{RunnerID: "opencode", Executable: path, Args: args, Cwd: cwd, PromptStrategy: strategy}, nil
 }
 
 func findExecutable(name string) (string, error) {

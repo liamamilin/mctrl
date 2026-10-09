@@ -111,6 +111,19 @@ mctrl pair
 
 ## Work reports recovery uncertainty
 
+If the Session, Runner and child are gone but the Work still blocks Project
+unregister, open Settings → Work needing attention → Review and archive. The
+confirmation checks fresh process/Session evidence; it refuses while anything is
+alive or uncertain. Archived Work stays in history with its exit result unknown.
+The equivalent CLI is `mctrl work archive --confirm <work-id>`; `mctrl work list`
+shows both unresolved and archived records.
+
+If a nonempty Codex/OpenCode Work exits immediately, inspect its terminal output.
+Executable detection alone does not establish a usable provider account. The
+2026-10-09 probes found an unsupported Codex model/account combination and an
+OpenCode Go subscription requirement. Resolve the model/provider in the Agent
+CLI, then rerun the opt-in authenticated probe from `DEVELOPMENT.md`.
+
 An uncertain state means mctrl lacks one authoritative exit or identity fact. It
 does not mean the task semantically failed. Inspect the Session and the Work's
 `recovery_status`, `termination_reason`, and `launch_stage`. Do not blindly resend

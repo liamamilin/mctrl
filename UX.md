@@ -69,7 +69,8 @@ Fields:
 
 - Project
 - Runner
-- multiline Prompt
+- Shell: optional first command
+- Codex/OpenCode: Open & interact (empty Prompt) or Run a task (required Prompt)
 
 The user does not see:
 
@@ -77,7 +78,26 @@ The user does not see:
 - PTY configuration
 - command-line internals
 
+Registered Project selection previews its starting directory and remembers the
+last successfully used Project. Registration from Start scrolls to Projects and
+returns through **Start in this directory** with the new Project selected.
+Runner detection is labelled **Installed on Mac**, without claiming provider
+access. A compact Runner row and explicit launch mode keep the primary choice
+within reach on a phone.
+
+After launch, interactive Work opens its Terminal directly; task mode opens
+Session output. If the Mac has accepted the Work but has not exposed a Session
+yet, observe that same Work with GET requests for up to 30 seconds. Never launch
+again to obtain a Session. The user can then check status manually. Leaving the
+page cancels follow-up navigation; an observed launch failure displays its reason
+and a return to launch settings.
+
 ## Session Detail
+
+Show Project name and Runner when available, retaining the real tmux Session
+name. Put the state summary, copyable directory, Open Terminal and recent output
+before folded process details. **End this session** contains termination and its
+inline confirmation; leaving a page keeps the Session running.
 
 Show facts:
 
@@ -93,18 +113,66 @@ Show facts:
 
 ```text
 ┌─────────────────────────────┐
-│ ← Session                   │
+│ ← Session        Live  Copy │
 ├─────────────────────────────┤
 │ xterm.js        [↓ 120 back] │
 ├─────────────────────────────┤
 │ ESC  TAB  CTRL  LOCAL  编辑 │
 │ ↑   ↓   ←   →   ⏎  PgUp PgDn│
 ├─────────────────────────────┤
-│ [Prompt textarea]    Send   │
+│ [Command/message]   Insert  │
 └─────────────────────────────┘
 ```
 
+### Copying output and preparing input
+
+**Copy** opens a native sheet containing the observed path and a stable snapshot
+of up to 500 output lines. Native readonly textareas support phone selection.
+Copy tries Clipboard API, then user-initiated copy, then leaves the text selected
+with native-copy instructions. **Use selection in draft** never sends input.
+It replaces the draft selection or inserts at the remembered caret, preserving
+surrounding text and returning focus to the draft. Path text uses the sheet's
+full width, and copy actions have at least 44px touch targets.
+For a supported Shell, **Prepare cd command** quotes a selected path and places
+it in the draft; the user reviews and inserts it before pressing Return.
+
+The normal **Terminal text** textarea works with every Runner. **Insert** uses
+literal terminal paste, preserving Chinese, curly quotes and full-width text,
+without an implicit Return or CTRL modifier. Multiline/tab insertion requires
+both client framing and the active pane's observed `bracket_paste_flag`; tmux's
+client framing alone does not establish program support. The pane is checked
+again before insertion. Missing/false facts keep the draft unsent. The pane mode
+is the [tmux 3.7c bracket_paste_flag](https://github.com/tmux/tmux/blob/3.7c/format.c)
+fact, not an inference about the Agent. Known Shell
+sessions additionally offer the explicit structured **Send to shell + Return**.
+
+Input remains disabled while launch/initial Prompt facts are pending. Early
+keystrokes are dropped, never queued. Each Session owns a separate terminal
+instance; reconnect and Session switches never resend the draft or raw input.
+FULL continues to hide the input dock except for an uncertain structured Prompt.
+
+Managed Work directories are read from the verified registered child rather
+than the tmux pane's Runner directory. The observation is optional and temporary;
+when unavailable the Runner directory is labelled **Starting path**.
+
+Output previews omit trailing empty pane rows and start at the latest content.
+When the user reads older output or selects text, background refresh preserves
+that snapshot. **Show latest output** explicitly replaces it and returns to the
+tail. The copy sheet also shows when its output was captured. Returning from the
+background refreshes Home, Session and Terminal facts without replaying input.
+
 ## Home
+
+A recent Session shortcut matches id, name and associated Work id against the
+live list, avoiding continuation based on a reused tmux id alone. Only these
+identifiers are remembered; no draft or output is stored. Project names help
+identify Managed Work; external Sessions retain their own names. Work needing
+review has a visible recovery link. Folded desktop guidance explains that a
+program starts through `mctrl here` from its directory before phone continuation.
+It includes a copyable short command and explains repeating it and detaching.
+Session Detail has a folded **Continue on your Mac** section with the exact
+return command, before process and termination controls. It requires no new
+Project or Work and does not restart the harness.
 
 ```text
 ┌─────────────────────────────┐
@@ -121,7 +189,8 @@ a tap. `RUNNING` is filled, `EXITED` shows the exit code, `LAUNCH_FAILED` is
 red, and `ACCEPTED` / `STARTING` are amber because they are in flight. External
 tmux Sessions have no Work and get no chip rather than a misleading one.
 
-Recent output on the card is the last two lines, which is enough to recognise a
+Recent output on the card is the last two lines after trailing blank rows are
+removed, which is enough to recognise a
 Session and not enough to pretend it is a log.
 
 **编辑** raises the software keyboard on the terminal itself. **⏎** sends the
@@ -176,7 +245,7 @@ and the circled digits a long press produces. Those are characters, not width
 errors. Checked by `web/scripts/check-normalizer.mjs`, which runs in `make
 test-web`.
 
-The conversion applies to terminal keystrokes only, never to the Structured
+The conversion applies to terminal keystrokes only, never to the native draft insertion or Structured
 Prompt. It is unconditional; to send the raw bytes, set
 `mctrl-terminal-half-width` to `off` in the page's `localStorage`.
 

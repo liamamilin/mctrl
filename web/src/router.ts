@@ -53,7 +53,13 @@ export function useHashRoute(): Route {
   );
 
   useEffect(() => {
-    const onHashChange = () => setRoute(parseRoute(window.location.hash));
+    let previousPath = window.location.hash.split('?')[0];
+    const onHashChange = () => {
+      const nextPath = window.location.hash.split('?')[0];
+      setRoute(parseRoute(window.location.hash));
+      if (nextPath !== previousPath) window.scrollTo(0, 0);
+      previousPath = nextPath;
+    };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);

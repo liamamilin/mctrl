@@ -20,14 +20,17 @@ unchecked until that external environment is available.
 
 ## Reliability
 
-- [ ] browser close preserves Work — pending real browser close gate
+- [x] browser close preserves Work — Chromium/WebKit browser processes closed in isolated regression tests
 - [x] phone lock preserves Work
 - [x] daemon restart preserves Work
 - [x] Session persists after Work exit
 - [x] duplicate Launch does not duplicate process
-- [ ] raw terminal input not replayed — implementation reviewed; pending browser disconnect gate
+- [x] raw terminal input not replayed — Chromium/WebKit offline/reconnect tests count the actual tmux output
 - [x] uncertain Prompt not replayed
 - [x] Work recovery tested
+- [x] lost Work can be archived after fresh Session/process verification without inventing exit facts
+- [x] archived Work retains history/idempotency and no longer blocks Project unregister
+- [x] stale launch evidence and old Launch retries cannot revive archived Work
 
 ## tmux
 
@@ -68,14 +71,34 @@ unchecked until that external environment is available.
 
 ## Browser
 
-- [ ] Chromium E2E
-- [ ] WebKit E2E
+- [x] Chromium E2E — recovery, durability, reconnect, uncertain Prompt and interactive CLI startup
+- [x] WebKit E2E — recovery, durability, reconnect, uncertain Prompt and interactive CLI startup
 - [x] real iPhone Safari
 - [x] Add to Home Screen / standalone PWA
 - [x] virtual keyboard usable
 - [x] lock/unlock reconnect UX usable
 - [x] PWA and Safari storage isolation understood and verified
 - [x] active device list and revoked pairing history verified on iPhone
+
+## Usage-flow polish — 2026-10-09
+
+- [x] first directory registration returns to the selected Project
+- [x] direct interactive/task launch choices and starting-directory preview
+- [x] native output/path selection with clipboard fallback
+- [x] selected directory prepares a quoted cd draft; insertion does not append Return
+- [x] actual program mode guards multiline insertion, including client-only framing
+- [x] startup input barrier drops early keys without queuing
+- [x] desktop continuation and last-session identity/ended-session checks
+- [x] output before folded process/termination details at mobile dimensions
+- [x] interactive launch opens Terminal; task launch opens output
+- [x] accepted Work follows GET observations, with one POST for rapid taps and no late navigation after leaving
+- [x] copy transfer preserves draft cursor/selection; live refresh preserves reading and selection
+- [x] short tmux output remains visible; foreground return refreshes without sending input
+- [x] native desktop here/resume keeps Session/child identity and separates directories
+- [x] copied Mac return command uses effective connection and refuses changed identity
+- [x] final Chromium/WebKit regression — 48 passed
+- [x] local update retains original Work, Session and process identities
+- [ ] new copy/draft interactions exercised on a physical iPhone
 
 ## Runner
 
@@ -84,6 +107,13 @@ unchecked until that external environment is available.
 - [ ] Codex authenticated integration test
 - [x] OpenCode behavior probed and documented
 - [ ] OpenCode authenticated integration test
+- [x] empty Agent Prompt opens the installed interactive CLI, rather than a batch command reading stdin
+
+2026-10-09 provider probes reached the CLIs but did not pass: Codex's configured
+`gpt-6.1-sol` was rejected for this ChatGPT login; OpenCode's configured Go model
+requires an active Go subscription. These gates remain open. The browser suite
+is targeted regression coverage; the broader real-iPhone interaction matrix and
+the final TLS/WSS deployment still require their own evidence.
 
 ## Documentation
 

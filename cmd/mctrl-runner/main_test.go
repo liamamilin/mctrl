@@ -79,6 +79,23 @@ func TestRunnerLogRotatesBeforeAppend(t *testing.T) {
 	}
 }
 
+func TestSuperviseRejectsArchivedLaunch(t *testing.T) {
+	root, item, launchFile := prepareRunnerFixture(t, 0, work.StateAccepted)
+	now := time.Now().UTC()
+	item.ArchivedAt = &now
+	store := work.NewStore(root)
+	if err := store.Save(item); err != nil {
+		t.Fatal(err)
+	}
+	if err := supervise(launchFile, item.AttemptID); err == nil {
+		t.Fatal("archived launch started a runner")
+	}
+	got, err := store.Get(item.ID)
+	if err != nil || got.ArchivedAt == nil || got.RunnerPID != 0 || got.ChildPID != 0 {
+		t.Fatalf("archived Work changed: %+v %v", got, err)
+	}
+}
+
 func TestBestEffortOutputNeverStopsPTYDrain(t *testing.T) {
 	sink := bestEffortOutput{primary: failingWriter{}}
 	data := []byte("terminal output")

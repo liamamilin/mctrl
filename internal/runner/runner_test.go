@@ -3,6 +3,7 @@ package runner
 import (
 	"encoding/json"
 	"errors"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -81,4 +82,24 @@ func containsArg(args []string, want string) bool {
 		}
 	}
 	return false
+}
+
+func TestEmptyAgentPromptOpensInteractiveCLI(t *testing.T) {
+	tools := t.TempDir()
+	for _, id := range []string{"codex", "opencode"} {
+		if err := os.WriteFile(filepath.Join(tools, id), []byte("#!/bin/sh\nexit 0\n"), 0700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Setenv("PATH", tools)
+	root := t.TempDir()
+	for _, id := range []string{"codex", "opencode"} {
+		plan, err := NewRegistry().BuildLaunch(WorkSpec{RunnerID: id, ProjectPath: root, Prompt: " \n "})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if plan.PromptStrategy != PromptNone || containsArg(plan.Args, "exec") || containsArg(plan.Args, "run") || !containsArg(plan.Args, root) {
+			t.Fatalf("%s empty Prompt opened a batch command: %+v", id, plan)
+		}
+	}
 }

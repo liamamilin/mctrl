@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { getHost, getSessionPreview, getSessions } from '../api';
-import type { Host, ManagedWork, Preview, Session } from '../types';
+import { getHost, getProjects, getSessionPreview, getSessions, getWork } from '../api';
+import type { Host, ManagedWork, Preview, Project, Session } from '../types';
 import { sessionPath } from '../router';
+import { recentSession } from '../session-history';
+import { isActiveWork } from '../work-status';
+import { CopyText } from '../components/CopyText';
+import { sessionDirectory } from '../session-directory';
+import { previewContent } from '../preview-text';
+import { useForegroundRefresh } from '../use-foreground-refresh';
 import {
   EmptyState,
   ErrorNotice,
@@ -15,6 +21,12 @@ import {
 // get no chip rather than a misleading one.
 function WorkStateChip({ work }: { work: ManagedWork }) {
   const state = work.state ?? '';
+  if (work.archived_at) {
+    return <span class="work-state-chip exited">Archived</span>;
+  }
+  if (work.recovery_status && !['EXITED', 'LAUNCH_FAILED'].includes(state)) {
+    return <span class="work-state-chip failed">Needs review</span>;
+  }
   const tone =
     state === 'RUNNING'
       ? 'running'
@@ -41,20 +53,24 @@ function WorkStateChip({ work }: { work: ManagedWork }) {
 function SessionCard({
   session,
   preview,
+  projects,
 }: {
   session: Session;
   preview?: Preview;
+  projects: Project[];
 }) {
   const command = session.active_command || session.active_pane?.command;
-  const cwd = session.cwd || session.active_pane?.cwd;
-  const recentLines = preview?.lines.slice(-2) ?? [];
+  const cwd = sessionDirectory(session).path;
+  const recentLines = previewContent(preview?.lines ?? []).slice(-2);
   const work = session.managed_work ?? session.work;
+  const project = projects.find(project => project.id === work?.project_id);
 
   return (
     <a class="session-card" href={`#${sessionPath(session.id)}`}>
       <div class="session-card-topline">
         <div>
-          <h3>{session.name}</h3>
+          <h3>{project?.name ?? session.name}</h3>
+          {project && <p class="session-human-context">{work?.runner_id} · {session.name}</p>}
           <div class="session-badges">
             <p className="session-origin-badge compact">
               {work ? 'Managed' : 'External tmux'}
@@ -100,6 +116,8 @@ export function HomePage() {
   const [host, setHost] = useState<Host>();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [previews, setPreviews] = useState<Record<string, Preview>>({});
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [attentionCount, setAttentionCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const loadId = useRef(0);
@@ -121,6 +139,11 @@ export function HomePage() {
       setHost(nextHost);
       setSessions(nextSessions);
       setLoading(false);
+
+      const [projectResult, workResult] = await Promise.allSettled([getProjects(), getWork()]);
+      if (currentLoad !== loadId.current) return;
+      if (projectResult.status === 'fulfilled') setProjects(projectResult.value);
+      if (workResult.status === 'fulfilled') setAttentionCount(workResult.value.filter(work => isActiveWork(work) && work.recovery_status).length);
 
       const entries = await Promise.all(
         nextSessions.map(async (session) => {
@@ -160,6 +183,11 @@ export function HomePage() {
       loadId.current += 1;
     };
   }, [load]);
+  useForegroundRefresh(() => void load(true));
+  const recent = recentSession(sessions);
+  const recentProject = projects.find(project => project.id === (recent?.managed_work ?? recent?.work)?.project_id);
+  const recentWork = recent?.managed_work ?? recent?.work;
+  const recentEnded = ['EXITED', 'LAUNCH_FAILED'].includes(recentWork?.state ?? '') || recent?.active_pane?.dead;
 
   return (
     <div class="page-stack">
@@ -184,13 +212,22 @@ export function HomePage() {
         </div>
       </section>
 
+      {recent && !error && <a class="resume-card card" href={`#${sessionPath(recent.id, !recentEnded)}`}>
+        <span class="section-kicker">{recentEnded ? 'Review last session' : 'Continue last session'}</span>
+        <strong>{recentProject?.name ?? recent.name}</strong>
+        <span>{recentProject ? `${(recent.managed_work ?? recent.work)?.runner_id} · ` : ''}{sessionDirectory(recent).path}</span>
+        <span class="resume-action">{recentEnded ? 'View output' : 'Open terminal'} ›</span>
+      </a>}
+
+      {attentionCount > 0 && <a class="attention-link" href="#/settings?section=recovery">{attentionCount} Work {attentionCount === 1 ? 'needs' : 'need'} review · Inspect records ›</a>}
+
       <a class="start-work-cta" href="#/start">
         <span class="start-work-icon" aria-hidden="true">
           +
         </span>
         <span>
           <strong>Start Work</strong>
-          <small>Launch a registered project</small>
+          <small>Open a shell or coding harness</small>
         </span>
         <span class="cta-arrow" aria-hidden="true">
           ›
@@ -239,11 +276,18 @@ export function HomePage() {
                 key={session.id}
                 session={session}
                 preview={previews[session.id]}
+                projects={projects}
               />
             ))}
           </div>
         )}
       </section>
+      <details class="desktop-handoff card">
+        <summary>Continue work from your Mac</summary>
+        <p>In WezTerm or another Mac terminal, go to your project directory and run this command. Then open your harness as usual. Its session will appear here automatically.</p>
+        {host?.desktop_start_command && <CopyText label="Mac start command" value={host.desktop_start_command} />}
+        <p>Run it again in the same directory to continue the same session. To leave it running, press Ctrl+B, then D. A program already running outside tmux needs a new session. Each Session page has a command to continue on your Mac.</p>
+      </details>
     </div>
   );
 }

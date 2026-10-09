@@ -42,3 +42,15 @@ permission, or model behavior. Release integration tests must use disposable
 credentials/projects and verify the observed contract for the exact installed
 version. If a future CLI removes or changes the positional prompt form, the
 adapter must be updated with new evidence rather than silently changed.
+
+## Empty Prompt contract — 2026-10-09
+
+Rechecked `codex-cli 0.154.0` and `opencode v2.0.24` help. Codex's default command
+opens the interactive interface; `codex exec` without a Prompt reads stdin.
+OpenCode exposes its default interactive command with an optional directory and
+`--standalone`.
+
+Empty Prompts now use `codex -C <project>` or
+`opencode --standalone <project>` without automatic Prompt delivery. Nonempty
+Prompts retain the observed JSON batch contract. Deterministic tests cover both
+launch plans. Live provider evidence is recorded in `VALIDATION.md`.
