@@ -1,0 +1,118 @@
+{
+  "version": "v0.7",
+  "date": "2026-10-04",
+  "scope": "core sentence and expansion functional alignment verification; no reader experiment or remote deployment",
+  "checks": {
+    "registry": {
+      "passed": true,
+      "result": {
+        "message": "Registry matches source: 81 interfaces, all fields."
+      }
+    },
+    "mainline": {
+      "passed": true,
+      "result": {
+        "interfaces": 81,
+        "operators": 37,
+        "principal_patterns": 37,
+        "all_interfaces_have_methods_core_expansion_checks": true,
+        "baseline_definitions_and_archives_preserved": true,
+        "errors": []
+      }
+    },
+    "docs": {
+      "passed": true,
+      "result": {
+        "pages": 50,
+        "local_links": 1886,
+        "models": {
+          "M1": 8,
+          "M2": 35,
+          "M3": 9,
+          "M4": 29
+        },
+        "registry_interfaces": 81,
+        "snapshot_matches_source": true,
+        "operators": 37,
+        "protocols": 13,
+        "patterns": 39,
+        "mechanisms": 12,
+        "bridges": 8,
+        "outcomes": 3,
+        "sources": 12,
+        "errors": []
+      }
+    },
+    "essentials": {
+      "passed": true,
+      "result": {
+        "model_candidates": 81,
+        "primary_interfaces": 23,
+        "support_interfaces": 8,
+        "retained_interfaces": 31,
+        "retained_by_model": {
+          "M2": 17,
+          "M3": 4,
+          "M4": 6,
+          "M1": 4
+        },
+        "mechanism_candidates": 12,
+        "core_mechanisms": 7,
+        "operator_candidates": 34,
+        "core_operators_and_principal_patterns": 15,
+        "protocol_candidates": 13,
+        "fully_retained_protocols": [
+          "PR05"
+        ],
+        "errors": []
+      }
+    },
+    "site": {
+      "passed": true,
+      "result": {
+        "html_pages": 51,
+        "local_urls_checked": 6334,
+        "errors": []
+      }
+    },
+    "strict_build": {
+      "passed": true,
+      "result": "INFO    -  Building documentation to directory: /workspace/scratch/938b0e6782c1/cognitive-language-engineering-v0.7/site\nINFO    -  Documentation built in 1.18 seconds"
+    },
+    "preserved_files": {
+      "passed": true,
+      "count": 57
+    },
+    "book_anchors": {
+      "passed": true,
+      "ids": 731,
+      "internal_links": 1932
+    },
+    "source_tables": {
+      "passed": true,
+      "pages": 50,
+      "orphan_blocks": []
+    },
+    "version_and_credit": {
+      "passed": true
+    }
+  },
+  "browser_checks": [
+    "M1 1440: all core sentences/expansions, anchors and no overflow",
+    "M2 1440: all core sentences/expansions, anchors and no overflow",
+    "M3 1440: all core sentences/expansions, anchors and no overflow",
+    "M4 1440: all core sentences/expansions, anchors and no overflow",
+    "Operators 1440: 37 canonical core/expansion pairs and layout",
+    "Patterns 1440: combination core/expansion pairs, stable LP anchors and layout",
+    "Complete book 1440: 81 interface and 39 pattern pairs, runtime anchors and layout",
+    "M1 390: all core sentences/expansions, anchors and no overflow",
+    "M2 390: all core sentences/expansions, anchors and no overflow",
+    "M3 390: all core sentences/expansions, anchors and no overflow",
+    "M4 390: all core sentences/expansions, anchors and no overflow",
+    "Operators 390: 37 canonical core/expansion pairs and layout",
+    "Patterns 390: combination core/expansion pairs, stable LP anchors and layout",
+    "Complete book 390: 81 interface and 39 pattern pairs, runtime anchors and layout",
+    "Concept formation LP34 path reaches the canonical operator core and expansion"
+  ],
+  "browser_errors": []
+}

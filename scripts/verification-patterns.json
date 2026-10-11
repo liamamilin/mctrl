@@ -1,0 +1,114 @@
+{
+  "version": "v0.7",
+  "date": "2026-10-04",
+  "scope": "language pattern presentation verification; no reader experiment or remote deployment",
+  "checks": {
+    "registry": {
+      "passed": true,
+      "result": {
+        "message": "Registry matches source: 81 interfaces, all fields."
+      }
+    },
+    "mainline": {
+      "passed": true,
+      "result": {
+        "interfaces": 81,
+        "operators": 37,
+        "principal_patterns": 37,
+        "all_interfaces_have_methods_pattern_examples_checks": true,
+        "baseline_definitions_and_archives_preserved": true,
+        "errors": []
+      }
+    },
+    "docs": {
+      "passed": true,
+      "result": {
+        "pages": 50,
+        "local_links": 1886,
+        "models": {
+          "M1": 8,
+          "M2": 35,
+          "M3": 9,
+          "M4": 29
+        },
+        "registry_interfaces": 81,
+        "snapshot_matches_source": true,
+        "operators": 37,
+        "protocols": 13,
+        "patterns": 39,
+        "mechanisms": 12,
+        "bridges": 8,
+        "outcomes": 3,
+        "sources": 12,
+        "errors": []
+      }
+    },
+    "essentials": {
+      "passed": true,
+      "result": {
+        "model_candidates": 81,
+        "primary_interfaces": 23,
+        "support_interfaces": 8,
+        "retained_interfaces": 31,
+        "retained_by_model": {
+          "M4": 6,
+          "M2": 17,
+          "M1": 4,
+          "M3": 4
+        },
+        "mechanism_candidates": 12,
+        "core_mechanisms": 7,
+        "operator_candidates": 34,
+        "core_operators_and_principal_patterns": 15,
+        "protocol_candidates": 13,
+        "fully_retained_protocols": [
+          "PR05"
+        ],
+        "errors": []
+      }
+    },
+    "site": {
+      "passed": true,
+      "result": {
+        "html_pages": 51,
+        "local_urls_checked": 6328,
+        "errors": []
+      }
+    },
+    "strict_build": {
+      "passed": true,
+      "result": "INFO    -  Building documentation to directory: /workspace/scratch/938b0e6782c1/cognitive-language-engineering-v0.7/site\nINFO    -  Documentation built in 0.79 seconds"
+    },
+    "preserved_files": {
+      "passed": true,
+      "count": 57
+    },
+    "book_anchors": {
+      "passed": true,
+      "ids": 729,
+      "internal_links": 1932
+    },
+    "source_tables": {
+      "passed": true,
+      "pages": 50,
+      "orphan_blocks": []
+    },
+    "version_and_credit": {
+      "passed": true
+    }
+  },
+  "browser_checks": [
+    "M1 1440: all interface pattern examples, placeholders and local anchors, no overflow",
+    "M2 1440: all interface pattern examples, placeholders and local anchors, no overflow",
+    "M3 1440: all interface pattern examples, placeholders and local anchors, no overflow",
+    "M4 1440: all interface pattern examples, placeholders and local anchors, no overflow",
+    "Complete book 1440: 81 pattern examples, all runtime anchors and no overflow",
+    "M1 390: all interface pattern examples, placeholders and local anchors, no overflow",
+    "M2 390: all interface pattern examples, placeholders and local anchors, no overflow",
+    "M3 390: all interface pattern examples, placeholders and local anchors, no overflow",
+    "M4 390: all interface pattern examples, placeholders and local anchors, no overflow",
+    "Complete book 390: 81 pattern examples, all runtime anchors and no overflow",
+    "Model LP34 link opens pattern index with stable anchor"
+  ],
+  "browser_errors": []
+}

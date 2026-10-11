@@ -1,0 +1,91 @@
+{
+  "version": "project-v0.7.7",
+  "date": "2026-10-10",
+  "scope": "M1 group Object renamed Referent",
+  "checks": {
+    "update_registry.py --check": "Registry matches source: 82 interfaces, all fields.",
+    "check_mainline.py": {
+      "interfaces": 82,
+      "reviewed_additions": [
+        "R-C2"
+      ],
+      "operators": 37,
+      "principal_patterns": 37,
+      "all_interfaces_have_methods_core_expansion_checks": true,
+      "baseline_definitions_and_archives_preserved": true,
+      "errors": []
+    },
+    "check_docs.py": {
+      "pages": 51,
+      "local_links": 1933,
+      "models": {
+        "M1": 9,
+        "M2": 35,
+        "M3": 9,
+        "M4": 29
+      },
+      "registry_interfaces": 82,
+      "snapshot_matches_source": true,
+      "operators": 37,
+      "protocols": 13,
+      "patterns": 39,
+      "mechanisms": 12,
+      "bridges": 8,
+      "outcomes": 3,
+      "sources": 12,
+      "errors": []
+    },
+    "check_essentials.py": {
+      "model_candidates": 81,
+      "primary_interfaces": 23,
+      "support_interfaces": 8,
+      "retained_interfaces": 31,
+      "retained_by_model": {
+        "M2": 17,
+        "M4": 6,
+        "M1": 4,
+        "M3": 4
+      },
+      "mechanism_candidates": 12,
+      "core_mechanisms": 7,
+      "operator_candidates": 34,
+      "core_operators_and_principal_patterns": 15,
+      "protocol_candidates": 13,
+      "fully_retained_protocols": [
+        "PR05"
+      ],
+      "errors": []
+    }
+  },
+  "unchanged_files_checked": 63,
+  "all_M1_interface_bodies_preserved": true,
+  "new_heading_and_index_match": true,
+  "legacy_object_anchor_preserved": true,
+  "browser_checks": [
+    "Index/M1 1440: 所指 title and current anchor navigation",
+    "Legacy link 1440: old object anchor still resolves",
+    "M2 1440: Object group preserved",
+    "Book 1440: M1/M2 headings, new/legacy anchors and layout",
+    "Index/M1 390: 所指 title and current anchor navigation",
+    "Legacy link 390: old object anchor still resolves",
+    "M2 390: Object group preserved",
+    "Book 390: M1/M2 headings, new/legacy anchors and layout"
+  ],
+  "browser_errors": [],
+  "strict_build_passed": true,
+  "site_checks": {
+    "html_pages": 52,
+    "local_urls": 6568,
+    "errors": []
+  },
+  "reading_checks": {
+    "static_ids": 759,
+    "internal_links": 1980,
+    "duplicate_ids": 0,
+    "missing_targets": 0
+  },
+  "screenshots_visually_checked": [
+    1440,
+    390
+  ]
+}

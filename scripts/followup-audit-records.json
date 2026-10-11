@@ -1,0 +1,575 @@
+{
+  "date": "2026-10-02",
+  "round": "第二次查漏补缺",
+  "scope": "50页现有正文；重点逐段复查模型、算子、协议、案例和训练，其他页面沿入口／引用和版本范围核对。",
+  "reader_trials": false,
+  "external_research_reread": false,
+  "issues": {
+    "01": "首次领域用词就近解释",
+    "02": "预测的定义、覆盖范围和前后比较时期",
+    "03": "全称否定与更强反向主张",
+    "04": "解释变体直接连接推导示范",
+    "05": "无材料时的未知定位变体",
+    "06": "反思过程与对象判断修订",
+    "07": "交付定义与实际交付",
+    "08": "规格指导与现实就绪",
+    "09": "个人核验与社会关闭前提",
+    "10": "协议步骤与方法清单",
+    "11": "练习的用途设定和方法前提",
+    "12": "核验通过与验收确认事件",
+    "13": "判断层次、辅助称谓及版本入口",
+    "14": "边界表显示和六项补充设计情境"
+  },
+  "targeted_edits": [
+    {
+      "page": "docs/models/M2.md",
+      "before": "关系是对象或要素之间的联系，结构是这些要素与关系的组织方式。比较先说明从哪个方面看，也就是比较维度；参照再说明相对于什么。共同特征与结构对应是两种相似依据，相似本身不证明同因。",
+      "after": "关系是对象或要素之间的联系，结构是这些要素与关系的组织方式。比较先说明从哪个方面看，也就是比较维度；参照再说明相对于什么。记录口径说明哪些情况计入、怎样记录和计数；口径不同，数字不同未必表示经历本身不同。共同特征与结构对应是两种相似依据，相似本身不证明同因。",
+      "issue": "01"
+    },
+    {
+      "page": "docs/models/M2.md",
+      "before": "例如，报表显示回访减少。候选一是实际回访减少；候选二是记录回访的程序漏记。若两个记录系统观察同一批用户、同一时间范围，而且独立记录系统本身可靠，单纯漏记解释预期“报表减少，独立记录未减少”，实际减少解释预期两者都减少。",
+      "after": "这里回访指用户在指定时间后再次访问；埋点是记录有关行为的程序或事件记录方式，渠道是用户来自哪些入口。以下例子用这些领域材料说明方法，不要求读者先懂产品分析。\n\n例如，报表显示回访减少。候选一是实际回访减少；候选二是记录回访的程序漏记。先指定与哪个先前时期比较，并核对两套记录覆盖同一用户范围、采用同一回访定义和对应的前后时间范围。若独立记录在前后时期可靠，且本轮只比较“实际减少而记录未变”与“实际未减少而报表单纯漏记”两种候选，那么前者预期两套记录都减少，后者预期报表减少而独立记录未减少。",
+      "issue": "02"
+    },
+    {
+      "page": "docs/models/M4.md",
+      "before": "“按适用规则”不是空白授权：",
+      "after": "下文回滚指撤回本次变更，尝试回到此前版本或状态；能否恢复还需真实材料，批准回滚的权限与执行它的技术能力也分别检查。\n\n“按适用规则”不是空白授权：",
+      "issue": "01"
+    },
+    {
+      "page": "docs/applications/CASES.md",
+      "before": "比较须采用同一用户群和时间范围，并核对独立记录是否可靠。",
+      "after": "先指定下降所比较的前后时期；两套记录须覆盖相应用户范围、采用同一回访定义和对应时期，并核对独立记录前后是否可靠。本项对照先分别考察实际减少而记录未变、实际未减少而报表漏记两种简化候选。",
+      "issue": "02"
+    },
+    {
+      "page": "docs/GLOSSARY.md",
+      "before": "若仅是一个程序漏记，可靠的独立记录可能未减少；预测不等于观察。",
+      "after": "若实际回访未变而报表漏记，覆盖相同范围且前后可靠的独立记录预期未减少；预测不等于观察。",
+      "issue": "02"
+    },
+    {
+      "page": "docs/engineering/OPERATORS.md",
+      "before": "**完成检查：** 反向命题不偷换量词和对象。",
+      "after": "**完成检查：** 反向命题不偷换量词和对象。\n\n例如，“所有提醒都会中断阅读”的否定是“至少有一个提醒没有中断阅读”，不是“所有提醒都不会中断阅读”。前者只需找一项不符合的情况，后者提出了更强的新主张。先写清否定哪一部分，再探索所需条件；生成的情况仍待核验。",
+      "issue": "03"
+    },
+    {
+      "page": "docs/engineering/OPERATORS.md",
+      "before": "形成一项解释可用于C-P11；形成有不同预测的竞争解释再检查C-P12。候选均不写作事实。",
+      "after": "形成一项解释可用于C-P11；形成有不同预测的竞争解释再检查C-P12。候选均不写作事实。从解释与条件推出预期的连续例子见[M2问题组](../models/M2.md#problem)，不能只给解释换一个名字就当作预测。",
+      "issue": "04"
+    },
+    {
+      "page": "docs/engineering/OPERATORS.md",
+      "before": "**前提：** 主张与材料可定位。",
+      "after": "**前提：** 有可明确的判断；证据关联时须有可定位材料。不确定性变体可以在材料缺失时使用，但只定位未知与材料需求。",
+      "issue": "05"
+    },
+    {
+      "page": "docs/engineering/OPERATORS.md",
+      "before": "**完成检查：** 检查内容匹配而非只看 URL。",
+      "after": "**条件变体说明：** 只处理C-P20时，可以问“要判断这项主张，还缺什么材料？取得什么才可能更新？”例如只知文件已收到而未取得内容，就将内容准确性标为待核验，说明需比对文件与指定原材料。完成未知定位不等于材料已取得，也不等于C-P19的证据关联已完成。\n\n**完成检查：** 检查内容匹配而非只看 URL；不确定性变体检查未知位置、材料需求与更新条件。",
+      "issue": "05"
+    },
+    {
+      "page": "docs/engineering/PATTERNS.md",
+      "before": "| <a id=\"lp13\"></a>LP13 | [OP13](OPERATORS.md#op13) | 主张与材料可定位 |",
+      "after": "| <a id=\"lp13\"></a>LP13 | [OP13](OPERATORS.md#op13) | 有明确判断；关联证据需材料，材料缺失可用未知定位变体 |",
+      "issue": "05"
+    },
+    {
+      "page": "docs/models/M2.md",
+      "before": "**怎样做：** 把已知、推测和缺材料处标开；说明判断依据及更新条件。",
+      "after": "**怎样做：** 把已知、推测和缺材料处标开；说明判断依据及更新条件。没有结果材料时，采用OP13的未知定位变体，只说明缺什么以及怎样查，不补写证据已经关联。",
+      "issue": "05"
+    },
+    {
+      "page": "docs/engineering/OPERATORS.md",
+      "before": "**完成检查：** 自述与可核验材料分开。",
+      "after": "**条件变体说明：** 处理C-C12时检查对判断过程的描述；要处理C-C11，还需回到对象判断，说明材料使哪一步保持或改变。例如，原先认为“收到文件就说明内容准确”，核对后发现接收日志没有内容核验记录，就撤回这一步推断，保留“已收到”，把准确性记为待核验。不能仅因写了反思段落就登记判断已按证据修订。\n\n**完成检查：** 自述与可核验材料分开；判断修订变体另查维持或改变的材料与推理依据。",
+      "issue": "06"
+    },
+    {
+      "page": "docs/models/M2.md",
+      "before": "**怎样做：** 核对主张、前提和证据；说明新材料是否改变推理；保持或修订范围与信心。",
+      "after": "**怎样做：** 核对主张、前提和证据；说明新材料是否改变推理；保持或修订范围与信心。用OP22时选择判断修订变体，不能仅凭对过程的自述登记此接口达成。",
+      "issue": "06"
+    },
+    {
+      "page": "docs/models/M4.md",
+      "before": "约定交付物、格式、位置或可观察结果。",
+      "after": "约定交付物、格式、位置或可观察结果。\n\n此处先定义要交什么，不要求产物已经存在。定义阶段检查接收方能否按约定辨认预期产物及找到交付位置，例如指出将要提交的对照表与目录；交付后再检查实际文件是否在该位置。不能把“位置已约定”写成“文件已提交”。",
+      "issue": "07"
+    },
+    {
+      "page": "docs/models/M4.md",
+      "before": "明确目的、范围、交付、约束、验收，以及执行方、资源、依赖和异常处理。",
+      "after": "明确目的、范围、交付、约束、验收，以及执行方、资源、依赖和异常处理。\n\n这里先检查规格能否指导下一步：做什么、需要什么、怎样验收、缺条件时找谁。执行者能说清这些，不表示账号、资料和资源此刻已可用；实际能否开始，按本页末尾的“任务就绪”检查另取材料。",
+      "issue": "08"
+    },
+    {
+      "page": "docs/engineering/OPERATORS.md",
+      "before": "**前提：** 已有适用标准或承诺条件，有权核验或关闭的依据可查；现实材料需取得。",
+      "after": "**前提：** 已有适用标准或承诺条件；现实材料需取得。涉及社会任务或承诺关闭时，还须核对有权核验或关闭的依据；个人检查自己的产物不因此需要社会授权。",
+      "issue": "09"
+    },
+    {
+      "page": "docs/engineering/OPERATORS.md",
+      "before": "本人思考的结果可核验，不必制造社会任务关系。",
+      "after": "本人思考的结果可核验，不必制造社会任务关系；此时可只问“按这条规则，结果满足什么，哪些无法核验？”",
+      "issue": "09"
+    },
+    {
+      "page": "docs/engineering/PROTOCOLS.md",
+      "before": "**使用组件：** [OP09](OPERATORS.md#op09)、[OP33](OPERATORS.md#op33)、[OP34](OPERATORS.md#op34)、[OP23](OPERATORS.md#op23)。",
+      "after": "**使用组件：** [OP35](OPERATORS.md#op35)、[OP09](OPERATORS.md#op09)、[OP33](OPERATORS.md#op33)、[OP34](OPERATORS.md#op34)、[OP36](OPERATORS.md#op36)、[OP23](OPERATORS.md#op23)。",
+      "issue": "10"
+    },
+    {
+      "page": "docs/engineering/PROTOCOLS.md",
+      "before": "**使用组件：** [OP09](OPERATORS.md#op09)、[OP10](OPERATORS.md#op10)、[OP12](OPERATORS.md#op12)、[OP11](OPERATORS.md#op11)、[OP13](OPERATORS.md#op13)、[OP14](OPERATORS.md#op14)、[OP05](OPERATORS.md#op05)。",
+      "after": "**使用组件：** [OP09](OPERATORS.md#op09)、[OP10](OPERATORS.md#op10)、[OP12](OPERATORS.md#op12)、[OP11](OPERATORS.md#op11)、[OP34](OPERATORS.md#op34)、[OP13](OPERATORS.md#op13)、[OP14](OPERATORS.md#op14)、[OP05](OPERATORS.md#op05)。",
+      "issue": "10"
+    },
+    {
+      "page": "docs/learning/TRAINING.md",
+      "before": "**任务**：只选当前最关键的一项，提出能判断具体例子的规则和所需材料。可用 OP18。",
+      "after": "**任务**：先说明报告用于什么，再选当前最关键的一项，提出能判断具体例子的规则和所需材料。可用 OP18。以下示例另设报告用于核对给定数据；这项用途不是从“准确、简洁、可用”三个词直接读出的。",
+      "issue": "11"
+    },
+    {
+      "page": "docs/learning/TRAINING.md",
+      "before": "**任务**：分别标理解范围和行动关系。可用 OP23/OP26/OP30。",
+      "after": "**任务**：分别标理解范围和行动关系。可用 OP23/OP26；含义仍不清时用OP24。本输入没有给出旧有效安排，不直接调用OP30；若另查到已有承诺需要调整，再按OP30的前提处理。",
+      "issue": "11"
+    },
+    {
+      "page": "docs/engineering/RUN_SPEC.md",
+      "before": "社会关闭按约定成立，不凭产物自报",
+      "after": "核对约定所需的验收确认，再登记社会关闭；尚无确认时保持待验收",
+      "issue": "12"
+    },
+    {
+      "page": "docs/engineering/RUN_SPEC.md",
+      "before": "没有材料时，需指定如何查证，不能通过更多关联文字生成证据。",
+      "after": "没有材料时，采用未知定位变体指定如何查证，不能通过更多关联文字生成证据。",
+      "issue": "05"
+    },
+    {
+      "page": "docs/MENTAL_MODELS.md",
+      "before": "## 5. 看见产物、确认状态、说明变化、归因效果是四步",
+      "after": "## 5. 产物、状态、变化与归因是四种判断\n\n四项分别回答有什么产物、当前能做什么、前后是否不同、差异是否由该操作带来。它们需要不同材料，不要求每次依次完成；只评当前产物时，不补写能力变化或原因。",
+      "issue": "13"
+    },
+    {
+      "page": "docs/CORE_SPEC.md",
+      "before": "详见[五个心智模型](MENTAL_MODELS.md)与[使用规格](engineering/RUN_SPEC.md)。",
+      "after": "详见[五种辅助理解](MENTAL_MODELS.md)与[使用规格](engineering/RUN_SPEC.md)。",
+      "issue": "13"
+    },
+    {
+      "page": "docs/STATE_SPEC.md",
+      "before": "版本 v0.5。状态是为当前任务保留的有关系统的描述，不承诺直接读取完整心理状态。",
+      "after": "版本 v0.6 工作版，沿用v0.5的状态约定并补解释，尚未冻结。状态是为当前任务保留的有关系统的描述，不承诺直接读取完整心理状态。",
+      "issue": "13"
+    },
+    {
+      "page": "docs/START_HERE.md",
+      "before": "首次使用先识别状态和跟随协议；熟悉后只调用关键算子；最终在真实问题中根据反馈调整模式。",
+      "after": "学习后首次应用，可借卡片或协议处理当前缺口；已有状态直接复用，单一算子足够时不必走协议。熟悉后根据真实反馈选择和调整必要模式。",
+      "issue": "13"
+    },
+    {
+      "page": "docs/learning/INTERFACE_PATHS.md",
+      "before": "初始状态未知时，不因为左栏写“未形成”就倒推本人原来没有。",
+      "after": "初始状态未知时，不因为左栏写“未形成”就倒推本人原来没有。C-P20材料缺失时采用OP13的未知定位变体；C-C11用OP22时还需检查对象判断的维持或修订，不能以过程自述代替。",
+      "issue": "05/06"
+    },
+    {
+      "page": "docs/evaluation/BOUNDARY_CASES.md",
+      "before": "| 32 | 反馈支持保持旧安排 | 不修改即反馈未完成 | O-C3记录保持依据，无需制造改动 |\n\n| 33 |",
+      "after": "| 32 | 反馈支持保持旧安排 | 不修改即反馈未完成 | O-C3记录保持依据，无需制造改动 |\n| 33 |",
+      "issue": "14"
+    },
+    {
+      "page": "docs/evaluation/BOUNDARY_CASES.md",
+      "before": "以下 44 项",
+      "after": "以下 50 项",
+      "issue": "14"
+    },
+    {
+      "page": "docs/evaluation/BOUNDARY_CASES.md",
+      "before": "\n## 覆盖与遗漏管理",
+      "after": "\n| 45 | 拒绝新请求，但没有旧有效安排 | 直接调用旧安排重新协商 | OP26记录响应；另取得旧安排时才考虑OP30 |\n| 46 | 没有内容材料，准确性未知 | OP13不能用，或未知定位就算证据关联完成 | 可用未知定位变体查需求；不登记C-P19已完成 |\n| 47 | 交付对象和位置已约定，文件尚不存在 | 定义交付等于实际交付 | A-P14检查约定可辨认；交付记录另查 |\n| 48 | 两套记录覆盖不同前后时期或回访定义 | 数字不同就区分了减少与漏记 | 先核对定义、范围、比较时期及记录可靠性 |\n| 49 | 否定“所有提醒都中断阅读” | 改成“所有提醒都不中断阅读” | 原全称的否定是至少一项不符合；更强反向主张另查 |\n| 50 | 写了反思过程，但对象判断未核对材料 | C-C12已出现就登记C-C11达成 | 另查判断保持或修订的材料与推理连接 |\n\n## 覆盖与遗漏管理",
+      "issue": "14"
+    },
+    {
+      "page": "docs/engineering/OPERATORS.md",
+      "before": "**操作与输出：** 分开对象判断与对判断过程的自述；回看实际材料、选择和错误，标出内省的不确定性；只依据可查变化修订过程解释或策略。 输出：过程描述与修订依据。",
+      "after": "**操作与输出：** 分开对象判断与对判断过程的自述；回看实际材料、选择和错误，标出内省的不确定性；根据可查材料及其与判断的关系，保持或修订过程解释、对象判断或策略。 输出：过程描述与维持／修订依据。",
+      "issue": "06"
+    },
+    {
+      "page": "docs/evaluation/BOUNDARY_CASES.md",
+      "issue": "14",
+      "before": "第44行与新增第45行之间有空行",
+      "after": "删除两行间空行，连接同一张表；浏览器逐行核对01—50"
+    }
+  ],
+  "pages": [
+    {
+      "path": "docs/BRIDGES.md",
+      "before_sha256": "8ec3260e2fbf687735cfae9ef64f76884cd9ff3d26373b09d9ad3a8705e7c6b8",
+      "after_sha256": "8ec3260e2fbf687735cfae9ef64f76884cd9ff3d26373b09d9ad3a8705e7c6b8",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/CORE_SPEC.md",
+      "before_sha256": "345d217dda4fd26cc4c062982b60a81ea5bcf0e5acc694e7db62540aebb468ce",
+      "after_sha256": "8581b9e1d3ff2bb874ef090227498bdd661896ee7e5368cb10a2634097c00e7b",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/EVIDENCE_SPEC.md",
+      "before_sha256": "77a9b323cb1084ccb0c2d8be9d524ed394363b976c8b8c590b1f318d21ef83b4",
+      "after_sha256": "77a9b323cb1084ccb0c2d8be9d524ed394363b976c8b8c590b1f318d21ef83b4",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/GLOSSARY.md",
+      "before_sha256": "007cb0d49a4301adbcfd6add5aa0c6d3960d6cecf1e23a422891518ffca4e47b",
+      "after_sha256": "668f9ea2cc0806a08a5317c16cf905c2066f76819ee11aa8dae44d45a9774a37",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/MECHANISMS.md",
+      "before_sha256": "16a5c58413acfac8a79203912b03e140c26faf3a6e5e3af747df9fb2408ac634",
+      "after_sha256": "16a5c58413acfac8a79203912b03e140c26faf3a6e5e3af747df9fb2408ac634",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/MENTAL_MODELS.md",
+      "before_sha256": "214f856c5f808d270d08c03f2636c03d2ffbfd7c954dd867dcc7140f3fe41d41",
+      "after_sha256": "129fcbbaf39f4e3f1bbaf185b59308fc2ceb28dfa988babf1399681b08645770",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/OUTCOMES.md",
+      "before_sha256": "8050606b458d0953af9d5c12bd4286ceb0caa589ff6ed43a0ee8a1a12563e997",
+      "after_sha256": "8050606b458d0953af9d5c12bd4286ceb0caa589ff6ed43a0ee8a1a12563e997",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/PURPOSE.md",
+      "before_sha256": "b388faa5256e7d9a5f7011a60d929f92b9814350edf923dd7e6a4b8582fef41f",
+      "after_sha256": "b388faa5256e7d9a5f7011a60d929f92b9814350edf923dd7e6a4b8582fef41f",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/START_HERE.md",
+      "before_sha256": "778a4ca239e50a181bc2815e5bd45a96bb6d7bf2a4430f025857319469f6feae",
+      "after_sha256": "879f01f0e053c39019464fb1bd216989a5f09ffddbd8d94a310d0f7a3ccc04c8",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/STATE_SPEC.md",
+      "before_sha256": "1199e29e427057195d53eda6a58e63df19366f36558449cef574b73db7c276b7",
+      "after_sha256": "b67650651f033b5a89bdd88945ab3f6c45b969adc98a25e2ee0db84d2f5e01fd",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/applications/CASES.md",
+      "before_sha256": "f3010ae1d8582dd4e6bb4750a2a2bfcd39330d3a18c0e5d2f4c60573b3d24942",
+      "after_sha256": "bcd17e880f19526e99ea88b27b93eb632cfc8cdcf1f78bcdbf2f164a19e61908",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/decisions/001-document-and-book.md",
+      "before_sha256": "9ef66571d0ec5a52f8a82ed1fd0207391990267a9ba66f0effa07b94b40dc9a1",
+      "after_sha256": "9ef66571d0ec5a52f8a82ed1fd0207391990267a9ba66f0effa07b94b40dc9a1",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/decisions/002-model-and-state-boundaries.md",
+      "before_sha256": "f810a07988c878ca0d812f552be9caebb66210ec9bad6d0353ecc6ecd9023b9f",
+      "after_sha256": "f810a07988c878ca0d812f552be9caebb66210ec9bad6d0353ecc6ecd9023b9f",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/decisions/003-engineering-and-evidence.md",
+      "before_sha256": "1b1dea95bf16d01eb243627944dd3d9a0541ff45362e290cf85f036b4461803a",
+      "after_sha256": "1b1dea95bf16d01eb243627944dd3d9a0541ff45362e290cf85f036b4461803a",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/decisions/004-observation-and-use.md",
+      "before_sha256": "bd829cad97690bf30c42e878c0728b0f5e6cba013176ff5298e03aa8b3ae9e25",
+      "after_sha256": "bd829cad97690bf30c42e878c0728b0f5e6cba013176ff5298e03aa8b3ae9e25",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/decisions/005-practical-core.md",
+      "before_sha256": "9823b3f69d5afc401e41a1a74da008b1994a7d97666bb03777c2ebef18d2a9cd",
+      "after_sha256": "9823b3f69d5afc401e41a1a74da008b1994a7d97666bb03777c2ebef18d2a9cd",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/decisions/006-structural-core.md",
+      "before_sha256": "f05e2c2cb66119a9e3b7dab2ce2b76fdacffde86d8f1c3d72ebe01bb3e02fd92",
+      "after_sha256": "f05e2c2cb66119a9e3b7dab2ce2b76fdacffde86d8f1c3d72ebe01bb3e02fd92",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/decisions/007-freeze-structural-core.md",
+      "before_sha256": "3f76c284a00620fa8e351d611bc4906d8e6d5387a2255de24bb99c6bb0d2153d",
+      "after_sha256": "3f76c284a00620fa8e351d611bc4906d8e6d5387a2255de24bb99c6bb0d2153d",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/decisions/008-learning-mainline.md",
+      "before_sha256": "bf62782a37cd87edc39b878d6a2be1bcb012edc1f520926b518645a1dc25f2fd",
+      "after_sha256": "bf62782a37cd87edc39b878d6a2be1bcb012edc1f520926b518645a1dc25f2fd",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/engineering/COMPONENT_SPEC.md",
+      "before_sha256": "40505c15560c42310308fa78408daf28aa2ebb99c78dfdf76f8927c1bcd415e0",
+      "after_sha256": "40505c15560c42310308fa78408daf28aa2ebb99c78dfdf76f8927c1bcd415e0",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/engineering/OPERATORS.md",
+      "before_sha256": "4c8b989e4d748f6e717728355c9f0a508b7767951fce18dd6e0e42a4d30b85a9",
+      "after_sha256": "b910ed3a46d777121dcdd3f2c8dbbfec376940ed01bc35797651a3bd020ac3b5",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/engineering/PATTERNS.md",
+      "before_sha256": "1d7317cb72550f43a34ef6858ed5fe2b162e25110aea2890f61242eeb8d274f5",
+      "after_sha256": "b1a09b5c8d71507064116270f7664b014175a9ed7911de0ff123669e16856673",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/engineering/PROTOCOLS.md",
+      "before_sha256": "f17e01941fd11a0d4285e54d68af3daf5249ab5a02093288c293858829761d9e",
+      "after_sha256": "80b7bffb0444851316db6888b0f52302e58b9a9acfbe681122c58ac312bdd56b",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/engineering/RUN_SPEC.md",
+      "before_sha256": "1b7c6bf40bbad18a0817537dcebb9aa9a8d3b1c4d6c9d5963993e64811c1d0d3",
+      "after_sha256": "86b43da3bc27d11438e145f4001550cf7e777a64bb44ff0f43fcd2534e3353c7",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/essentials/SELECTION.md",
+      "before_sha256": "6350dfd469325f07ab5bffe4ee73f11c085a54d357e7766afe518190e19a267f",
+      "after_sha256": "6350dfd469325f07ab5bffe4ee73f11c085a54d357e7766afe518190e19a267f",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/essentials/index.md",
+      "before_sha256": "28cad2ea60c8ad5b9b520a49ba7615c7cd5cf4f407236261c35369ff538ec878",
+      "after_sha256": "28cad2ea60c8ad5b9b520a49ba7615c7cd5cf4f407236261c35369ff538ec878",
+      "modified": false,
+      "review_note": "版本边界及引用核对；冻结正文／历史决策保留，未重新重写。"
+    },
+    {
+      "path": "docs/evaluation/BOUNDARY_CASES.md",
+      "before_sha256": "326dbc27e142785423c913f21bd1397a09bc1eeaf4f8bbbcafd5275108e1b563",
+      "after_sha256": "ecf7a917985ecd13617966e864f3a08b08eb20cad48aadeef6df2cb37a3db91c",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/evaluation/EVALUATION.md",
+      "before_sha256": "396470f6e9bd44f3d6aed6254b3a56e82904fa2c182ac7cbdf1b4719955acfb6",
+      "after_sha256": "396470f6e9bd44f3d6aed6254b3a56e82904fa2c182ac7cbdf1b4719955acfb6",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/evaluation/FAILURE_ANALYSIS.md",
+      "before_sha256": "0af027eb9018fa341c1279fb3182b44a6f3cbd5d26e86f07ccb4945bbb3c995f",
+      "after_sha256": "0af027eb9018fa341c1279fb3182b44a6f3cbd5d26e86f07ccb4945bbb3c995f",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/index.md",
+      "before_sha256": "bb7ef6c81437ec32706384b732d621ebd160a1a85165fdd125692650c1db222e",
+      "after_sha256": "1fd86296a366d3c4b93f7d4cacf6879fe95a5b874d3a720eaebe8e92dd4e513a",
+      "modified": true,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/learning/INTERFACE_PATHS.md",
+      "before_sha256": "e6fffc3e6624770c04c450328f0ee64561497783d7ad1be07aa30d43b5ce92bc",
+      "after_sha256": "cee233f9a409275425a5228b8808c9430085eb0fd995e77a998f78b9d4555433",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/learning/MAINLINE.md",
+      "before_sha256": "7ba29146cc280fda5a700535de64323b3748d3c8b9d746d6c5890d0e768f9389",
+      "after_sha256": "7ba29146cc280fda5a700535de64323b3748d3c8b9d746d6c5890d0e768f9389",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/learning/MODEL_GUIDE.md",
+      "before_sha256": "a796b7736eb328dcb3ec713413db68cdb768b045c8499a46af5a33be5644ffa1",
+      "after_sha256": "a796b7736eb328dcb3ec713413db68cdb768b045c8499a46af5a33be5644ffa1",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/learning/PRINCIPLES.md",
+      "before_sha256": "37cd6ff508d8b7ab7b1c363d4a0098316df629f51ebd5c7fe7c1fb1166c0fffc",
+      "after_sha256": "37cd6ff508d8b7ab7b1c363d4a0098316df629f51ebd5c7fe7c1fb1166c0fffc",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/learning/TRAINING.md",
+      "before_sha256": "9fb1bed1638e881763f0477c5f147a3fd51f314ef48f130227241c009e84acf4",
+      "after_sha256": "f061dad20cf11b522a7070bd69ed42533965b2759d9c046aed2f9465af7538ca",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/models/M1.md",
+      "before_sha256": "c230b10fdebfada1cf4138f87d91558186ab835f13172a06b219150412cc40c3",
+      "after_sha256": "c230b10fdebfada1cf4138f87d91558186ab835f13172a06b219150412cc40c3",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/models/M2.md",
+      "before_sha256": "8198013dd13b09e432a99ea960960b8c0e07aea8376c8b7d7f1405caaf7dfa7d",
+      "after_sha256": "6dadd020ec66c57064af7c44f5daed09357748dffc43a238b02f9cc19a0f63c9",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/models/M3.md",
+      "before_sha256": "77c40c120c1df4b69dc36c00afeef5f4c8495fbe93fb739a5bbf632308f7c448",
+      "after_sha256": "77c40c120c1df4b69dc36c00afeef5f4c8495fbe93fb739a5bbf632308f7c448",
+      "modified": false,
+      "review_note": "沿入口及引用链核对对象、前提和目标连接；没有新问题需要本轮修改。"
+    },
+    {
+      "path": "docs/models/M4.md",
+      "before_sha256": "fd81098254927c8b3e7b79a09f49cc88d163af1265be3a66ec7f509f0e721fa8",
+      "after_sha256": "5d49025a5885f5a2b72235e9108a6036d4db310f331856408aebe7cb03a89588",
+      "modified": true,
+      "review_note": "逐段复查并就地修订；原句与处理见targeted_edits。"
+    },
+    {
+      "path": "docs/project/BASELINE.md",
+      "before_sha256": "ea9b6b0d2512a3c62d9cc41d14d80bd8a961660b70a5005dc34636ee8c569b2e",
+      "after_sha256": "ea9b6b0d2512a3c62d9cc41d14d80bd8a961660b70a5005dc34636ee8c569b2e",
+      "modified": false,
+      "review_note": "核对当前与历史记录范围；旧审查记录保留为其修订快照。"
+    },
+    {
+      "path": "docs/project/CHANGELOG.md",
+      "before_sha256": "7d530205f290eaee297b76c50b0d63edcb8b3ee29cab773416f972b79fc5ac76",
+      "after_sha256": "3e6b4652d3a349495a97c18cd5b0d4ef42fefe8ac4f6cbdac0a4758295ac8609",
+      "modified": true,
+      "review_note": "核对当前与历史记录范围；旧审查记录保留为其修订快照。"
+    },
+    {
+      "path": "docs/project/CONCEPT_AUDIT.md",
+      "before_sha256": "929b62853b6f05c641d8ef3e6ff3cb868b5bdf6712653ab7aeec6e40f07278bc",
+      "after_sha256": "929b62853b6f05c641d8ef3e6ff3cb868b5bdf6712653ab7aeec6e40f07278bc",
+      "modified": false,
+      "review_note": "核对当前与历史记录范围；旧审查记录保留为其修订快照。"
+    },
+    {
+      "path": "docs/project/GROUNDING_AUDIT.md",
+      "before_sha256": "5e04c38b4adddd8e0be79c2e0b4d4b38519b75e81478c6dbbaa20d4c9dba15db",
+      "after_sha256": "75ebb246a3c166114511466bb124aade132b7be9838ce06b1b0a1d0833ca9e2a",
+      "modified": true,
+      "review_note": "核对当前与历史记录范围；旧审查记录保留为其修订快照。"
+    },
+    {
+      "path": "docs/project/MAINTENANCE.md",
+      "before_sha256": "ed52d58ff75474e85a8db0e26efc9c5ce247e92afd9bf9adfa6c6a7a10e266ef",
+      "after_sha256": "ed52d58ff75474e85a8db0e26efc9c5ce247e92afd9bf9adfa6c6a7a10e266ef",
+      "modified": false,
+      "review_note": "核对当前与历史记录范围；旧审查记录保留为其修订快照。"
+    },
+    {
+      "path": "docs/project/PUBLISHING.md",
+      "before_sha256": "8fe004931fa8f7c26b38541be549e3dd39015b0cb1511a3a4a59434f3f08b7dc",
+      "after_sha256": "8fe004931fa8f7c26b38541be549e3dd39015b0cb1511a3a4a59434f3f08b7dc",
+      "modified": false,
+      "review_note": "核对当前与历史记录范围；旧审查记录保留为其修订快照。"
+    },
+    {
+      "path": "docs/project/REVIEW_REPORT.md",
+      "before_sha256": "b24ee33bbeb5af1086c66a5837a1273a28b3d240d5f5824c149350adfe4a1b81",
+      "after_sha256": "0a2646d2fd1774963b3677b1508d239a3b46d78fb6e82c50e968aaacd7cbd8ff",
+      "modified": true,
+      "review_note": "核对当前与历史记录范围；旧审查记录保留为其修订快照。"
+    },
+    {
+      "path": "docs/project/STATUS.md",
+      "before_sha256": "98cb55cca19a1ed47d5ab4cd05c138455cb3757afd71fef68a09a808e5794a9c",
+      "after_sha256": "a5db9f070bf9aa4af594f920d251b7011e94fe3be96b97b8b8b4379482bf69e0",
+      "modified": true,
+      "review_note": "核对当前与历史记录范围；旧审查记录保留为其修订快照。"
+    },
+    {
+      "path": "docs/sources/VERIFIED_SOURCES.md",
+      "before_sha256": "8e8db6452f9a6aa12f26cc2e943a835f77f621c6fec1a915a257b7e58fd23749",
+      "after_sha256": "8e8db6452f9a6aa12f26cc2e943a835f77f621c6fec1a915a257b7e58fd23749",
+      "modified": false,
+      "review_note": "核对文档中的来源读取地位与边界；没有重新读取外部全文。"
+    },
+    {
+      "path": "docs/sources/conversation-citations.md",
+      "before_sha256": "051e4326c55b50fc34cbd56dc487d872cb6e878ec3d71b70309be44752a8a057",
+      "after_sha256": "051e4326c55b50fc34cbd56dc487d872cb6e878ec3d71b70309be44752a8a057",
+      "modified": false,
+      "review_note": "核对文档中的来源读取地位与边界；没有重新读取外部全文。"
+    },
+    {
+      "path": "docs/sources/index.md",
+      "before_sha256": "ee3476248484779640cacf34dd946b8dc475472293c8e01291df823b1f951416",
+      "after_sha256": "ee3476248484779640cacf34dd946b8dc475472293c8e01291df823b1f951416",
+      "modified": false,
+      "review_note": "核对文档中的来源读取地位与边界；没有重新读取外部全文。"
+    }
+  ]
+}

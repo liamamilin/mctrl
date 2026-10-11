@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "online desktop: font, persistence, focus, resume, unchanged article, no horizontal overflow",
+    "standalone desktop: chapter contents, all generated anchors, theme switch, no horizontal overflow",
+    "standalone mobile: drawer, Escape, chapter navigation, local contents, no horizontal overflow",
+    "online mobile: no horizontal overflow",
+    "storage disabled: reading controls still work without errors",
+    "JavaScript disabled: full manuscript and chapter navigation remain readable"
+  ],
+  "errors": []
+}

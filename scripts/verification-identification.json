@@ -1,0 +1,109 @@
+{
+  "update_registry.py --check": "Registry matches source: 82 interfaces, all fields.",
+  "check_mainline.py": {
+    "interfaces": 82,
+    "reviewed_additions": [
+      "R-C2"
+    ],
+    "operators": 37,
+    "principal_patterns": 37,
+    "all_interfaces_have_methods_core_expansion_checks": true,
+    "baseline_definitions_and_archives_preserved": true,
+    "errors": []
+  },
+  "check_docs.py": {
+    "pages": 51,
+    "local_links": 1929,
+    "models": {
+      "M1": 9,
+      "M2": 35,
+      "M3": 9,
+      "M4": 29
+    },
+    "registry_interfaces": 82,
+    "snapshot_matches_source": true,
+    "operators": 37,
+    "protocols": 13,
+    "patterns": 39,
+    "mechanisms": 12,
+    "bridges": 8,
+    "outcomes": 3,
+    "sources": 12,
+    "errors": []
+  },
+  "check_essentials.py": {
+    "model_candidates": 81,
+    "primary_interfaces": 23,
+    "support_interfaces": 8,
+    "retained_interfaces": 31,
+    "retained_by_model": {
+      "M2": 17,
+      "M4": 6,
+      "M3": 4,
+      "M1": 4
+    },
+    "mechanism_candidates": 12,
+    "core_mechanisms": 7,
+    "operator_candidates": 34,
+    "core_operators_and_principal_patterns": 15,
+    "protocol_candidates": 13,
+    "fully_retained_protocols": [
+      "PR05"
+    ],
+    "errors": []
+  },
+  "negative_guards": [
+    {
+      "case": "original definition",
+      "rejected_with_reason": "baseline definition changed"
+    },
+    {
+      "case": "new definition",
+      "rejected_with_reason": "reviewed addition definition changed"
+    },
+    {
+      "case": "unreviewed addition",
+      "rejected_with_reason": "interface additions differ"
+    }
+  ],
+  "frozen_files_preserved": 58,
+  "version": "project-v0.7.5",
+  "date": "2026-10-10",
+  "design_review": [
+    "明确所指而非只给名称",
+    "描述性称呼允许未知术语",
+    "名称不证明归类或概念形成",
+    "材料整体与讨论部分区分",
+    "对象可为关系或自述经验",
+    "已有所指复用",
+    "特征可反向帮助指认",
+    "M1产物与M2理解及M3共享分开",
+    "复用既有算子与模式",
+    "原81定义与冻结版本保留"
+  ],
+  "browser_checks": [
+    "M1 1440: 9 cards, object-first reading order, identification boundaries and layout",
+    "LP09 path 1440: identification reaches canonical reusable operator",
+    "Index 1440: new interface resolves once and tables remain contained",
+    "Example 1440: training link reaches grounded identification sample",
+    "Book 1440: 121 pairs, new interface, current date and all runtime anchors",
+    "M1 390: 9 cards, object-first reading order, identification boundaries and layout",
+    "LP09 path 390: identification reaches canonical reusable operator",
+    "Index 390: new interface resolves once and tables remain contained",
+    "Example 390: training link reaches grounded identification sample",
+    "Book 390: 121 pairs, new interface, current date and all runtime anchors"
+  ],
+  "browser_errors": [],
+  "strict_build_passed": true,
+  "check_site.py": {
+    "html_pages": 52,
+    "local_urls_checked": 6546,
+    "errors": []
+  },
+  "book_static": {
+    "ids": 752,
+    "internal_links": 1976,
+    "duplicate_or_missing_ids": false
+  },
+  "core_expansion_pairs": 121
+}
