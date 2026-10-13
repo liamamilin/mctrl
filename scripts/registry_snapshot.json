@@ -1,0 +1,1238 @@
+[
+  {
+    "id": "R-C2",
+    "model": "M1",
+    "name": "Identification",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "R-P5"
+    ],
+    "cross_domain": [
+      "C-C1",
+      "C-P13"
+    ],
+    "mechanisms": []
+  },
+  {
+    "id": "R-P1",
+    "model": "M1",
+    "name": "Feature Selection",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME01"
+    ]
+  },
+  {
+    "id": "R-P2",
+    "model": "M1",
+    "name": "Differentiation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02"
+    ]
+  },
+  {
+    "id": "R-P3",
+    "model": "M1",
+    "name": "Categorization",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02"
+    ]
+  },
+  {
+    "id": "R-P4",
+    "model": "M1",
+    "name": "Abstraction",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02"
+    ]
+  },
+  {
+    "id": "R-C1",
+    "model": "M1",
+    "name": "Concept Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "R-P1",
+      "R-P2",
+      "R-P3",
+      "R-P4",
+      "R-P5"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02",
+      "ME03"
+    ]
+  },
+  {
+    "id": "R-P5",
+    "model": "M1",
+    "name": "Linguistic Encoding",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME03"
+    ]
+  },
+  {
+    "id": "R-P6",
+    "model": "M1",
+    "name": "Compression",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME03"
+    ]
+  },
+  {
+    "id": "R-P7",
+    "model": "M1",
+    "name": "Expansion",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME03"
+    ]
+  },
+  {
+    "id": "C-P1",
+    "model": "M2",
+    "name": "Focus",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME01"
+    ]
+  },
+  {
+    "id": "C-P2",
+    "model": "M2",
+    "name": "Explication",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME03",
+      "ME04"
+    ]
+  },
+  {
+    "id": "C-P3",
+    "model": "M2",
+    "name": "Differentiation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02"
+    ]
+  },
+  {
+    "id": "C-P13",
+    "model": "M2",
+    "name": "Boundary Formation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME01",
+      "ME03"
+    ]
+  },
+  {
+    "id": "C-C1",
+    "model": "M2",
+    "name": "Specification",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P2",
+      "C-P3",
+      "C-P13",
+      "C-P14"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME01",
+      "ME03"
+    ]
+  },
+  {
+    "id": "C-P4",
+    "model": "M2",
+    "name": "Comparative Activation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02"
+    ]
+  },
+  {
+    "id": "C-P5",
+    "model": "M2",
+    "name": "Difference Detection",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02"
+    ]
+  },
+  {
+    "id": "C-P6",
+    "model": "M2",
+    "name": "Similarity Detection",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02"
+    ]
+  },
+  {
+    "id": "C-P7",
+    "model": "M2",
+    "name": "Reference Establishment",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02",
+      "ME05"
+    ]
+  },
+  {
+    "id": "C-P14",
+    "model": "M2",
+    "name": "Relation Formation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02",
+      "ME08"
+    ]
+  },
+  {
+    "id": "C-C4",
+    "model": "M2",
+    "name": "Problem Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P1",
+      "C-P3",
+      "C-P7",
+      "C-P13",
+      "C-P14"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME01",
+      "ME06"
+    ]
+  },
+  {
+    "id": "C-C5",
+    "model": "M2",
+    "name": "Problem Structuring",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P3",
+      "C-P13",
+      "C-P14",
+      "C-P15",
+      "C-P20"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02",
+      "ME08"
+    ]
+  },
+  {
+    "id": "C-P8",
+    "model": "M2",
+    "name": "Alternative Generation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME06",
+      "ME07"
+    ]
+  },
+  {
+    "id": "C-P9",
+    "model": "M2",
+    "name": "Search Bounding",
+    "kind": "Specialization",
+    "specializes": "C-P13",
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME01"
+    ]
+  },
+  {
+    "id": "C-P10",
+    "model": "M2",
+    "name": "Assumption Explication",
+    "kind": "Specialization",
+    "specializes": "C-P2",
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME04"
+    ]
+  },
+  {
+    "id": "C-P11",
+    "model": "M2",
+    "name": "Explanation Generation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME06",
+      "ME08"
+    ]
+  },
+  {
+    "id": "C-P12",
+    "model": "M2",
+    "name": "Explanation Diversification",
+    "kind": "Specialization",
+    "specializes": "C-P8",
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME06",
+      "ME08"
+    ]
+  },
+  {
+    "id": "C-C2",
+    "model": "M2",
+    "name": "Assumption Examination",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P10",
+      "C-P19",
+      "C-P8",
+      "C-P13",
+      "C-P20"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME04",
+      "ME08"
+    ]
+  },
+  {
+    "id": "C-C3",
+    "model": "M2",
+    "name": "Causal Structuring",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P3",
+      "C-P11",
+      "C-P12",
+      "C-P14",
+      "C-P19",
+      "C-P20"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME08"
+    ]
+  },
+  {
+    "id": "C-P17",
+    "model": "M2",
+    "name": "Preference Formation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME05"
+    ]
+  },
+  {
+    "id": "C-P16",
+    "model": "M2",
+    "name": "Desired-State Construction",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME06",
+      "ME07"
+    ]
+  },
+  {
+    "id": "C-C6",
+    "model": "M2",
+    "name": "Desired-Change Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P4",
+      "C-P5",
+      "C-P8",
+      "C-P17",
+      "C-P16",
+      "C-P14"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME02",
+      "ME05",
+      "ME07"
+    ]
+  },
+  {
+    "id": "C-P18",
+    "model": "M2",
+    "name": "Goal Adoption",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME09"
+    ]
+  },
+  {
+    "id": "C-C7",
+    "model": "M2",
+    "name": "Goal Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P18",
+      "C-P13",
+      "C-P15",
+      "C-C8"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME09"
+    ]
+  },
+  {
+    "id": "C-C8",
+    "model": "M2",
+    "name": "Criteria Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P2",
+      "C-P3",
+      "C-P8",
+      "C-P13",
+      "C-P14",
+      "C-P15"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME05",
+      "ME09"
+    ]
+  },
+  {
+    "id": "C-P15",
+    "model": "M2",
+    "name": "Prioritization",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME05",
+      "ME09"
+    ]
+  },
+  {
+    "id": "C-C9",
+    "model": "M2",
+    "name": "Alternative Evaluation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-C8",
+      "C-P7",
+      "C-P19",
+      "C-P14",
+      "C-P15",
+      "C-P20"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME05",
+      "ME08"
+    ]
+  },
+  {
+    "id": "C-P21",
+    "model": "M2",
+    "name": "Option Selection",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME05",
+      "ME09"
+    ]
+  },
+  {
+    "id": "C-C10",
+    "model": "M2",
+    "name": "Decision Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-C9",
+      "C-P13",
+      "C-P15",
+      "C-P20",
+      "C-P21"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME05",
+      "ME09"
+    ]
+  },
+  {
+    "id": "C-C13",
+    "model": "M2",
+    "name": "Plan Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P8",
+      "C-C9",
+      "C-P13",
+      "C-P14",
+      "C-P15",
+      "C-P20"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME07",
+      "ME09"
+    ]
+  },
+  {
+    "id": "C-C14",
+    "model": "M2",
+    "name": "Implementation-Intention Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P13",
+      "C-P14",
+      "C-C1",
+      "C-P18"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME09"
+    ]
+  },
+  {
+    "id": "C-P19",
+    "model": "M2",
+    "name": "Evidence Linking",
+    "kind": "Specialization",
+    "specializes": "C-P14",
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME04",
+      "ME08"
+    ]
+  },
+  {
+    "id": "C-P20",
+    "model": "M2",
+    "name": "Uncertainty Representation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME04"
+    ]
+  },
+  {
+    "id": "C-C12",
+    "model": "M2",
+    "name": "Metacognitive Representation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P1",
+      "C-P2",
+      "C-P10",
+      "C-P19",
+      "C-P20"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME04"
+    ]
+  },
+  {
+    "id": "C-C11",
+    "model": "M2",
+    "name": "Belief Calibration",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P19",
+      "C-C2",
+      "C-P13",
+      "C-P20"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME04",
+      "ME08"
+    ]
+  },
+  {
+    "id": "I-C1",
+    "model": "M3",
+    "name": "Shared Information Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "I-P1"
+    ],
+    "cross_domain": [
+      "B-C2"
+    ],
+    "mechanisms": [
+      "ME10",
+      "ME11"
+    ]
+  },
+  {
+    "id": "I-P1",
+    "model": "M3",
+    "name": "Sharedness Verification",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME10"
+    ]
+  },
+  {
+    "id": "I-C2",
+    "model": "M3",
+    "name": "Clarification",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "C-P3",
+      "C-C1",
+      "I-P1"
+    ],
+    "cross_domain": [
+      "B-C2"
+    ],
+    "mechanisms": [
+      "ME10",
+      "ME11"
+    ]
+  },
+  {
+    "id": "I-C3",
+    "model": "M3",
+    "name": "Meaning Alignment",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "I-C2",
+      "I-P1"
+    ],
+    "cross_domain": [
+      "B-C2"
+    ],
+    "mechanisms": [
+      "ME10",
+      "ME11"
+    ]
+  },
+  {
+    "id": "I-C4",
+    "model": "M3",
+    "name": "Model Alignment",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "I-C1",
+      "I-C3",
+      "I-P1",
+      "C-P14"
+    ],
+    "cross_domain": [
+      "B-C2"
+    ],
+    "mechanisms": [
+      "ME02",
+      "ME10"
+    ]
+  },
+  {
+    "id": "I-C5",
+    "model": "M3",
+    "name": "Frame Alignment",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "I-C3",
+      "C-P13",
+      "I-P1"
+    ],
+    "cross_domain": [
+      "B-C2"
+    ],
+    "mechanisms": [
+      "ME10",
+      "ME11"
+    ]
+  },
+  {
+    "id": "I-C6",
+    "model": "M3",
+    "name": "Disagreement Structuring",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "I-C2",
+      "C-P3",
+      "C-P19",
+      "I-P1"
+    ],
+    "cross_domain": [
+      "B-C2"
+    ],
+    "mechanisms": [
+      "ME10",
+      "ME11"
+    ]
+  },
+  {
+    "id": "I-C7",
+    "model": "M3",
+    "name": "Resolution State Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "I-C6",
+      "I-P1"
+    ],
+    "cross_domain": [
+      "B-C2"
+    ],
+    "mechanisms": [
+      "ME10"
+    ]
+  },
+  {
+    "id": "I-C8",
+    "model": "M3",
+    "name": "Common-Ground Updating",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "I-C1",
+      "I-C3",
+      "I-C7",
+      "I-P1"
+    ],
+    "cross_domain": [
+      "B-C2"
+    ],
+    "mechanisms": [
+      "ME10"
+    ]
+  },
+  {
+    "id": "A-P1",
+    "model": "M4",
+    "name": "Request Formation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME11",
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C1",
+    "model": "M4",
+    "name": "Request Resolution",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P1",
+      "I-C3",
+      "C-C10",
+      "A-P10",
+      "A-P4"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME10",
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P9",
+    "model": "M4",
+    "name": "Task Definition",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P12",
+    "model": "M4",
+    "name": "Goal Definition",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P13",
+    "model": "M4",
+    "name": "Scope Definition",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P14",
+    "model": "M4",
+    "name": "Deliverable Definition",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P15",
+    "model": "M4",
+    "name": "Constraint Explication",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P16",
+    "model": "M4",
+    "name": "Acceptance-Criteria Formation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C6",
+    "model": "M4",
+    "name": "Executable Specification Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P9",
+      "A-P12",
+      "A-P13",
+      "A-P14",
+      "A-P15",
+      "A-P16",
+      "A-P10",
+      "A-C8"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME10",
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P10",
+    "model": "M4",
+    "name": "Task Acceptance",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P11",
+    "model": "M4",
+    "name": "Task Completion",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P2",
+    "model": "M4",
+    "name": "Responsibility Claim",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P3",
+    "model": "M4",
+    "name": "Responsibility Acceptance",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C2",
+    "model": "M4",
+    "name": "Shared Responsibility Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P2",
+      "A-P3",
+      "A-P13",
+      "A-C8"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P7",
+    "model": "M4",
+    "name": "Authority Claim",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P8",
+    "model": "M4",
+    "name": "Authority Recognition",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C4",
+    "model": "M4",
+    "name": "Authority Definition",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P7",
+      "A-P8",
+      "A-P13",
+      "A-C11"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C5",
+    "model": "M4",
+    "name": "Authority Transfer",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P7",
+      "A-P8",
+      "A-P13",
+      "A-C4"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C7",
+    "model": "M4",
+    "name": "Role Structuring",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P3",
+      "A-P8",
+      "A-P13",
+      "A-C2",
+      "A-C4"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P4",
+    "model": "M4",
+    "name": "Commitment Formation",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P5",
+    "model": "M4",
+    "name": "Commitment Fulfillment",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-P6",
+    "model": "M4",
+    "name": "Commitment Release",
+    "kind": "EngineeringPrimitive",
+    "specializes": null,
+    "components": [],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C3",
+    "model": "M4",
+    "name": "Commitment Renegotiation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P4",
+      "A-P6",
+      "A-P13",
+      "A-P15",
+      "A-P16",
+      "I-C3"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME10",
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C8",
+    "model": "M4",
+    "name": "Dependency Structuring",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P9",
+      "A-P14",
+      "A-P15",
+      "I-C3"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME10",
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C9",
+    "model": "M4",
+    "name": "Coordination Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-C2",
+      "A-C6",
+      "A-C7",
+      "A-C8",
+      "A-P4"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C11",
+    "model": "M4",
+    "name": "Rule Formalization",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-P8",
+      "A-P13",
+      "A-P15",
+      "A-P16"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C12",
+    "model": "M4",
+    "name": "Governance Formation",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-C4",
+      "A-C7",
+      "A-C8",
+      "A-C11"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C10",
+    "model": "M4",
+    "name": "Coordination Stabilization",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-C9",
+      "A-C11",
+      "A-C12"
+    ],
+    "cross_domain": [
+      "O-C3"
+    ],
+    "mechanisms": [
+      "ME12"
+    ]
+  },
+  {
+    "id": "A-C13",
+    "model": "M4",
+    "name": "Action-Relation Revision",
+    "kind": "Composite",
+    "specializes": null,
+    "components": [
+      "A-C1",
+      "A-C3",
+      "A-C4",
+      "A-C9",
+      "A-C12",
+      "A-P6"
+    ],
+    "cross_domain": [],
+    "mechanisms": [
+      "ME12"
+    ]
+  }
+]

@@ -1,0 +1,536 @@
+{
+  "revision": "v0.6 concept clarification",
+  "date": "2026-10-01",
+  "original_pages": [
+    {
+      "path": "docs/BRIDGES.md",
+      "before_sha256": "33eef5d247cced3de40ce21e8ba8f59268ae8b57a383a6b9a77f43a110ba7f2e",
+      "after_sha256": "8604b42f2ecdbf6065ac8ad031a1d028eab13af8f85ff0cedad335297c33b1af",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/CORE_SPEC.md",
+      "before_sha256": "e3a25266fda75765b9f6155ff01c829a2e0b3a26f26dbf4ac62f7f91b690dc5f",
+      "after_sha256": "daa36e01ce3494545e866739de3954bdf7600bdc7b6218ff532b66b6fbac35fb",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/EVIDENCE_SPEC.md",
+      "before_sha256": "7c5cf7d30a1257939b8a28d7e6ba46a279decb99889e0e92b6618a0e34fccd6a",
+      "after_sha256": "4e344446ee66c43a61ee72923b3ae8e5015004f4cb204ee20aa24286dc9bd1e5",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/GLOSSARY.md",
+      "before_sha256": "ff5a1c960d3e3cc4053252941d1b3820b08fa107d3a2541951c49b13609c2156",
+      "after_sha256": "e4a2905e6c76502d9ee2f580a57d1a8b785251f34583cd6601146c9e7e931760",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/MECHANISMS.md",
+      "before_sha256": "015242064f14ddd79bca261eb9377ad88009a5ff4d40782e6210729af6235ccc",
+      "after_sha256": "7a1bd7ed1bf9db88714d763ec3bfb86e531e314b6679784feb1b59fecba14672",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/MENTAL_MODELS.md",
+      "before_sha256": "c3231dbd6a6de86c5593c598d7fec3d127b95d08154e8736612953fbf6db6626",
+      "after_sha256": "2b77a95777c99f3588c58d9fa8386ecdaa93cb4be9383286e6b89fed92a9fad9",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/OUTCOMES.md",
+      "before_sha256": "93c261912206fbddc281e8c4156c2d0c44f9c0e188633374e9dcabf21b8f9883",
+      "after_sha256": "f3e5bffbbb13b054aae1264cfb116bec58a77e8bd4e413e87b61b6dacea52498",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/PURPOSE.md",
+      "before_sha256": "9f80ee0001b77961ba6a9a60b34b5a4b4fcc05a6a04a3792a8b5d0db554b36f1",
+      "after_sha256": "9f80ee0001b77961ba6a9a60b34b5a4b4fcc05a6a04a3792a8b5d0db554b36f1",
+      "modified": false,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/START_HERE.md",
+      "before_sha256": "9c8c50b9ee2ad16fcb98cae8497854fdce4004f177fdec981cbeb0e766dc1572",
+      "after_sha256": "9c8c50b9ee2ad16fcb98cae8497854fdce4004f177fdec981cbeb0e766dc1572",
+      "modified": false,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/STATE_SPEC.md",
+      "before_sha256": "5287a313c90cebc1c5c1c77641fe3416681909a2878123b93e2a16d49476cdcf",
+      "after_sha256": "cd80e2be9894ac9f35c02f1938b1bee88c23ec0bd33ad981eb0d3f29dc82b7e5",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/applications/CASES.md",
+      "before_sha256": "7a40329d664326299f5d020edb70eaea468d9e3f89c1edff6ca17349e5dec302",
+      "after_sha256": "dd003e1c2377d3bddb8ee1b42a2fe3453198f63c1f6341312ce4b1e5048ec595",
+      "modified": true,
+      "review_note": "核对构造例与术语定义是否相容。"
+    },
+    {
+      "path": "docs/decisions/001-document-and-book.md",
+      "before_sha256": "9ef66571d0ec5a52f8a82ed1fd0207391990267a9ba66f0effa07b94b40dc9a1",
+      "after_sha256": "9ef66571d0ec5a52f8a82ed1fd0207391990267a9ba66f0effa07b94b40dc9a1",
+      "modified": false,
+      "review_note": "作为历史记录核对用词；不把旧版本决策改写为当前状态。"
+    },
+    {
+      "path": "docs/decisions/002-model-and-state-boundaries.md",
+      "before_sha256": "f810a07988c878ca0d812f552be9caebb66210ec9bad6d0353ecc6ecd9023b9f",
+      "after_sha256": "f810a07988c878ca0d812f552be9caebb66210ec9bad6d0353ecc6ecd9023b9f",
+      "modified": false,
+      "review_note": "作为历史记录核对用词；不把旧版本决策改写为当前状态。"
+    },
+    {
+      "path": "docs/decisions/003-engineering-and-evidence.md",
+      "before_sha256": "1b1dea95bf16d01eb243627944dd3d9a0541ff45362e290cf85f036b4461803a",
+      "after_sha256": "1b1dea95bf16d01eb243627944dd3d9a0541ff45362e290cf85f036b4461803a",
+      "modified": false,
+      "review_note": "作为历史记录核对用词；不把旧版本决策改写为当前状态。"
+    },
+    {
+      "path": "docs/decisions/004-observation-and-use.md",
+      "before_sha256": "bd829cad97690bf30c42e878c0728b0f5e6cba013176ff5298e03aa8b3ae9e25",
+      "after_sha256": "bd829cad97690bf30c42e878c0728b0f5e6cba013176ff5298e03aa8b3ae9e25",
+      "modified": false,
+      "review_note": "作为历史记录核对用词；不把旧版本决策改写为当前状态。"
+    },
+    {
+      "path": "docs/decisions/005-practical-core.md",
+      "before_sha256": "9823b3f69d5afc401e41a1a74da008b1994a7d97666bb03777c2ebef18d2a9cd",
+      "after_sha256": "9823b3f69d5afc401e41a1a74da008b1994a7d97666bb03777c2ebef18d2a9cd",
+      "modified": false,
+      "review_note": "作为历史记录核对用词；不把旧版本决策改写为当前状态。"
+    },
+    {
+      "path": "docs/decisions/006-structural-core.md",
+      "before_sha256": "f05e2c2cb66119a9e3b7dab2ce2b76fdacffde86d8f1c3d72ebe01bb3e02fd92",
+      "after_sha256": "f05e2c2cb66119a9e3b7dab2ce2b76fdacffde86d8f1c3d72ebe01bb3e02fd92",
+      "modified": false,
+      "review_note": "作为历史记录核对用词；不把旧版本决策改写为当前状态。"
+    },
+    {
+      "path": "docs/decisions/007-freeze-structural-core.md",
+      "before_sha256": "3f76c284a00620fa8e351d611bc4906d8e6d5387a2255de24bb99c6bb0d2153d",
+      "after_sha256": "3f76c284a00620fa8e351d611bc4906d8e6d5387a2255de24bb99c6bb0d2153d",
+      "modified": false,
+      "review_note": "作为历史记录核对用词；不把旧版本决策改写为当前状态。"
+    },
+    {
+      "path": "docs/decisions/008-learning-mainline.md",
+      "before_sha256": "bf62782a37cd87edc39b878d6a2be1bcb012edc1f520926b518645a1dc25f2fd",
+      "after_sha256": "bf62782a37cd87edc39b878d6a2be1bcb012edc1f520926b518645a1dc25f2fd",
+      "modified": false,
+      "review_note": "作为历史记录核对用词；不把旧版本决策改写为当前状态。"
+    },
+    {
+      "path": "docs/engineering/COMPONENT_SPEC.md",
+      "before_sha256": "071e7c5f9a75d413f9b2dd1393ff2ec7e9e2411636b1e057570c95006eaa15d6",
+      "after_sha256": "254435ed03478a106fe88cdb5dc34f83ca0fd09b0623e7740fa5b2126badf222",
+      "modified": true,
+      "review_note": "核对37算子、39模式与13协议；补术语及运行用语。"
+    },
+    {
+      "path": "docs/engineering/OPERATORS.md",
+      "before_sha256": "94c4e78fc5b3efadcccb6fa33636202046ab6d7b50b87053095fb4189c8d2374",
+      "after_sha256": "98ad1cc1125549730d01c11dd0d16a2f8b38a9b12e7316b27701a6c20f3875bc",
+      "modified": true,
+      "review_note": "核对37算子、39模式与13协议；补术语及运行用语。"
+    },
+    {
+      "path": "docs/engineering/PATTERNS.md",
+      "before_sha256": "d9f47ba8431ed0c6b543daa9a90cbb517194d75467f1db0054174abc637f78f6",
+      "after_sha256": "2892746d1023a5e1b94656c4a79c08accbd9f2247b5341d28110dab2131a1d5e",
+      "modified": true,
+      "review_note": "核对37算子、39模式与13协议；补术语及运行用语。"
+    },
+    {
+      "path": "docs/engineering/PROTOCOLS.md",
+      "before_sha256": "9d00f5d32048e8cd4ea8e0e916eb6dc4a47678b10e313bd95a00ad0c245889d3",
+      "after_sha256": "f7c4f64b44743e3ca7a6b9a025cfd1bc323279439a422ff8cd5b8513b2fee606",
+      "modified": true,
+      "review_note": "核对37算子、39模式与13协议；补术语及运行用语。"
+    },
+    {
+      "path": "docs/engineering/RUN_SPEC.md",
+      "before_sha256": "4763004b9451b132144fdf29087f1d6fe4f2ab7e21ac7dc28cbd6a97875d88e0",
+      "after_sha256": "6319253ed47a33d3353f5ef8bca992d4f451baffc911ea37c9c6961d6e19ed88",
+      "modified": true,
+      "review_note": "核对37算子、39模式与13协议；补术语及运行用语。"
+    },
+    {
+      "path": "docs/essentials/SELECTION.md",
+      "before_sha256": "6350dfd469325f07ab5bffe4ee73f11c085a54d357e7766afe518190e19a267f",
+      "after_sha256": "6350dfd469325f07ab5bffe4ee73f11c085a54d357e7766afe518190e19a267f",
+      "modified": false,
+      "review_note": "核对继承的用语；保留已冻结v0.2字节，释义从完整工作版查询。"
+    },
+    {
+      "path": "docs/essentials/index.md",
+      "before_sha256": "28cad2ea60c8ad5b9b520a49ba7615c7cd5cf4f407236261c35369ff538ec878",
+      "after_sha256": "28cad2ea60c8ad5b9b520a49ba7615c7cd5cf4f407236261c35369ff538ec878",
+      "modified": false,
+      "review_note": "核对继承的用语；保留已冻结v0.2字节，释义从完整工作版查询。"
+    },
+    {
+      "path": "docs/evaluation/BOUNDARY_CASES.md",
+      "before_sha256": "05b495f63d3b3bd1d9e3f82c1bd2dd2d6980b9650ab7625c3ff788cc9077a70d",
+      "after_sha256": "05b495f63d3b3bd1d9e3f82c1bd2dd2d6980b9650ab7625c3ff788cc9077a70d",
+      "modified": false,
+      "review_note": "核对判断、证据、结果与学习用词；边界例用于设计检查。"
+    },
+    {
+      "path": "docs/evaluation/EVALUATION.md",
+      "before_sha256": "7fa4edc296b397037570fc46b5bab48a8e11956ee02a4aff6cc481cba8ea904f",
+      "after_sha256": "396470f6e9bd44f3d6aed6254b3a56e82904fa2c182ac7cbdf1b4719955acfb6",
+      "modified": true,
+      "review_note": "核对判断、证据、结果与学习用词；边界例用于设计检查。"
+    },
+    {
+      "path": "docs/evaluation/FAILURE_ANALYSIS.md",
+      "before_sha256": "41aeb937131b6b6f6b68d75b4551591a78d73a9141b7f816fffcf3b45a7800ed",
+      "after_sha256": "41aeb937131b6b6f6b68d75b4551591a78d73a9141b7f816fffcf3b45a7800ed",
+      "modified": false,
+      "review_note": "核对判断、证据、结果与学习用词；边界例用于设计检查。"
+    },
+    {
+      "path": "docs/index.md",
+      "before_sha256": "5d9d58c633da78dd321aee1ef111f4dd4928cf709fa01a6c2aea5cdabf9d2695",
+      "after_sha256": "f30d28ec29c36abe0edfcd2ef9ac9b2744cd949dfe3e27598e8ce5ffd8c0be0a",
+      "modified": true,
+      "review_note": "核对核心定义、支撑对象与阅读入口。"
+    },
+    {
+      "path": "docs/learning/INTERFACE_PATHS.md",
+      "before_sha256": "c6efaaea92068acb7ccfeb6f8dc5566bca7030c373d93563033737b09b663d13",
+      "after_sha256": "c6efaaea92068acb7ccfeb6f8dc5566bca7030c373d93563033737b09b663d13",
+      "modified": false,
+      "review_note": "核对学习主线、全部接口连接及训练示范；补关键用词入口。"
+    },
+    {
+      "path": "docs/learning/MAINLINE.md",
+      "before_sha256": "a538e482491de2a5e6d61099abad65ec6a480b0178a506303d72d7f8822b38e4",
+      "after_sha256": "b3622016b7c8533e39e6b5d8d5c164a201ddaca6399c718be5ddad4960789716",
+      "modified": true,
+      "review_note": "核对学习主线、全部接口连接及训练示范；补关键用词入口。"
+    },
+    {
+      "path": "docs/learning/MODEL_GUIDE.md",
+      "before_sha256": "609f456027012ff4bc42c0879a3f75d02d23abc39325a0c4b08381b54001818a",
+      "after_sha256": "a796b7736eb328dcb3ec713413db68cdb768b045c8499a46af5a33be5644ffa1",
+      "modified": true,
+      "review_note": "核对学习主线、全部接口连接及训练示范；补关键用词入口。"
+    },
+    {
+      "path": "docs/learning/PRINCIPLES.md",
+      "before_sha256": "7df75c783b8f40b5d57c50ef47e55423412b0872f9a3849fdda2c8529bf4807b",
+      "after_sha256": "37cd6ff508d8b7ab7b1c363d4a0098316df629f51ebd5c7fe7c1fb1166c0fffc",
+      "modified": true,
+      "review_note": "核对学习主线、全部接口连接及训练示范；补关键用词入口。"
+    },
+    {
+      "path": "docs/learning/TRAINING.md",
+      "before_sha256": "cfa43d3bd6e90facf2c5fa6ea5b7a4d9ae1ea12765b67d47fb9d0e26997b9943",
+      "after_sha256": "12d3987fcf5ee6254c02d59e844f82082a392281debc337a102a03527818735a",
+      "modified": true,
+      "review_note": "核对学习主线、全部接口连接及训练示范；补关键用词入口。"
+    },
+    {
+      "path": "docs/models/M1.md",
+      "before_sha256": "110e7029aff3c3879b2f282eb59cdcec779cd1ae83a31cd0ac1247754e0442d2",
+      "after_sha256": "1df9d58f7e46130a806aac62075e07241d4a992f193f09f0349cc2c219125a53",
+      "modified": true,
+      "review_note": "逐项核对接口所用对象、动作、状态与检查；补各分组入口。"
+    },
+    {
+      "path": "docs/models/M2.md",
+      "before_sha256": "6a61f5df60bbbc0c37ff83521feb6b1ceb71f4e0d07f20593301cc417f91fc47",
+      "after_sha256": "ea40f4a4ef89264abf634c6b431ed3deeff796a1e4389a70bda49d1123077886",
+      "modified": true,
+      "review_note": "逐项核对接口所用对象、动作、状态与检查；补各分组入口。"
+    },
+    {
+      "path": "docs/models/M3.md",
+      "before_sha256": "aa81bb9fe2c703bdcb9acaff77c929332cd5690bfa6fe6c4546d5e9974441693",
+      "after_sha256": "9be7d5484ee10c63fb7d7a4e5102e30513107e385496e828ad8c12cafbbd7c9f",
+      "modified": true,
+      "review_note": "逐项核对接口所用对象、动作、状态与检查；补各分组入口。"
+    },
+    {
+      "path": "docs/models/M4.md",
+      "before_sha256": "c7909015131857a42c068b30c68ec414327cba01b3753c11f1668da91850df3c",
+      "after_sha256": "618bb1093ae1d2fc9ea1709356be012aca5bd051ad321858c0c0609be052a5ce",
+      "modified": true,
+      "review_note": "逐项核对接口所用对象、动作、状态与检查；补各分组入口。"
+    },
+    {
+      "path": "docs/project/BASELINE.md",
+      "before_sha256": "ea9b6b0d2512a3c62d9cc41d14d80bd8a961660b70a5005dc34636ee8c569b2e",
+      "after_sha256": "ea9b6b0d2512a3c62d9cc41d14d80bd8a961660b70a5005dc34636ee8c569b2e",
+      "modified": false,
+      "review_note": "核对维护用语与版本边界；操作状态不是效果证据。"
+    },
+    {
+      "path": "docs/project/CHANGELOG.md",
+      "before_sha256": "970fd2614975ae83387fb26acf2254faace7c161502086877bedfde5dbc00874",
+      "after_sha256": "f4ec3efecdbf50e1d8e846517e478c343fda444ff14ad5362b81308115f7ea8e",
+      "modified": true,
+      "review_note": "核对维护用语与版本边界；操作状态不是效果证据。"
+    },
+    {
+      "path": "docs/project/MAINTENANCE.md",
+      "before_sha256": "b24975f1e0fdcd1557c7ce39d24ac30574c8bbc86c10bbb4ea084d673bd95e30",
+      "after_sha256": "aba7e4633a4553c0f2f8b85c753655ffa11553b16e0592ac797d37db68a943a4",
+      "modified": true,
+      "review_note": "核对维护用语与版本边界；操作状态不是效果证据。"
+    },
+    {
+      "path": "docs/project/PUBLISHING.md",
+      "before_sha256": "cd1e67e74e9e73b6032b23c30600689c800d4944cf2d5f3cde913670d6a1c4c5",
+      "after_sha256": "cd1e67e74e9e73b6032b23c30600689c800d4944cf2d5f3cde913670d6a1c4c5",
+      "modified": false,
+      "review_note": "核对维护用语与版本边界；操作状态不是效果证据。"
+    },
+    {
+      "path": "docs/project/REVIEW_REPORT.md",
+      "before_sha256": "060a0a3d5f73d82c7802da133453000e3d30c9509a527d5cc11a98c711d46001",
+      "after_sha256": "6aa2619c16a141bc233004b71353fc5c1396969e3267581e8abaf089b79ac978",
+      "modified": true,
+      "review_note": "核对维护用语与版本边界；操作状态不是效果证据。"
+    },
+    {
+      "path": "docs/project/STATUS.md",
+      "before_sha256": "7c614c1c94605dafe0ab389e063824dcbfc4c0c3d4fd971a6ffb28b6b7bd2d84",
+      "after_sha256": "6906a4bc415a2b741f992f8ea267ce5d1383dbfc12b13cb5e60d7485a6884ba9",
+      "modified": true,
+      "review_note": "核对维护用语与版本边界；操作状态不是效果证据。"
+    },
+    {
+      "path": "docs/sources/VERIFIED_SOURCES.md",
+      "before_sha256": "3eec45cc616cfc557b60b2a1434b82bd96a923e1660eeb6d8443793a8660c415",
+      "after_sha256": "54f0b02830209d5c78ee0bdd9ca92440590aec8411cd3ddf6c86c8bb7ecfc2fb",
+      "modified": true,
+      "review_note": "核对来源深度、研究词与效果主张范围；旧引文保留历史地位。"
+    },
+    {
+      "path": "docs/sources/conversation-citations.md",
+      "before_sha256": "6ca900310e108b1fae373a813969b8d1f396dadaf9f142998cdbcbc24cb95a21",
+      "after_sha256": "051e4326c55b50fc34cbd56dc487d872cb6e878ec3d71b70309be44752a8a057",
+      "modified": true,
+      "review_note": "核对来源深度、研究词与效果主张范围；旧引文保留历史地位。"
+    },
+    {
+      "path": "docs/sources/index.md",
+      "before_sha256": "f6af2f742dbd0b37531a6735df8c6befe44b08a352b41226d7829f6d3bc4b2b4",
+      "after_sha256": "ee3476248484779640cacf34dd946b8dc475472293c8e01291df823b1f951416",
+      "modified": true,
+      "review_note": "核对来源深度、研究词与效果主张范围；旧引文保留历史地位。"
+    }
+  ],
+  "issues": [
+    {
+      "group": 1,
+      "terms": "特征",
+      "original_gap": "M1只说“被选取和区分的内容”，没有说什么算特征。",
+      "resolution": "定义描述方面；区分取值、对象与来源；就近给中断例子。",
+      "source": "models/M1.md",
+      "definition_section": "representation-terms"
+    },
+    {
+      "group": 2,
+      "terms": "特征与成分",
+      "original_gap": "疲劳、紧张、打断混列，状态、事件与描述方面未分开。",
+      "resolution": "R-P2改用疲劳程度、紧张程度、中断频率，并同步例句和训练。",
+      "source": "models/M1.md",
+      "definition_section": "representation-terms"
+    },
+    {
+      "group": 3,
+      "terms": "概念、类别、名称",
+      "original_gap": "正文说明形成方法，但读者仍难辨三个对象。",
+      "resolution": "分别解释可复用含义、实例范围和指称名称。",
+      "source": "models/M1.md",
+      "definition_section": "representation-terms"
+    },
+    {
+      "group": 4,
+      "terms": "关系、结构与对应",
+      "original_gap": "“关系结构”“同构部分”没有清楚范围。",
+      "resolution": "说明要素与联系；旧“同构”按工作对应解释，不作严格数学证明。",
+      "source": "models/M2.md",
+      "definition_section": "cognition-terms"
+    },
+    {
+      "group": 5,
+      "terms": "编码、分辨率、标签",
+      "original_gap": "技术用语先进入动作说明，缺普通语言解释。",
+      "resolution": "解释形成表示、细节程度与简短指称；压缩展开保留来源。",
+      "source": "models/M1.md",
+      "definition_section": "representation-terms"
+    },
+    {
+      "group": 6,
+      "terms": "原则、模型、接口",
+      "original_gap": "多处职责说明代替对象定义，接口易被读作API或步骤。",
+      "resolution": "主线入口补对象定义；接口仍为有前后状态与检查的变化规格。",
+      "source": "learning/MAINLINE.md",
+      "definition_section": "mainline-terms"
+    },
+    {
+      "group": 7,
+      "terms": "状态、主体与观察域",
+      "original_gap": "字段表提出记录要求，却未充分交代字段所指。",
+      "resolution": "状态说明指定情况；主体指出归属；域说明观察方面。",
+      "source": "STATE_SPEC.md",
+      "definition_section": "representation-terms"
+    },
+    {
+      "group": 8,
+      "terms": "Primitive、Composite、Registry",
+      "original_gap": "英文类型在各模型先出现，依赖后面的核心规范。",
+      "resolution": "各模型就近解释粒度、复合、特化和登记表；保持ID及分类。",
+      "source": "CORE_SPEC.md",
+      "definition_section": "mainline-terms"
+    },
+    {
+      "group": 9,
+      "terms": "假设与假说",
+      "original_gap": "Assumption与Mechanism Hypothesis均常写“假设”。",
+      "resolution": "分开暂作成立的判断前提与待检验解释；保留旧接口名。",
+      "source": "models/M2.md",
+      "definition_section": "cognition-terms"
+    },
+    {
+      "group": 10,
+      "terms": "命题、主张、判断、信念",
+      "original_gap": "反思与证据段要求检查这些对象，定义不集中。",
+      "resolution": "说明成立内容、提出说法、判断活动与持有判断。",
+      "source": "models/M2.md",
+      "definition_section": "cognition-terms"
+    },
+    {
+      "group": 11,
+      "terms": "预测、反事实、因果、混杂",
+      "original_gap": "方法要求给预测和混杂，未说明它们指什么。",
+      "resolution": "补对象定义和反例；竞争解释须有不同预期，想象不替代证据。",
+      "source": "models/M2.md",
+      "definition_section": "cognition-terms"
+    },
+    {
+      "group": 12,
+      "terms": "偏好、期望、目标与手段",
+      "original_gap": "已有边界但部分段仍用“偏好特征”等悬空表达。",
+      "resolution": "目标组就近解释；改写“更自主”示例，不另造偏好特征概念。",
+      "source": "models/M2.md",
+      "definition_section": "goal-terms"
+    },
+    {
+      "group": 13,
+      "terms": "Value的不同含义",
+      "original_gap": "价值与属性的具体取值容易被同一英文遮蔽。",
+      "resolution": "标明价值、主观价值、属性取值三个使用范围。",
+      "source": "GLOSSARY.md",
+      "definition_section": "goal-terms"
+    },
+    {
+      "group": 14,
+      "terms": "标准、维度、指标、度量、阈值",
+      "original_gap": "原术语表偏重不能混同，正面含义及例子不足。",
+      "resolution": "在同一准确性例子中解释各自职责；硬条件不能补偿。",
+      "source": "models/M2.md",
+      "definition_section": "goal-terms"
+    },
+    {
+      "group": 15,
+      "terms": "优先关系与部分排序",
+      "original_gap": "要求保留不可比较项，但部分排序含义未交代。",
+      "resolution": "只对有依据的对象对确定先后；不强造总排名。",
+      "source": "GLOSSARY.md",
+      "definition_section": "goal-terms"
+    },
+    {
+      "group": 16,
+      "terms": "共同信息、理解与同意",
+      "original_gap": "M3入口原先列多个英文词，解释分散。",
+      "resolution": "中文名称与定义并列；信息取得、理解表现和赞成分别检查。",
+      "source": "models/M3.md",
+      "definition_section": "interaction-terms"
+    },
+    {
+      "group": 17,
+      "terms": "模型与框架",
+      "original_gap": "CLE四模型、系统模型、共同模型容易视为同一用法。",
+      "resolution": "区分观察框架与具体系统表示；框架限定本轮范围与视角。",
+      "source": "models/M3.md",
+      "definition_section": "interaction-terms"
+    },
+    {
+      "group": 18,
+      "terms": "共同背景与grounding",
+      "original_gap": "已有功能与边界，过程和可调用内容仍易混同。",
+      "resolution": "分别说明后续可调用内容与取得共同理解依据的互动过程。",
+      "source": "models/M3.md",
+      "definition_section": "interaction-terms"
+    },
+    {
+      "group": 19,
+      "terms": "任务、规格与绑定",
+      "original_gap": "工程Task、M4 Task与Specification使用范围不同。",
+      "resolution": "分开本次问题、社会任务对象、认知具体化和任务规格。",
+      "source": "models/M4.md",
+      "definition_section": "action-terms"
+    },
+    {
+      "group": 20,
+      "terms": "角色、责任、权限与义务",
+      "original_gap": "既有边界较多，基础关系定义仍分散。",
+      "resolution": "就近定义各关系；技术访问和社会职权另查。",
+      "source": "models/M4.md",
+      "definition_section": "action-terms"
+    },
+    {
+      "group": 21,
+      "terms": "接受、认可、关闭与uptake",
+      "original_gap": "读者需自行判断不同层的确认词。",
+      "resolution": "分开事件、规则所需确认与社会关闭；解释uptake的工作范围。",
+      "source": "models/M4.md",
+      "definition_section": "action-terms"
+    },
+    {
+      "group": 22,
+      "terms": "依赖、交接、升级、治理",
+      "original_gap": "操作要求这些对象，但有的只有列表与用途。",
+      "resolution": "补正面定义与实例；构成规则说明什么条件算有效关系。",
+      "source": "models/M4.md",
+      "definition_section": "action-terms"
+    },
+    {
+      "group": 23,
+      "terms": "模式实例、槽位、微协议与回退",
+      "original_gap": "英文与运行词在使用前缺释义。",
+      "resolution": "解释填入当前真实内容及条件控制；已有动作规格不再另造概念。",
+      "source": "engineering/PATTERNS.md",
+      "definition_section": "document-terms"
+    },
+    {
+      "group": 24,
+      "terms": "证据、归因、校准、掌握与来源深度",
+      "original_gap": "部分术语只有警告或名称，容易把当前表现当提升。",
+      "resolution": "补正面含义及材料边界；核对专业测量词，定义E0与保持迁移。",
+      "source": "EVIDENCE_SPEC.md",
+      "definition_section": "evidence-terms"
+    }
+  ]
+}

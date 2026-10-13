@@ -1,0 +1,121 @@
+{
+  "version": "project-v0.7.6",
+  "date": "2026-10-10",
+  "scope": "M1指认与相关阅读、方法和语言模式衔接",
+  "checks": {
+    "update_registry.py --check": "Registry matches source: 82 interfaces, all fields.",
+    "check_mainline.py": {
+      "interfaces": 82,
+      "reviewed_additions": [
+        "R-C2"
+      ],
+      "operators": 37,
+      "principal_patterns": 37,
+      "all_interfaces_have_methods_core_expansion_checks": true,
+      "baseline_definitions_and_archives_preserved": true,
+      "errors": []
+    },
+    "check_docs.py": {
+      "pages": 51,
+      "local_links": 1930,
+      "models": {
+        "M1": 9,
+        "M2": 35,
+        "M3": 9,
+        "M4": 29
+      },
+      "registry_interfaces": 82,
+      "snapshot_matches_source": true,
+      "operators": 37,
+      "protocols": 13,
+      "patterns": 39,
+      "mechanisms": 12,
+      "bridges": 8,
+      "outcomes": 3,
+      "sources": 12,
+      "errors": []
+    },
+    "check_essentials.py": {
+      "model_candidates": 81,
+      "primary_interfaces": 23,
+      "support_interfaces": 8,
+      "retained_interfaces": 31,
+      "retained_by_model": {
+        "M2": 17,
+        "M1": 4,
+        "M3": 4,
+        "M4": 6
+      },
+      "mechanism_candidates": 12,
+      "core_mechanisms": 7,
+      "operator_candidates": 34,
+      "core_operators_and_principal_patterns": 15,
+      "protocol_candidates": 13,
+      "fully_retained_protocols": [
+        "PR05"
+      ],
+      "errors": []
+    }
+  },
+  "frozen_files_preserved": 58,
+  "design_cases": [
+    {
+      "input": "名称未知，但描述足以找到对象",
+      "expected": "保留名称待确认，可以继续；不要求查正式术语"
+    },
+    {
+      "input": "已有专业名称，但不知道具体指哪部分",
+      "expected": "补所指或范围，不能仅据名称登记完成"
+    },
+    {
+      "input": "前文明确讨论整张图",
+      "expected": "这张图可以够用，不强制缩小范围"
+    },
+    {
+      "input": "用字号最大那段文字定位对象",
+      "expected": "可借少量特征指认；后续按判断用途另选特征"
+    },
+    {
+      "input": "名称备选对应不同范围",
+      "expected": "按关注点核对所指，不强行挑唯一名称"
+    },
+    {
+      "input": "已有明确对象",
+      "expected": "直接复用"
+    },
+    {
+      "input": "候选概念仅有名称",
+      "expected": "仍须含义与边界，不把指认当概念形成"
+    },
+    {
+      "input": "用短名称指对象",
+      "expected": "不据短名称自动登记压缩"
+    }
+  ],
+  "design_cases_kind": "作者侧边界审查，非真实用户或效果测试",
+  "browser_checks": [
+    "M1 1440: 9 cards, object-first reading order, identification boundaries and layout",
+    "LP09 path 1440: identification reaches canonical reusable operator",
+    "Index 1440: new interface resolves once and tables remain contained",
+    "Example 1440: training link reaches grounded identification sample",
+    "Book 1440: 121 pairs, new interface, current date and all runtime anchors",
+    "M1 390: 9 cards, object-first reading order, identification boundaries and layout",
+    "LP09 path 390: identification reaches canonical reusable operator",
+    "Index 390: new interface resolves once and tables remain contained",
+    "Example 390: training link reaches grounded identification sample",
+    "Book 390: 121 pairs, new interface, current date and all runtime anchors"
+  ],
+  "browser_errors": [],
+  "book_static": {
+    "ids": 755,
+    "internal_links": 1977,
+    "errors": []
+  },
+  "core_expansion_pairs": 121,
+  "strict_build_passed": true,
+  "site": {
+    "html_pages": 52,
+    "local_urls_checked": 6556,
+    "errors": []
+  }
+}

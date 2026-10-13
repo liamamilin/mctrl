@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-02",
+  "original_pages": 49,
+  "modified_original_pages": 32,
+  "focus_issues": 22,
+  "new_interfaces_operators_patterns_protocols": 0,
+  "checks": {
+    "update_registry.py": {
+      "exit_code": 0,
+      "output": "Registry matches source: 81 interfaces, all fields."
+    },
+    "check_mainline.py": {
+      "exit_code": 0,
+      "output": "{\n  \"interfaces\": 81,\n  \"operators\": 37,\n  \"principal_patterns\": 37,\n  \"all_interfaces_have_methods_examples_checks\": true,\n  \"baseline_definitions_and_archives_preserved\": true,\n  \"errors\": []\n}"
+    },
+    "check_docs.py": {
+      "exit_code": 0,
+      "output": "{\n  \"pages\": 50,\n  \"local_links\": 1861,\n  \"models\": {\n    \"M1\": 8,\n    \"M2\": 35,\n    \"M3\": 9,\n    \"M4\": 29\n  },\n  \"registry_interfaces\": 81,\n  \"snapshot_matches_source\": true,\n  \"operators\": 37,\n  \"protocols\": 13,\n  \"patterns\": 39,\n  \"mechanisms\": 12,\n  \"bridges\": 8,\n  \"outcomes\": 3,\n  \"sources\": 12,\n  \"errors\": []\n}"
+    },
+    "check_essentials.py": {
+      "exit_code": 0,
+      "output": "{\n  \"model_candidates\": 81,\n  \"primary_interfaces\": 23,\n  \"support_interfaces\": 8,\n  \"retained_interfaces\": 31,\n  \"retained_by_model\": {\n    \"M3\": 4,\n    \"M2\": 17,\n    \"M4\": 6,\n    \"M1\": 4\n  },\n  \"mechanism_candidates\": 12,\n  \"core_mechanisms\": 7,\n  \"operator_candidates\": 34,\n  \"core_operators_and_principal_patterns\": 15,\n  \"protocol_candidates\": 13,\n  \"fully_retained_protocols\": [\n    \"PR05\"\n  ],\n  \"errors\": []\n}"
+    },
+    "check_site.py": {
+      "exit_code": 0,
+      "output": "{\n  \"html_pages\": 51,\n  \"local_urls_checked\": 6239,\n  \"errors\": []\n}"
+    }
+  },
+  "browser_checks": [
+    "/site/learning/MAINLINE/ desktop: new explanation present and no page overflow",
+    "/site/learning/MAINLINE/ mobile: no page overflow",
+    "/site/models/M1/#concept desktop: new explanation present and no page overflow",
+    "/site/models/M1/#concept mobile: no page overflow",
+    "/site/models/M2/#problem desktop: new explanation present and no page overflow",
+    "/site/models/M2/#problem mobile: no page overflow",
+    "/site/models/M3/#common-ground desktop: new explanation present and no page overflow",
+    "/site/models/M3/#common-ground mobile: no page overflow",
+    "/site/models/M4/#role desktop: new explanation present and no page overflow",
+    "/site/models/M4/#role mobile: no page overflow",
+    "/site/engineering/RUN_SPEC/ desktop: new explanation present and no page overflow",
+    "/site/engineering/RUN_SPEC/ mobile: no page overflow",
+    "/site/project/GROUNDING_AUDIT/ desktop: new explanation present and no page overflow",
+    "/site/project/GROUNDING_AUDIT/ mobile: no page overflow",
+    "single-file book: latest date and explanations, all internal anchors, no duplicate IDs, desktop/mobile layout, no JavaScript errors"
+  ],
+  "strict_build": {
+    "exit_code": 0,
+    "log": "grounding-build.log"
+  },
+  "frozen_files_preserved": 57,
+  "reading_anchors": {
+    "ids": 707,
+    "links": 1909,
+    "errors": []
+  },
+  "browser_errors": [],
+  "browser_layout_fix": "Historical commit identifier changed to short linked text to prevent mobile whole-page overflow."
+}

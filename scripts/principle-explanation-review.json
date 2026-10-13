@@ -1,0 +1,26 @@
+{
+  "version": "project-v0.7.1",
+  "date": "2026-10-04",
+  "trigger": "读者指出原则缺少独立解释；表征原则无法仅凭约束表理解",
+  "principles": {
+    "P1": "含义、设定情境、语言工作联系、模型联系与边界",
+    "P2": "含义、设定情境、语言工作联系、模型联系与边界",
+    "P3": "含义、设定情境、语言工作联系、模型联系与边界",
+    "P4": "含义、设定情境、语言工作联系、模型联系与边界",
+    "P5": "含义、设定情境、语言工作联系、模型联系与边界",
+    "P6": "含义、设定情境、语言工作联系、模型联系与边界",
+    "P7": "含义、设定情境、语言工作联系、模型联系与边界"
+  },
+  "evidence_scope": "原原则与证据等级保持；复核SRC01共同理解依据和SRC02局部框架效应，不新增效果主张",
+  "source_pages_changed": [
+    "docs/CORE_SPEC.md",
+    "docs/index.md",
+    "docs/project/PUBLISHING.md",
+    "docs/project/STATUS.md",
+    "docs/project/REVIEW_REPORT.md",
+    "docs/project/CHANGELOG.md",
+    "docs/project/MAINTENANCE.md",
+    "docs/learning/PRINCIPLES.md",
+    "docs/learning/MAINLINE.md"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "revision": "v0.6 concept clarification",
+  "checks": {
+    "check_mainline.py": {
+      "exit_code": 0,
+      "output": "{\n  \"interfaces\": 81,\n  \"operators\": 37,\n  \"principal_patterns\": 37,\n  \"all_interfaces_have_methods_examples_checks\": true,\n  \"baseline_definitions_and_archives_preserved\": true,\n  \"errors\": []\n}"
+    },
+    "check_docs.py": {
+      "exit_code": 0,
+      "output": "{\n  \"pages\": 49,\n  \"local_links\": 1821,\n  \"models\": {\n    \"M1\": 8,\n    \"M2\": 35,\n    \"M3\": 9,\n    \"M4\": 29\n  },\n  \"registry_interfaces\": 81,\n  \"snapshot_matches_source\": true,\n  \"operators\": 37,\n  \"protocols\": 13,\n  \"patterns\": 39,\n  \"mechanisms\": 12,\n  \"bridges\": 8,\n  \"outcomes\": 3,\n  \"sources\": 12,\n  \"errors\": []\n}"
+    },
+    "check_essentials.py": {
+      "exit_code": 0,
+      "output": "{\n  \"model_candidates\": 81,\n  \"primary_interfaces\": 23,\n  \"support_interfaces\": 8,\n  \"retained_interfaces\": 31,\n  \"retained_by_model\": {\n    \"M2\": 17,\n    \"M3\": 4,\n    \"M1\": 4,\n    \"M4\": 6\n  },\n  \"mechanism_candidates\": 12,\n  \"core_mechanisms\": 7,\n  \"operator_candidates\": 34,\n  \"core_operators_and_principal_patterns\": 15,\n  \"protocol_candidates\": 13,\n  \"fully_retained_protocols\": [\n    \"PR05\"\n  ],\n  \"errors\": []\n}"
+    },
+    "update_registry.py": {
+      "exit_code": 0,
+      "output": "Registry matches source: 81 interfaces, all fields."
+    },
+    "mkdocs build --strict": {
+      "exit_code": 0,
+      "output": "INFO    -  Documentation built in 1.36 seconds"
+    },
+    "scripts/check_site.py": {
+      "exit_code": 0,
+      "output": "{\n  \"html_pages\": 50,\n  \"local_urls_checked\": 6060,\n  \"errors\": []\n}"
+    },
+    "scripts/export_book.py": {
+      "exit_code": 0,
+      "output": "reading/CLE_v0.6_完整体系.md\nreading/CLE_v0.6_完整体系.html"
+    }
+  },
+  "frozen_and_archive_files_checked": 57,
+  "archives_byte_identical": true,
+  "semantic_review": "Author-side audit of 48 original pages, 24 issue groups; not an empirical reader comprehension test.",
+  "browser_checks": [
+    "/site/models/M1/#feature desktop readable, no horizontal page overflow",
+    "/site/models/M1/#feature mobile: local table scrolling, no horizontal page overflow",
+    "/site/GLOSSARY/#representation-terms desktop readable, no horizontal page overflow",
+    "/site/GLOSSARY/#representation-terms mobile: local table scrolling, no horizontal page overflow",
+    "/site/project/CONCEPT_AUDIT/ desktop readable, no horizontal page overflow",
+    "/site/project/CONCEPT_AUDIT/ mobile: local table scrolling, no horizontal page overflow",
+    "single-file book: new definitions, all dynamic anchors, desktop/mobile layout, no JavaScript errors"
+  ],
+  "browser_errors": []
+}

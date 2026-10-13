@@ -1,0 +1,1487 @@
+{
+  "date": "2026-10-04",
+  "version": "project-v0.7.3",
+  "criteria": [
+    "material bound",
+    "operation cued",
+    "output connected to transition",
+    "conditions and check retained",
+    "one concise core plus conditional expansion"
+  ],
+  "evidence_scope": "author-side functional review, document consistency and rendering; no reader experiment or efficacy upgrade",
+  "interfaces": [
+    {
+      "id": "R-P1",
+      "transition": "未组织的任务相关经验 → 已选择特征。",
+      "operators": [
+        "OP35"
+      ],
+      "previous_pattern_example": "为了〔用途〕，〔对象〕的哪些特征会改变判断？哪些需要保留，哪些暂时略去？取值依据是什么，哪些仍未知？",
+      "core_sentence": "按用途选特征，保留取值和依据。",
+      "expansion": "“为了〔用途〕，先列出〔对象〕可以从哪些方面描述，再保留会改变本次判断的特征。请写出所选特征的取值或未知、信息来源，以及暂时舍弃其他特征的理由。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确定用途；列候选特征；保留会影响本次用途的特征，并说明取舍。",
+      "target_output": "已选择特征。",
+      "existing_completion_check": "能指出选了哪些、舍弃哪些及理由。"
+    },
+    {
+      "id": "R-P2",
+      "transition": "混合特征 → 可区分特征。",
+      "operators": [
+        "OP06"
+      ],
+      "previous_pattern_example": "〔对象〕的〔特征一〕与〔特征二〕分别怎样？各自的取值有哪些依据，哪些仍未知？",
+      "core_sentence": "把混在一起的特征分开描述。",
+      "expansion": "“把〔混合描述〕中的不同方面分别命名，逐项写出取值及依据。请用〔对照实例〕分别指出各方面的描述，说明把它们混成一个词会遗漏什么；不同方面可以相关，不要求彼此独立。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "把混在一起的成分分别命名；用一个会导致不同描述的例子检查区别。",
+      "target_output": "可区分特征。",
+      "existing_completion_check": "至少能展示会导致不同描述的差异。"
+    },
+    {
+      "id": "R-P3",
+      "transition": "实例集合 → 类别表征。",
+      "operators": [
+        "OP34"
+      ],
+      "previous_pattern_example": "按〔归类依据〕，〔实例〕应归入哪一类？哪些是正例，哪些是反例，哪些暂不能归类？",
+      "core_sentence": "先定归类依据，再把实例归入类别。",
+      "expansion": "“为〔用途〕，采用〔归类依据〕逐个处理〔实例集合〕，记录归入哪一类及理由。请用正例、反例和边界例检查依据；材料不足的实例暂不归类。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确定归类依据；归入实例；用边界例检查并允许暂不归类。",
+      "target_output": "类别表征。",
+      "existing_completion_check": "提供正例、边界例和归类依据。"
+    },
+    {
+      "id": "R-P4",
+      "transition": "具体表征 → 抽象关系或结构。",
+      "operators": [
+        "OP34"
+      ],
+      "previous_pattern_example": "〔这些实例〕是否共有〔候选关系或结构〕？各部分怎样对应，哪个实例不符合？",
+      "core_sentence": "提取跨实例的结构，再检查新例的对应。",
+      "expansion": "“比较〔实例〕中各要素怎样联系，提出〔候选关系或结构〕，写出各部分的对应。请换一个新例检查哪些仍对应、哪些不对应，必要时修订结构的适用范围。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "比较实例的关系结构；提出可复用结构；检查新例的对应及限度。",
+      "target_output": "抽象关系或结构。",
+      "existing_completion_check": "在新例中能说明结构对应及不对应处。"
+    },
+    {
+      "id": "R-C1",
+      "transition": "结构化材料 → 可重复调用的概念表征。",
+      "operators": [
+        "OP34",
+        "OP35",
+        "OP06",
+        "OP36"
+      ],
+      "previous_pattern_example": "这里的〔概念〕指什么？给出一个正例、一个反例和一个边界例，并说明判断依据。",
+      "core_sentence": "从材料形成定义，用新例检验。",
+      "expansion": "“根据〔实例与材料〕，选出与〔用途〕有关的特征和关系，写出〔概念〕的暂定定义。请说明它为什么包括正例、排除反例；再用边界例和新例检查，必要时修改含义或范围。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "围绕用途选特征、区别和类别；组织定义；用正例、反例和新例检查。",
+      "target_output": "可重复调用的概念表征。",
+      "existing_completion_check": "能定义、举例、识别边界，并在新例调用。"
+    },
+    {
+      "id": "R-P5",
+      "transition": "待表达内容 → 语言表征。",
+      "operators": [
+        "OP36"
+      ],
+      "previous_pattern_example": "我想表达的是〔内容〕，在〔条件〕下成立；依据是〔材料〕，〔事项〕仍未知。这种说法是否保留了原意？",
+      "core_sentence": "把要表达的内容写出来，再核对原意。",
+      "expansion": "“请将〔待表达内容〕写成适合〔对象与用途〕的表达，保留关键关系、条件和来源，并标出未知。再对照原材料与主体确认，检查哪些含义保留了、哪些遗漏或被增添，作必要修改。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确定要表达的含义与对象；写出语言表征；核对关键条件、来源和未知。",
+      "target_output": "语言表征。",
+      "existing_completion_check": "主体能确认关键含义得到表达；来源和未知未丢失。"
+    },
+    {
+      "id": "R-P6",
+      "transition": "详细表征 → 压缩表征。",
+      "operators": [
+        "OP33"
+      ],
+      "previous_pattern_example": "为〔用途〕，将〔原材料〕压缩为〔所需形式〕；哪些区别、条件和来源必须保留？省略的细节在哪里回查？",
+      "core_sentence": "压缩材料，保留关键区别与回查入口。",
+      "expansion": "“为〔用途〕，将〔原材料〕写成〔摘要形式〕。请保留会影响判断的区别、关系和条件，标出省略了什么，并注明详细材料在哪里回查；再与原材料核对。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确定摘要用途；保留关键关系与条件；标出省略及可回查材料。",
+      "target_output": "压缩表征。",
+      "existing_completion_check": "说明总结保留什么、省略什么，重要材料可追溯。"
+    },
+    {
+      "id": "R-P7",
+      "transition": "压缩表征 → 展开的属性、事实或关系。",
+      "operators": [
+        "OP33",
+        "OP09"
+      ],
+      "previous_pattern_example": "〔概括表达〕具体包含哪些方面？哪些细节有材料支持，哪些只是待查的可能情况？",
+      "core_sentence": "展开这个标签，把来源与待查项分开。",
+      "expansion": "“为〔用途〕，把〔概括表达〕展开为有关属性、事件或关系。请逐项标明哪些来自原材料、哪些是解释、哪些是新生成的待查可能；没有材料的细节保持未知。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "定位压缩标签；按用途展开维度；区分来源内容与新生成待查项。",
+      "target_output": "展开的属性、事实或关系。",
+      "existing_completion_check": "区分原始材料、解释和新生成的待查细节。"
+    },
+    {
+      "id": "C-P1",
+      "transition": "分散的任务关注 → 对目标对象聚焦。",
+      "operators": [
+        "OP35"
+      ],
+      "previous_pattern_example": "为〔当前任务〕，先关注〔对象或方面〕，暂时放下〔其他事项〕。现在需要确认什么？",
+      "core_sentence": "现在围绕这个对象处理这一项问题。",
+      "expansion": "“为〔当前任务〕，请先关注〔对象〕并回答〔这一项问题〕，处理〔相关材料〕或作一个有关判断。随后检查你的处理是否仍围绕这个对象；偏离时再回到当前问题。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "指定当前对象和要回答的一项问题；请主体处理一份相关材料或作一项有关判断；检查其后续处理是否仍围绕这个对象。只写“我要聚焦”还不足以说明已经做到了。",
+      "target_output": "对目标对象聚焦。",
+      "existing_completion_check": "能指出当前关注对象及其与任务的关系。"
+    },
+    {
+      "id": "C-P2",
+      "transition": "隐含或未被识别内容 → 主体可识别内容。",
+      "operators": [
+        "OP09",
+        "OP22"
+      ],
+      "previous_pattern_example": "你现在能识别自己对〔对象〕的想法或感受吗？这是刚形成的内容，还是有先前记录支持？",
+      "core_sentence": "把当前想法说出来，辨认它是什么。",
+      "expansion": "“请表达你现在对〔对象〕的想法、感受或倾向，再用一个例子说明。核对这是原已有记录支持的内容，还是刚形成的想法；不能确定时保留未知。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "请主体表达当前判断或倾向；用例子帮助辨认；核对来源，不推定此前已经隐含。",
+      "target_output": "主体可识别内容。",
+      "existing_completion_check": "主体当前能识别该内容；有前状态材料时再判断是否本次显化。"
+    },
+    {
+      "id": "C-P3",
+      "transition": "混合认知内容 → 主体能区别内容。",
+      "operators": [
+        "OP06",
+        "OP09"
+      ],
+      "previous_pattern_example": "〔内容一〕与〔内容二〕有什么区别？在什么情境下，这一区别会改变你的判断或下一步？",
+      "core_sentence": "区分这两项内容，用区别指导处理。",
+      "expansion": "“请比较〔内容一〕与〔内容二〕，说明它们分别意味着什么。再给出一个需要不同处理的情境，并说明你会怎样据此改变判断或下一步。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "提出容易混同的两项内容；比较区别；让主体说明区别如何改变处理。",
+      "target_output": "主体能区别内容。",
+      "existing_completion_check": "能解释区别并据此作不同处理。"
+    },
+    {
+      "id": "C-P13",
+      "transition": "对象范围不明 → 有边界对象。",
+      "operators": [
+        "OP10"
+      ],
+      "previous_pattern_example": "本次讨论的〔对象〕包括哪些情况、不包括哪些情况？用什么依据判断〔实例〕是否属于这个范围？",
+      "core_sentence": "划清对象范围，用范围内外的例子检查。",
+      "expansion": "“请为〔当前对象〕明确情境、时间、纳入项和排除项。再判断〔实例〕属于范围内、范围外还是边界未明，并据此修订必要的边界。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确对象、情境、时间与排除项；用范围内外例子检查。",
+      "target_output": "有边界对象。",
+      "existing_completion_check": "能辨认一个属于范围内、一个属于范围外的例子。"
+    },
+    {
+      "id": "C-C1",
+      "transition": "模糊对象 → 任务所需的具体对象。",
+      "operators": [
+        "OP09"
+      ],
+      "previous_pattern_example": "你说的〔表达〕具体指什么？在〔情境〕下，什么算符合，什么算不符合？",
+      "core_sentence": "把模糊处具体化到足以判断。",
+      "expansion": "“为〔当前用途〕，找出〔表达〕中会影响判断的模糊处，补明必要对象、条件或事件。请给出满足与不满足描述的例子，检查这些补充是否已足够；未知细节不编造。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "找影响当前判断的模糊处；补必要对象和条件；用满足与不满足例子检查。",
+      "target_output": "任务所需的具体对象。",
+      "existing_completion_check": "他人或主体可以区分至少一个满足和一个不满足描述的情况。"
+    },
+    {
+      "id": "C-P4",
+      "transition": "单一或分离对象 → 同时进入对照。",
+      "operators": [
+        "OP06",
+        "OP07"
+      ],
+      "previous_pattern_example": "在〔可比条件〕下，将〔对象一〕与〔对象二〕放在一起看；本次比较哪个方面？",
+      "core_sentence": "把两个对象放进同一个比较情境。",
+      "expansion": "“为〔用途〕，将〔对象一〕与〔对象二〕放在〔共同情境与维度〕下对照。先核对可比条件，明确本次要比较哪个方面，再开始处理异同。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "把对象放入同一用途、情境与维度；先确认可比条件，再辨认异同。",
+      "target_output": "同时进入对照。",
+      "existing_completion_check": "双方对象、情境和比较方面被明确。"
+    },
+    {
+      "id": "C-P5",
+      "transition": "差异未明确 → 识别差异。",
+      "operators": [
+        "OP06"
+      ],
+      "previous_pattern_example": "〔对象一〕与〔对象二〕在〔比较方面〕上有什么不同？材料口径是否可比？",
+      "core_sentence": "在同一方面找出差异，核对比较口径。",
+      "expansion": "“请比较〔对象一〕与〔对象二〕在〔方面〕上的差异，指出差异内容及材料。再检查差异是否来自记录口径或条件变化；无法比较时说明缺什么。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "绑定对象与维度；辨认差异；检查差异是否来自口径或条件变化。",
+      "target_output": "识别差异。",
+      "existing_completion_check": "指出对象、维度和差异内容。"
+    },
+    {
+      "id": "C-P6",
+      "transition": "相似未明确 → 识别相似。",
+      "operators": [
+        "OP07"
+      ],
+      "previous_pattern_example": "〔对象一〕与〔对象二〕在〔比较方面〕上有哪些共同点？哪些有依据，哪些还不能确定？",
+      "core_sentence": "找出共同点，保留不相似的部分。",
+      "expansion": "“请比较〔对象一〕与〔对象二〕的共同特征或关系，写清相似发生在哪个层面。再指出一个不对应部分及尚未证实的部分，限定这次类比的范围。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "辨认共同特征或关系；说明相似层面；保留不对应部分。",
+      "target_output": "识别相似。",
+      "existing_completion_check": "能说明同构部分和未证实部分。"
+    },
+    {
+      "id": "C-P7",
+      "transition": "参照不明确 → 明确参照。",
+      "operators": [
+        "OP08"
+      ],
+      "previous_pattern_example": "你说〔评价〕，是相对哪个参照？这个参照为什么适用于〔当前对象与情境〕？",
+      "core_sentence": "为这个评价选定合适的参照。",
+      "expansion": "“你用〔评价词〕判断〔对象〕时，请选出一个可解释的参照，写明来源。核对对象、时间和条件是否适用，再依据这个参照重述评价。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确好坏判断；指出参照来源；检查参照适用性。",
+      "target_output": "明确参照。",
+      "existing_completion_check": "说明参照来源及为何适合当前任务。"
+    },
+    {
+      "id": "C-P14",
+      "transition": "孤立要素 → 关系结构。",
+      "operators": [
+        "OP34"
+      ],
+      "previous_pattern_example": "〔对象一〕与〔对象二〕是什么关系？依据是什么，哪些其他关系仍有可能？",
+      "core_sentence": "把要素连接起来，标明关系与依据。",
+      "expansion": "“请列出〔要素〕，逐条写出它们之间的关系类型及依据。组成、依赖、时序与候选因果分别标明；关系未知时保留候选，不由先后出现直接推出因果。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "列要素；逐条指定关系类型；说明依据及未知，必要时用简单关系表。",
+      "target_output": "关系结构。",
+      "existing_completion_check": "每条关系说明类型与依据。"
+    },
+    {
+      "id": "C-C4",
+      "transition": "不满／异常／提问 → 可分析问题。",
+      "operators": [
+        "OP35",
+        "OP09",
+        "OP08",
+        "OP10"
+      ],
+      "previous_pattern_example": "在〔情境〕下，当前状态与〔期望或参照〕有什么差距？本次需要处理哪个问题？",
+      "core_sentence": "把不满或疑问写成一个可分析的问题。",
+      "expansion": "“请说明〔当前情境〕中待解决或待解释的对象，写出观察到的现象及期望、参照或疑问。划定本次范围，形成问题表述；先不要把某个方案当成问题本身。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "指认待解决对象；描述现象与期待或提问；确认边界并暂不锁定方案。",
+      "target_output": "可分析问题。",
+      "existing_completion_check": "能说清待解决或待解释什么，而非直接指定方案。"
+    },
+    {
+      "id": "C-C5",
+      "transition": "混合复杂性 → 有元素、边界与关系的问题结构。",
+      "operators": [
+        "OP09",
+        "OP10",
+        "OP34",
+        "OP19"
+      ],
+      "previous_pattern_example": "将〔问题〕分成哪些部分？它们怎样关联，哪些已有材料，下一步先查什么？",
+      "core_sentence": "拆出子问题，组织关系，确定下一步。",
+      "expansion": "“请将〔问题〕分成相关部分，写出它们的依赖、冲突或优先关系及依据。根据已有材料与未知，确定下一项取证或处理；检查这份结构是否能指导它。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "区分子问题；组织依赖、冲突和优先关系；选择下一项处理或取证。",
+      "target_output": "有元素、边界与关系的问题结构。",
+      "existing_completion_check": "结构能指导下一项信息获取或处理。"
+    },
+    {
+      "id": "C-P8",
+      "transition": "候选缺少或单一 → 候选集合扩展。",
+      "operators": [
+        "OP11"
+      ],
+      "previous_pattern_example": "除了〔当前候选〕，还有哪些实质不同的候选？暂缓或不做是否也应纳入比较？",
+      "core_sentence": "再生成实质不同的候选。",
+      "expansion": "“为〔候选用途〕，从不同手段、前提或关系生成〔新候选〕，说明它与现有候选有什么会影响判断的差异。合并同义改写，标明可行性与事实状态仍待检查的部分。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确候选用途；生成会改变判断的替代；保留可行性和事实状态。",
+      "target_output": "候选集合扩展。",
+      "existing_completion_check": "候选之间具有会影响判断的实质差异。"
+    },
+    {
+      "id": "C-P9",
+      "transition": "搜索范围不明 → 搜索范围明确。",
+      "operators": [
+        "OP10"
+      ],
+      "previous_pattern_example": "为〔用途〕，本次先在〔范围与条件〕内搜索；遇到什么情况再扩大或改变范围？",
+      "core_sentence": "限定这次搜索，并写出重开条件。",
+      "expansion": "“为〔搜索目的〕，划出允许进入、暂缓和排除的范围，分别写出理由。再说明出现〔什么新信息或条件变化〕时扩大或改变范围。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确搜索目的；划定可进入、暂缓和排除范围；写明重开条件。",
+      "target_output": "搜索范围明确。",
+      "existing_completion_check": "明确允许、暂缓或排除的搜索范围及理由。"
+    },
+    {
+      "id": "C-P10",
+      "transition": "未明示前提 → 明示前提。",
+      "operators": [
+        "OP12"
+      ],
+      "previous_pattern_example": "〔判断〕依赖哪些尚未明说的前提？如果〔前提〕不成立，哪一步推断需要重审？",
+      "core_sentence": "把判断依赖的前提写出来。",
+      "expansion": "“请定位〔判断〕的推理，写出它依赖的条件，并确认哪些原已默认、哪些刚提出。逐项说明：如果这个条件不成立，哪一步需要重审？标明来源与未知。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "写出判断所依赖的前提；说明前提失效会影响哪一步；标来源状态。",
+      "target_output": "明示前提。",
+      "existing_completion_check": "能写出如果假设不成立，哪条判断需重审。"
+    },
+    {
+      "id": "C-P11",
+      "transition": "待解释观察 → 候选解释。",
+      "operators": [
+        "OP11"
+      ],
+      "previous_pattern_example": "〔观察到的现象〕可能由〔候选原因或过程〕解释；若成立，预期能在哪些材料中看到什么？",
+      "core_sentence": "为这个现象提出可检查的解释。",
+      "expansion": "“针对〔观察〕，提出一个能连接相关事件的候选过程，说明它怎样产生该现象。请写出若解释成立预期看到什么、从哪里查；解释与已知观察分别记录。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "描述待解释观察；提出连接观察的候选过程；给出可区分的预测。",
+      "target_output": "候选解释。",
+      "existing_completion_check": "说明解释对象、候选过程和可区分预测。"
+    },
+    {
+      "id": "C-P12",
+      "transition": "解释单一 → 多个竞争解释。",
+      "operators": [
+        "OP11"
+      ],
+      "previous_pattern_example": "除了〔已有解释〕，还有哪些不同解释？什么材料能够区分它们？",
+      "core_sentence": "再提一种能产生不同预测的解释。",
+      "expansion": "“针对同一〔观察〕，从不同条件或过程提出〔竞争解释〕。请分别写出不同预测，并指出什么材料可以区分；换一种措辞但预测相同的不算实质不同。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "围绕同一观察生成竞争解释；要求解释给出不同预测；避免同义改写。",
+      "target_output": "多个竞争解释。",
+      "existing_completion_check": "至少提出一个能给出不同预测的替代。"
+    },
+    {
+      "id": "C-C2",
+      "transition": "已明示假设 → 已检查假设。",
+      "operators": [
+        "OP12",
+        "OP13",
+        "OP14"
+      ],
+      "previous_pattern_example": "〔前提〕有哪些支持，哪些仍未知？什么反例会要求缩小或放弃〔结论〕？",
+      "core_sentence": "用材料和反例检查这个前提。",
+      "expansion": "“请明确〔前提〕及范围，查支持、冲突和未知，再提出并核验针对它的反例。依据这些材料决定保持、修改或暂不判断，并说明结论需要怎样调整。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确前提；查材料、反例与边界；决定保持、修改或保留未知。",
+      "target_output": "已检查假设。",
+      "existing_completion_check": "记录支持、冲突、未知及条件，不以反对数量代替检验。"
+    },
+    {
+      "id": "C-C3",
+      "transition": "观察／序列 → 候选因果结构。",
+      "operators": [
+        "OP11",
+        "OP34",
+        "OP13"
+      ],
+      "previous_pattern_example": "在〔解释〕中，哪些是观察，哪些是候选因果关系？每条关系依据什么，怎样进一步核验？",
+      "core_sentence": "组织候选因果关系，标明证据与混杂。",
+      "expansion": "“请把〔材料〕中的观察、先后顺序和候选因果过程分开，写出关系结构。逐条标明证据与未知，指出可能同时影响两者的条件；比较竞争解释的预测，不把箭头当成已证实因果。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "组织观察、时序与候选过程；比较竞争预测；标证据、混杂及未知。",
+      "target_output": "候选因果结构。",
+      "existing_completion_check": "说明哪些箭头有证据，哪些只是候选，指出混杂可能。"
+    },
+    {
+      "id": "C-P17",
+      "transition": "候选状态／方向 → 情境中的倾向。",
+      "operators": [
+        "OP15"
+      ],
+      "previous_pattern_example": "在〔条件〕下，你更倾向〔候选一〕还是〔候选二〕，为什么？也可以暂时没有倾向。",
+      "core_sentence": "比较这些方向，表达当前的倾向。",
+      "expansion": "“在〔当前条件〕下，请比较〔候选方向〕，说明你愿意趋近、回避或尚无法比较什么及理由。检查是否有选项未覆盖；暂时没有倾向也可以明确记录。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "呈现候选方向和条件；由主体说明趋近或回避倾向；允许未知。",
+      "target_output": "情境中的倾向。",
+      "existing_completion_check": "主体能指出当前倾向、条件与不确定性；无法形成偏好时记录目标未达成或未知，允许暂停。"
+    },
+    {
+      "id": "C-P16",
+      "transition": "偏好方向 → 可表征期望状态。",
+      "operators": [
+        "OP16"
+      ],
+      "previous_pattern_example": "如果达到〔期望状态〕，〔当前情境〕具体会有什么不同？哪些变化是你希望的？",
+      "core_sentence": "把希望的方向写成变化后的状态。",
+      "expansion": "“从〔偏好方向〕出发，请描述〔对象〕变化后的有关特征，以及在具体情境中会有什么不同。把期望状态与实现手段分开，保留约束和仍不确定的部分。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "描述希望变得不同的对象与特征；保留约束状态；区分期望和实现手段。",
+      "target_output": "可表征期望状态。",
+      "existing_completion_check": "能描述如果变化发生会有什么不同。"
+    },
+    {
+      "id": "C-C6",
+      "transition": "当前状态／不满／模糊方向 → 期望变化表征。",
+      "operators": [
+        "OP16",
+        "OP15",
+        "OP06",
+        "OP11"
+      ],
+      "previous_pattern_example": "相对〔当前状态〕，你希望哪个方面变得不同？若还不知道，可以先说明不愿继续承受什么。",
+      "core_sentence": "说明希望哪一方面从现在变成怎样。",
+      "expansion": "“请根据已有材料描述〔当前状态〕，由你说明希望〔哪方面〕变成〔何种状态或方向〕。不清楚时先比较现状与可能状态，或从不愿继续承受的情况生成替代，再由你确认方向。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "按现有输入澄清当前与期望；需要时比较或生成替代；由主体确认变化方向。",
+      "target_output": "期望变化表征。",
+      "existing_completion_check": "说清哪方面从何种状态向何种状态变化，允许暂时只明确方向。"
+    },
+    {
+      "id": "C-P18",
+      "transition": "期望状态 → 主体采纳的目标。",
+      "operators": [
+        "OP17"
+      ],
+      "previous_pattern_example": "〔期望〕是你准备投入去追求的目标，还是暂时保留的想法？什么条件会影响采纳？",
+      "core_sentence": "确认是否愿意投入去追求这个期望。",
+      "expansion": "“对于〔期望状态〕，请你决定采纳、暂缓还是不采纳，并说明愿意投入的范围及有关条件。把觉得不错、继续探索与准备追求分别记录，不替你作采纳决定。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "由主体确认是否准备投入资源追求；区分觉得不错与采纳；记录范围。",
+      "target_output": "主体采纳的目标。",
+      "existing_completion_check": "确认主体愿意追求，而非只认为它不错。"
+    },
+    {
+      "id": "C-C7",
+      "transition": "期望变化 → 已采纳且可继续规格化的目标。",
+      "operators": [
+        "OP17",
+        "OP16",
+        "OP10",
+        "OP18"
+      ],
+      "previous_pattern_example": "你准备追求〔什么目标〕？在〔本轮范围〕内，做到什么程度已足够，怎样判断？",
+      "core_sentence": "采纳要追求的目标，补明必要边界。",
+      "expansion": "“请先确认你是否准备追求〔期望变化〕；采纳后，只补明影响后续处理的范围、优先关系或判断要求。把未采纳的想法另记，检查你能否据此继续规划。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确认采纳；只补影响后续处理的边界、优先级或标准；保留未采纳想法。",
+      "target_output": "已采纳且可继续规格化的目标。",
+      "existing_completion_check": "主体确认实际采纳，并能区分其与未采纳期望及继续规格化需求；未采纳时不登记此目标已达成。"
+    },
+    {
+      "id": "C-C8",
+      "transition": "标准缺失／隐含／不足 → 可用于判断的标准。",
+      "operators": [
+        "OP18"
+      ],
+      "previous_pattern_example": "为〔评价用途〕，什么算〔所需表现〕？请给出能判断具体实例的规则及所需材料。",
+      "core_sentence": "写出判断规则，用具体实例试判。",
+      "expansion": "“为〔评价对象与用途〕，从目标、约束或既有要求写出判断规则，说明所需材料。请用满足、不满足和材料不足的实例试判；不能支持判断时修订规则。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确定评价用途；形成可判断的规则；用满足、不满足与缺材料例子检查。",
+      "target_output": "可用于判断的标准。",
+      "existing_completion_check": "已有规则能支持具体判断，包括按该规则因材料不足判为未知；只有“缺材料”而无判断规则时，不登记标准已形成。"
+    },
+    {
+      "id": "C-P15",
+      "transition": "未排序要素 → 有优先关系。",
+      "operators": [
+        "OP19"
+      ],
+      "previous_pattern_example": "为〔用途〕，〔候选事项〕应如何排序，依据是什么？哪些可并列，哪些尚无法排序？",
+      "core_sentence": "按用途排出必要的先后关系。",
+      "expansion": "“为〔排序用途〕，明确排序依据，比较〔事项〕并写出先后关系及理由。允许并列或不可比较；只排列会影响当前处理的关系。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确定排序用途与规则；形成必要的先后关系；保留不可比较项。",
+      "target_output": "有优先关系。",
+      "existing_completion_check": "说明按什么排序，并保留不可比较项。"
+    },
+    {
+      "id": "C-C9",
+      "transition": "候选集合 → 带依据与未知的候选评价。",
+      "operators": [
+        "OP19",
+        "OP13",
+        "OP18"
+      ],
+      "previous_pattern_example": "按〔评价规则〕比较〔候选〕；哪些结论有材料支持，哪些无法比较，各自取舍是什么？",
+      "core_sentence": "按规则逐项评价，保留代价与未知。",
+      "expansion": "“请复用或补足〔评价规则〕，逐一核对〔候选〕的材料、后果、代价与冲突。写出每项评价的规则和依据，保留未知、不可比较及只能排部分先后的情况。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "复用或补判断规则；逐候选核对材料、代价与未知；保留部分排序。",
+      "target_output": "带依据与未知的候选评价。",
+      "existing_completion_check": "对每项评价能追溯规则和材料；保留未知／不可比较。"
+    },
+    {
+      "id": "C-P21",
+      "transition": "选择未确定 → 选择已确定。",
+      "operators": [
+        "OP20"
+      ],
+      "previous_pattern_example": "依据〔当前材料与规则〕，本轮选择〔选项〕；出现〔什么新情况〕时需要重新选择？",
+      "core_sentence": "明确本轮选择，并说明何时重选。",
+      "expansion": "“依据〔当前材料与规则〕，请确定〔本轮选择〕及适用条件；可以选择行动、试验、暂缓或退出。写出〔何种新情况〕出现时需要重开选择。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "在已有条件与规则下指定当前选择；允许试验、暂缓或退出；给出重开条件。",
+      "target_output": "选择已确定。",
+      "existing_completion_check": "说明所选对象、适用条件与改变选择的触发。"
+    },
+    {
+      "id": "C-C10",
+      "transition": "待选情境／候选评价 → 选择及其理由。",
+      "operators": [
+        "OP20",
+        "OP19",
+        "OP10"
+      ],
+      "previous_pattern_example": "为〔当前决策〕，现在选择、试验、暂缓还是退出？依据是什么，何时停止搜索或重开判断？",
+      "core_sentence": "处理必要的评价，作出有理由的决定。",
+      "expansion": "“为〔决策问题〕，先确定限制，处理会影响选择的评价和未知，再明确行动、可逆试验、暂缓或退出。请写出理由、停止搜索的依据及重开条件。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确定决策对象与限制；处理必要评价和未知；明确选择及停止、重开条件。",
+      "target_output": "选择及其理由。",
+      "existing_completion_check": "可记录行动选择、可逆试验、暂缓或退出，以及重开条件。"
+    },
+    {
+      "id": "C-C13",
+      "transition": "已采纳目标／选择 → 实现路径与依赖计划。",
+      "operators": [
+        "OP21",
+        "OP11",
+        "OP19"
+      ],
+      "previous_pattern_example": "为〔目标〕，下一步做什么，需要哪些输入，怎样检查结果，阻塞时如何处理？",
+      "core_sentence": "从目标组织路径，落实可开始的下一步。",
+      "expansion": "“围绕〔已采纳目标或选择〕，组织实现所需产物、手段、资源与依赖。请明确可开始的下一步、检查点及阻塞时的回退或替代；缺少的条件另记。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "围绕已采纳目标组织手段、资源与依赖；确定可开始的下一步及回退。",
+      "target_output": "实现路径与依赖计划。",
+      "existing_completion_check": "下一步可执行且与目标有关；关键依赖、未知和备选已明确。"
+    },
+    {
+      "id": "C-C14",
+      "transition": "目标／计划 → 情境线索—行动绑定。",
+      "operators": [
+        "OP32"
+      ],
+      "previous_pattern_example": "如果出现〔可识别线索〕，我就执行〔可执行动作〕；遇到〔例外条件〕时怎样处理？",
+      "core_sentence": "如果出现这个线索，我就执行这个动作。",
+      "expansion": "“为〔已采纳目标〕，我采纳这样的安排：如果出现〔可识别线索〕，我就执行〔具体可行动作〕。请说明如何识别线索、第一步是什么，以及例外、冲突或重复触发怎样处理。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "识别可辨认线索；绑定可行动作和例外；由主体采纳，执行另查。",
+      "target_output": "情境线索—行动绑定。",
+      "existing_completion_check": "主体采纳线索—行动绑定，能识别触发、说明具体动作与不应执行的例外；实际执行另查。"
+    },
+    {
+      "id": "C-P19",
+      "transition": "判断与材料未关联 → 主张—材料关联。",
+      "operators": [
+        "OP13"
+      ],
+      "previous_pattern_example": "〔材料〕支持〔主张〕的哪一部分，支持到什么范围？它还不能支持哪些结论？",
+      "core_sentence": "把每项主张接到相应材料。",
+      "expansion": "“请定位〔主张〕及可查〔材料〕，逐项写出支持、冲突、无关或未知的关系。核对来源、时间与范围，说明材料支持到哪一步、哪些结论仍不能推出。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "定位主张；定位材料；逐项说明支持、冲突与不支持的部分。",
+      "target_output": "主张—材料关联。",
+      "existing_completion_check": "写清材料支持哪一步，哪些部分仍未知。"
+    },
+    {
+      "id": "C-P20",
+      "transition": "未知程度未区分 → 明确未知与置信范围。",
+      "operators": [
+        "OP13"
+      ],
+      "previous_pattern_example": "关于〔问题〕，哪些已知，哪些未知或有争议？取得什么材料后可以更新判断？",
+      "core_sentence": "把已知、推测与未知分开写。",
+      "expansion": "“关于〔问题〕，请分别标出已有依据、推测和缺材料的部分，并说明当前判断范围。为未知写出取得什么材料、怎样查以及怎样更新；没有证据时不补造支持关系。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "把已知、推测和缺材料处标开；说明判断依据及更新条件。没有结果材料时，采用OP13的未知定位变体，只说明缺什么以及怎样查，不补写证据已经关联。",
+      "target_output": "明确未知与置信范围。",
+      "existing_completion_check": "说明何处未知、依据什么及怎样可能更新。"
+    },
+    {
+      "id": "C-C12",
+      "transition": "认知活动 → 对活动及其局限的表征。",
+      "operators": [
+        "OP22"
+      ],
+      "previous_pattern_example": "我怎样得出〔判断〕？哪些步骤有过程记录，哪些只是事后解释，哪些仍不清楚？",
+      "core_sentence": "回看自己的判断过程，标出局限。",
+      "expansion": "“请说明你怎样得出〔判断〕，对照当时的材料、选择或行为记录。区分有记录的步骤与事后解释，指出遗漏和未知；对象判断与对过程的描述分开。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "描述自己的判断过程；区分实际记录与事后解释；检查遗漏和局限。",
+      "target_output": "对活动及其局限的表征。",
+      "existing_completion_check": "能区分对对象的判断与对判断过程的描述。"
+    },
+    {
+      "id": "C-C11",
+      "transition": "证据、范围与信心未匹配 → 依据证据调整的信念。",
+      "operators": [
+        "OP22",
+        "OP13",
+        "OP12",
+        "OP14"
+      ],
+      "previous_pattern_example": "〔新材料〕改变了〔原判断〕的哪一步或可信程度？若没有改变，是否有依据保持原判断？",
+      "core_sentence": "用新材料校准判断的范围与信心。",
+      "expansion": "“请把〔新材料〕与〔原主张、前提和依据〕对应，检查它改变了哪一步以及支持到什么范围。说明据此保持或修订结论与信心的理由；没有改变时可以保留原判断。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "核对主张、前提和证据；说明新材料是否改变推理；保持或修订范围与信心。用OP22时选择判断修订变体，不能仅凭对过程的自述登记此接口达成。",
+      "target_output": "依据证据调整的信念。",
+      "existing_completion_check": "修改需指出新信息与原推理变化；未知可被保留。"
+    },
+    {
+      "id": "I-C1",
+      "transition": "信息不对称 → 相关主体获得任务所需共同信息。",
+      "operators": [
+        "OP23",
+        "OP36"
+      ],
+      "previous_pattern_example": "关于〔内容〕，各方是否取得同一份材料或版本？请指出当前所见及尚未取得的部分。",
+      "core_sentence": "让各方取得并能引用同一份相关材料。",
+      "expansion": "“请将〔本次所需材料及版本〕提供给〔相关主体〕，取得接收反馈，并请各方指出能引用的内容。列出关键缺项与来源，补齐必要缺口；尚未接收或能否调用未知的部分另记。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "传递同版本材料；确认已接收且能调用；明确缺项和来源。",
+      "target_output": "相关主体获得任务所需共同信息。",
+      "existing_completion_check": "主体可引用同一版本材料，关键缺项和来源明确。"
+    },
+    {
+      "id": "I-P1",
+      "transition": "假定共享 → 对指定内容具有足够确认依据。",
+      "operators": [
+        "OP23"
+      ],
+      "previous_pattern_example": "请用自己的方式说明〔待共享内容〕，并判断一个新例；目前确认到什么范围，还有哪些未检查？",
+      "core_sentence": "用复述或新例检查我们共享到哪里。",
+      "expansion": "“为〔本次用途〕，选择必须共享的〔内容及版本〕，请相关方复述、判断新例、预测或展示适当操作。根据反馈记录确认范围与残余未知；不要求每次使用全部检查方式。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确定需共享内容；取得复述、新例、预测或操作反馈；限定确认范围。",
+      "target_output": "对指定内容具有足够确认依据。",
+      "existing_completion_check": "记录检查内容、方式和残余不确定性。"
+    },
+    {
+      "id": "I-C2",
+      "transition": "表达的多种未决解释 → 任务所需澄清。",
+      "operators": [
+        "OP24",
+        "OP09"
+      ],
+      "previous_pattern_example": "你说的〔词语或表达〕指什么？〔候选含义〕是否符合你的意思？请给出例子帮助区分。",
+      "core_sentence": "把未决含义拿出来，用例子澄清。",
+      "expansion": "“请指出〔表达〕可能对应的不同对象或解释，各方分别说明所指。用〔相关情境与例子〕比较并修订解释，再核对能否一致判断本次所指。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "定位未决解释；比较对象、例子与条件；检查相关情境中的所指。",
+      "target_output": "任务所需澄清。",
+      "existing_completion_check": "对相关具体情境可一致判定所指。"
+    },
+    {
+      "id": "I-C3",
+      "transition": "不同解释 → 足够一致的解释。",
+      "operators": [
+        "OP24",
+        "OP23"
+      ],
+      "previous_pattern_example": "在〔本次范围〕内，我们共同采用〔表达〕的哪种含义？哪些情况包括或不包括，各方是否确认？",
+      "core_sentence": "为本次讨论约定共同含义。",
+      "expansion": "“请各方先说明〔表达〕的含义，再协商〔本次范围〕共同采用的工作解释。用边界例核对，取得所需确认，写明尚未统一的部分。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "各自说明含义；约定本次工作解释；检查边界及未约定部分。",
+      "target_output": "足够一致的解释。",
+      "existing_completion_check": "双方能准确说明约定含义及未约定部分。"
+    },
+    {
+      "id": "I-C4",
+      "transition": "不同系统模型 → 任务所需的共同模型。",
+      "operators": [
+        "OP24",
+        "OP34",
+        "OP23"
+      ],
+      "previous_pattern_example": "各方怎样理解〔对象之间的关系〕？本次共同采用哪种结构，用什么材料检查，哪些分歧仍保留？",
+      "core_sentence": "组织共同模型，用同一变化检查预测。",
+      "expansion": "“请各方列出〔对象、关系与边界〕并比较差异，为〔本次任务范围〕共同采用一份结构。针对同一变化分别说明预测并核对；范围内冲突未解决时保留部分对齐，范围外差异另记。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "共同列实体、关系和边界；比较同一变化的预测；确认共同采用范围。",
+      "target_output": "任务所需的共同模型。",
+      "existing_completion_check": "在约定范围共同采用同一结构，并能说明同一变化的预测；范围外差异另记。若仍有范围内模型冲突，只记录部分对齐或未达成。"
+    },
+    {
+      "id": "I-C5",
+      "transition": "不同问题范围／视角 → 共同工作框架。",
+      "operators": [
+        "OP24",
+        "OP10",
+        "OP23"
+      ],
+      "previous_pattern_example": "关于〔当前任务〕，本轮共同讨论哪个问题，从哪些方面判断？哪些内容暂不纳入，各方是否确认这个范围？",
+      "core_sentence": "把本次共同处理的问题和视角定下来。",
+      "expansion": "“关于〔当前任务〕，请各方说明对象、目的与判断维度，协商本轮共同工作框架。记录纳入和暂不纳入的内容，取得确认，并保留其他框架。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确本次对象、目的和维度；约定工作框架；保留其他框架。",
+      "target_output": "共同工作框架。",
+      "existing_completion_check": "能说明当前处理什么，以及保留哪些其他框架。"
+    },
+    {
+      "id": "I-C6",
+      "transition": "笼统不一致 → 可定位的分歧。",
+      "operators": [
+        "OP25",
+        "OP24",
+        "OP13"
+      ],
+      "previous_pattern_example": "关于〔争议〕，我们在哪一点不同：事实、含义、依据还是取舍？各方分别依据什么？",
+      "core_sentence": "把分歧定位到对象、立场和依据。",
+      "expansion": "“请各方分别写出对〔争议对象〕的立场与依据，核对彼此表述。将差异定位到事实、含义、模型、标准或行动，并标出已共享的部分。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "表达并确认双方立场；把冲突绑定事实、含义、模型、标准或行动；标共享处。",
+      "target_output": "可定位的分歧。",
+      "existing_completion_check": "每个分歧绑定对象与双方立场，并标共享部分。"
+    },
+    {
+      "id": "I-C7",
+      "transition": "已定位分歧 → 一致、明确保留分歧或暂停。",
+      "operators": [
+        "OP25",
+        "OP23"
+      ],
+      "previous_pattern_example": "关于〔分歧〕，目前采用什么处理状态？哪些已解决，哪些保留，后续怎样处理，各方是否确认？",
+      "core_sentence": "确认这项分歧是解决、保留还是暂停。",
+      "expansion": "“对于〔已定位分歧〕，请各方明确采用一致、保留分歧还是暂停的状态。共同确认其范围、后续处理和重开条件，不把沉默或结束谈话当作一致。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "在已定位分歧上确认一致、保留分歧或暂停；说明范围及重开条件。",
+      "target_output": "一致、明确保留分歧或暂停。",
+      "existing_completion_check": "参与者确认结果状态及其范围，允许不一致。"
+    },
+    {
+      "id": "I-C8",
+      "transition": "旧共同背景 → 更新且带状态的共同背景。",
+      "operators": [
+        "OP23",
+        "OP25",
+        "OP24"
+      ],
+      "previous_pattern_example": "〔旧内容〕需要怎样撤回或修订？〔新内容〕在什么范围确认，各方是否收到并能据此判断？",
+      "core_sentence": "更新共同记录，再确认哪些已共享。",
+      "expansion": "“请按〔新材料或决定〕修订〔共同记录及版本〕，标出哪些确认、争议、失效或尚未共享。将变更提供给相关方并取得必要反馈，更新各部分的状态。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "更新同版本共同记录；区分确认、争议、失效与未共享；取得必要反馈。",
+      "target_output": "更新且带状态的共同背景。",
+      "existing_completion_check": "可区分已确认、争议、失效及尚未共享的内容。"
+    },
+    {
+      "id": "A-P1",
+      "transition": "无有效请求 → 已建立可响应请求。",
+      "operators": [
+        "OP26"
+      ],
+      "previous_pattern_example": "请〔对象〕在〔条件或期限〕下完成〔所求行为〕；若不能接受，请说明可行条件。",
+      "core_sentence": "请你完成这件事，并给出响应。",
+      "expansion": "“请〔接收者〕通过〔渠道〕在〔条件或期限〕下完成〔所求行为〕，并按〔响应方式〕告知接受、拒绝或需要调整什么。请核对请求是否到达及适用成立条件；发送不代替接收或接受。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确接收者、行为和响应方式；提出请求；检查到达与成立依据。",
+      "target_output": "已建立可响应请求。",
+      "existing_completion_check": "请求对象、行为、响应方式明确，并有足够接收依据。"
+    },
+    {
+      "id": "A-C1",
+      "transition": "有效请求 → 接受／拒绝／协商／延后／撤回。",
+      "operators": [
+        "OP26",
+        "OP24",
+        "OP20"
+      ],
+      "previous_pattern_example": "对于〔请求〕，我的响应是〔接受、拒绝、澄清或反提案〕，理由或条件是〔内容〕；哪些还待对方确认？",
+      "core_sentence": "我对这个请求的响应是接受、拒绝或协商。",
+      "expansion": "“对于〔有效请求〕，我理解所求的是〔内容〕，我的响应是〔接受、拒绝、协商、延后或适用的撤回处理〕。请写明条件、下一响应责任及尚待确认部分；未知时不代对方填写接受。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "确认有效请求与理解；由响应方形成接受、拒绝或协商状态；记录待处理条件。",
+      "target_output": "接受／拒绝／协商／延后／撤回。",
+      "existing_completion_check": "响应状态、待处理条件和下一响应责任明确。"
+    },
+    {
+      "id": "A-P9",
+      "transition": "任务对象不明 → 可辨认任务对象。",
+      "operators": [
+        "OP28"
+      ],
+      "previous_pattern_example": "本任务是〔任务内容〕，采用〔版本〕；执行者、期限及相关安排哪些已确定，哪些待确认？",
+      "core_sentence": "先把这项任务的对象和版本定下来。",
+      "expansion": "“请将〔任务内容〕登记为可共同指涉的〔任务对象及版本〕，写明所服务的对象或目标。标出目的、执行者、期限等哪些仍缺；定义任务不表示已指派。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "为任务建立可共同指涉的对象与版本；标出目的和缺项；不默认已指派。",
+      "target_output": "可辨认任务对象。",
+      "existing_completion_check": "能识别任务及目标对象，尚缺规格字段明确。"
+    },
+    {
+      "id": "A-P12",
+      "transition": "规格目的未绑定 → 任务目的已绑定。",
+      "operators": [
+        "OP28"
+      ],
+      "previous_pattern_example": "〔任务或交付〕服务于〔目的〕；由谁依据什么安排确认这个目的？",
+      "core_sentence": "把这项任务服务的目的绑定到规格。",
+      "expansion": "“请把〔任务目的〕写入〔任务及版本〕，说明它服务于什么结果。请有权确定者按〔有效安排〕确认；缺少确认或来源时保留提案，不替代个人目标采纳。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "将目的绑定到任务版本；核对有权确定者的确认；区分个人目标。",
+      "target_output": "任务目的已绑定。",
+      "existing_completion_check": "目的可识别且由有权确定者确认。"
+    },
+    {
+      "id": "A-P13",
+      "transition": "任务范围未定 → 范围已绑定。",
+      "operators": [
+        "OP28",
+        "OP10"
+      ],
+      "previous_pattern_example": "本任务包括〔范围〕，不包括〔排除事项〕；范围变更由谁按什么依据确认？",
+      "core_sentence": "把任务范围和排除项纳入有效规格。",
+      "expansion": "“请为〔任务及版本〕写明包含〔事项〕、排除〔事项〕，用范围内外例子核对。由适用角色纳入规格，并写明范围变更怎样取得确认。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确任务范围与排除项；由适用角色将其纳入规格；保留变更方式。",
+      "target_output": "范围已绑定。",
+      "existing_completion_check": "可判断范围内外例子并记录版本。"
+    },
+    {
+      "id": "A-P14",
+      "transition": "交付物不明 → 交付对象已绑定。",
+      "operators": [
+        "OP28"
+      ],
+      "previous_pattern_example": "交付物是〔内容与形式〕，提交到〔位置或渠道〕；需要保留哪些材料、来源与未知？",
+      "core_sentence": "约定交什么、什么形式、放在哪里。",
+      "expansion": "“对于〔任务及版本〕，请约定交付〔内容与形式〕，提交到〔位置或渠道〕，并按适用安排确认。让接收方指出怎样找到并识别交付物；质量按验收规则另查。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "约定可找得到的交付对象、形式与位置；绑定任务版本；质量另查。",
+      "target_output": "交付对象已绑定。",
+      "existing_completion_check": "接收方能够找到并识别交付物。"
+    },
+    {
+      "id": "A-P15",
+      "transition": "任务约束隐含／未绑定 → 约束纳入规格。",
+      "operators": [
+        "OP28"
+      ],
+      "previous_pattern_example": "本任务须遵守〔约束〕，依据是〔来源〕；条件不足或约束冲突时怎样报告和处理？",
+      "core_sentence": "把允许、禁止和依赖条件纳入任务规格。",
+      "expansion": "“请为〔任务及版本〕列出资源、前置依赖、允许与禁止事项及依据，由适用角色纳入有效规格。用具体情况检查哪些能执行、哪些不能、哪些须升级确认。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确资源、依赖、允许与禁止项；纳入有效规格；检查升级条件。",
+      "target_output": "约束纳入规格。",
+      "existing_completion_check": "执行者可区分允许、禁止与需要升级确认的情况。"
+    },
+    {
+      "id": "A-P16",
+      "transition": "完成判断未约定 → 验收标准纳入规格。",
+      "operators": [
+        "OP28",
+        "OP18"
+      ],
+      "previous_pattern_example": "采用〔规则及版本〕验收〔交付〕，需要〔材料〕；无法核验时怎样记录，由谁按什么依据确认？",
+      "core_sentence": "把验收规则、材料和角色绑定到任务。",
+      "expansion": "“请为〔任务及版本〕复用或设计〔验收规则〕，绑定材料、核验方式及有权验收角色。用实例试判满足、失败和无法验证，按适用安排确认后纳入规格。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "复用或设计规则；将规则、材料、方式与验收角色绑定到任务。",
+      "target_output": "验收标准纳入规格。",
+      "existing_completion_check": "满足、失败、无法验证三种情况可区分。"
+    },
+    {
+      "id": "A-C6",
+      "transition": "模糊任务 → 足以执行与验收的任务规格。",
+      "operators": [
+        "OP28",
+        "OP26",
+        "OP29"
+      ],
+      "previous_pattern_example": "〔任务〕的目的、范围、交付、约束和验收怎样确定？执行方能否说明下一步及仍缺什么，阻塞时如何报告？",
+      "core_sentence": "把任务补到能开始、能验收、能处理阻塞。",
+      "expansion": "“请检查〔任务规格〕，只补影响开始与验收的目的、范围、交付、约束、角色和依赖。请执行方说明下一步、完成判断及阻塞报告方式；关键条件未就绪时记录缺口。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "只补影响开始和验收的规格；核对接受、依赖和异常；就绪条件另查。",
+      "target_output": "足以执行与验收的任务规格。",
+      "existing_completion_check": "执行方能开始下一步、识别完成与阻塞，并有升级路径。"
+    },
+    {
+      "id": "A-P10",
+      "transition": "已定义／指派任务 → 执行方明确接受。",
+      "operators": [
+        "OP26",
+        "OP28"
+      ],
+      "previous_pattern_example": "我接受〔任务及版本〕，在〔开始条件〕下执行，约定期限是〔期限〕；接受范围和待定事项是什么？",
+      "core_sentence": "我接受这个版本的任务及其条件。",
+      "expansion": "“我接受〔任务及版本〕，在〔条件〕下执行，约定期限是〔期限〕。请记录接受者、范围与待定项；拒绝、反提案或尚无响应另记，不由他人代我接受。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "由执行方明确响应；绑定被接受版本、条件与期限；拒绝或未知另记。",
+      "target_output": "执行方明确接受。",
+      "existing_completion_check": "记录执行方、任务版本、接受条件和期限。"
+    },
+    {
+      "id": "A-P11",
+      "transition": "任务待完成／已提交 → 按标准判定完成。",
+      "operators": [
+        "OP37"
+      ],
+      "previous_pattern_example": "对〔提交结果〕，按〔适用标准及版本〕查验后，哪些满足、哪些不满足、哪些无法核验？谁按什么依据确认完成或关闭？",
+      "core_sentence": "拿真实交付逐项验收，再确认完成。",
+      "expansion": "“请取得〔真实交付及版本材料〕，按〔已约定标准〕逐项记录通过、未通过或无法核验及依据。满足适用条件后，由有权角色或约定系统确认完成或关闭，保留可追溯记录。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "取得真实交付；按已约定标准和角色核验；记录通过、未通过或无法核验。",
+      "target_output": "按标准判定完成。",
+      "existing_completion_check": "交付证据、标准版本和关闭依据可追溯。"
+    },
+    {
+      "id": "A-P2",
+      "transition": "责任主张未明确 → 主体主张责任。",
+      "operators": [
+        "OP29"
+      ],
+      "previous_pattern_example": "我主张负责〔事项与范围〕；这不包含〔排除事项〕，该主张是否取得所需认可？",
+      "core_sentence": "我主张对这件事负责。",
+      "expansion": "“我在〔时间〕主张对〔事项与范围〕负责，不包含〔排除事项〕。请记录这一主张者和范围；需要的认可及权限缺口另查，主张不自动成为有效安排。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "由主张者声明负责对象与范围；记录时间；把主张与所需认可分开。",
+      "target_output": "主体主张责任。",
+      "existing_completion_check": "记录主张者、范围与提出时间。"
+    },
+    {
+      "id": "A-P3",
+      "transition": "责任安排未获所需认可 → 安排按规则被认可。",
+      "operators": [
+        "OP29"
+      ],
+      "previous_pattern_example": "由〔主体〕负责〔事项与范围〕的安排是否有效？认可依据、边界和升级渠道是什么？",
+      "core_sentence": "按有效依据确认谁对什么负责。",
+      "expansion": "“请定位〔责任安排〕及〔有效来源〕，按规则取得所需认可，确认〔负责者及范围〕。记录认可依据、尚缺权限和升级渠道；来源或认可不足时保留待定。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "定位责任安排及来源；核对所需认可；记录范围与权限缺口。",
+      "target_output": "安排按规则被认可。",
+      "existing_completion_check": "记录认可依据、负责者、范围、权限缺口。"
+    },
+    {
+      "id": "A-C2",
+      "transition": "责任未协调 → 分布或共同责任结构。",
+      "operators": [
+        "OP29",
+        "OP28"
+      ],
+      "previous_pattern_example": "〔主体一〕与〔主体二〕分别对哪些事项负责，哪些共同负责？交接缺口由谁补齐和协调？",
+      "core_sentence": "把关键结果的责任分清并协调起来。",
+      "expansion": "“请为〔关键结果〕明确各主体分别负责及共同负责的范围，约定交接缺口、冲突和升级怎样处理。按适用规则取得所需认可，再记录责任结构。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "为关键结果分配责任范围；明确接口、冲突与升级；取得所需认可。",
+      "target_output": "分布或共同责任结构。",
+      "existing_completion_check": "每个关键结果有负责范围与冲突处理方法。"
+    },
+    {
+      "id": "A-P7",
+      "transition": "权限主张未明确 → 权限被主张。",
+      "operators": [
+        "OP29"
+      ],
+      "previous_pattern_example": "我主张有权对〔事项〕作〔决定或批准〕，依据是〔所称来源〕；有效性和范围如何核验？",
+      "core_sentence": "我主张有权决定这件事。",
+      "expansion": "“我主张对〔对象及范围〕作〔决定或控制行为〕，所称依据是〔来源〕。请记录主张及时间，另行核验来源有效性与所需认可；不能仅凭声明登记有效授权。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "声明主张的决定或控制范围；记录来源声明；另查有效性和认可。",
+      "target_output": "权限被主张。",
+      "existing_completion_check": "记录主张及适用对象，而非直接升级为有效授权。"
+    },
+    {
+      "id": "A-P8",
+      "transition": "权限关系待定 → 按规则被认可。",
+      "operators": [
+        "OP29"
+      ],
+      "previous_pattern_example": "谁依据什么来源授予〔权限〕，范围到哪里，何时失效？相关技术访问是否也可用？",
+      "core_sentence": "核对授权来源，按规则确认权限。",
+      "expansion": "“请核对〔权限〕的有效来源、范围、期限及撤销条件，按适用规则取得所需认可并记录。相关技术访问另用系统材料核验；缺少依据的权限保持待定。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "核对授权来源、范围和期限；取得所需认可；技术访问另核验。",
+      "target_output": "按规则被认可。",
+      "existing_completion_check": "可追溯依据、边界、期限与撤销条件。"
+    },
+    {
+      "id": "A-C4",
+      "transition": "权限结构不清 → 有范围与来源的权限结构。",
+      "operators": [
+        "OP29",
+        "OP31"
+      ],
+      "previous_pattern_example": "对于〔各类事项〕，分别由谁决定，依据、范围、覆盖和例外条件是什么？",
+      "core_sentence": "明确谁能决定什么，以及权限边界。",
+      "expansion": "“请列出〔关键决定〕，逐项按〔有效来源〕确定有权角色、范围与期限，说明覆盖、撤销、例外和升级关系。取得所需确认；职位、责任或账号权限不自动推出其他关系。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "列关键决定；核对有权角色、来源与边界；处理覆盖、撤销及升级。",
+      "target_output": "有范围与来源的权限结构。",
+      "existing_completion_check": "每类关键决定能找到有权角色和依据。"
+    },
+    {
+      "id": "A-C5",
+      "transition": "原有效权限结构 → 按规则转移的权限结构。",
+      "operators": [
+        "OP29",
+        "OP30"
+      ],
+      "previous_pattern_example": "拟将〔权限及范围〕从〔原主体〕转给〔新主体〕；所需认可是否取得，何时生效，旧权限和技术访问怎样处理？",
+      "core_sentence": "按转移规则调整权限，并记录生效状态。",
+      "expansion": "“拟将〔权限及范围〕从〔原主体〕转给〔新主体〕。请先核对转移资格和可转范围，办理规则所需认可，再记录生效、期限、旧权限保留情况及技术配置；未生效部分另记。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "核验转移资格与可转移范围；办理所需认可；记录旧权、期限与技术配置。",
+      "target_output": "按规则转移的权限结构。",
+      "existing_completion_check": "旧权限是否保留、转移期限和技术配置状态明确。"
+    },
+    {
+      "id": "A-C7",
+      "transition": "角色未协调 → 角色及接口结构。",
+      "operators": [
+        "OP29",
+        "OP28"
+      ],
+      "previous_pattern_example": "〔任务〕中谁执行、谁负责、谁验收、谁批准变更？各自依据与范围是什么，缺席时如何替补？",
+      "core_sentence": "把执行、负责、决定和验收角色接起来。",
+      "expansion": "“请为〔任务〕明确谁执行、谁负责、谁决定、谁验收及各自来源和范围。约定交接、冲突和缺席替补，取得所需认可；同一标签不自动赋予所有职权。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "绑定执行、负责、决定与验收角色；核对来源、交接及替补；取得认可。",
+      "target_output": "角色及接口结构。",
+      "existing_completion_check": "谁执行、谁负责、谁验收可以不同且被明确。"
+    },
+    {
+      "id": "A-P4",
+      "transition": "未建立承诺 → 按适用规则建立承诺。",
+      "operators": [
+        "OP27"
+      ],
+      "previous_pattern_example": "我向〔有关对象〕承诺在〔条件〕下完成〔事项〕；条件失效时按什么程序报告或修订？此承诺是否符合适用规则？",
+      "core_sentence": "我承诺按这些条件完成这件事。",
+      "expansion": "“我向〔相对方〕承诺在〔条件与期限〕下完成〔事项〕，例外及修订按〔程序〕处理。请根据适用规则核对承诺的成立依据并记录义务；是否需明示接受由规则决定。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确承诺者、相对方、内容及条件；检查成立规则；记录例外。",
+      "target_output": "按适用规则建立承诺。",
+      "existing_completion_check": "可以辨认义务内容、受益方、例外和确认依据。"
+    },
+    {
+      "id": "A-P5",
+      "transition": "未履行承诺 → 满足承诺条件。",
+      "operators": [
+        "OP37"
+      ],
+      "previous_pattern_example": "〔真实结果及材料〕是否满足〔承诺及版本〕的条件？谁按什么依据确认履行，哪些仍无法核验？",
+      "core_sentence": "用真实结果核验承诺是否履行。",
+      "expansion": "“请将〔真实结果及材料〕逐项对照〔有效承诺及版本〕的条件，记录满足、未满足或无法核验及依据。具备所需关闭依据后记录履行；实际动作或自报完成不能代替结果。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "取得实际结果；按有效承诺条件核验；满足所需关闭依据后记录履行。",
+      "target_output": "满足承诺条件。",
+      "existing_completion_check": "具备结果证据、条件匹配和所需关闭依据。"
+    },
+    {
+      "id": "A-P6",
+      "transition": "有效承诺 → 按规则解除义务。",
+      "operators": [
+        "OP30"
+      ],
+      "previous_pattern_example": "申请解除〔承诺及范围〕；适用规则要求谁认可，是否已取得，哪些义务仍保留？",
+      "core_sentence": "依照有效依据解除指定范围的承诺。",
+      "expansion": "“请定位〔有效承诺〕及有权解除者或已满足的解除条件，核对〔解除依据〕并办理所需程序。记录解除范围、生效、受影响者与剩余义务，保留历史；单方退出不自动解除。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "定位有效承诺和有权解除者或解除条件；核对依据；记录剩余义务和生效。",
+      "target_output": "按规则解除义务。",
+      "existing_completion_check": "解除依据、范围和影响者明确，历史保留。"
+    },
+    {
+      "id": "A-C3",
+      "transition": "既有承诺需调整 → 认可后的修订承诺。",
+      "operators": [
+        "OP30",
+        "OP27"
+      ],
+      "previous_pattern_example": "建议将〔原承诺条件〕改为〔新条件〕；认可前原安排怎样处理，认可后哪些义务保留？",
+      "core_sentence": "协商修订承诺，明确新旧义务何时交替。",
+      "expansion": "“因〔变化〕，提议将〔旧承诺及版本〕改为〔新条件〕。请与受影响方协商并取得规则所需认可，再记录生效点与剩余义务；认可前按原规则处理旧义务。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "定位旧承诺及变化；提出修订；取得认可并记录新旧义务与生效点。",
+      "target_output": "认可后的修订承诺。",
+      "existing_completion_check": "新旧版本、认可、剩余义务与生效点明确。"
+    },
+    {
+      "id": "A-C8",
+      "transition": "行动依赖不明 → 可追踪依赖结构。",
+      "operators": [
+        "OP28",
+        "OP29",
+        "OP24"
+      ],
+      "previous_pattern_example": "〔后续活动〕依赖〔前置活动〕提供什么输入或完成什么条件？采用哪个版本，交接失败时怎样通知和处理？",
+      "core_sentence": "把谁等什么、怎样交接和继续写清楚。",
+      "expansion": "“请为〔关键步骤〕列出前置输入、输出和可继续条件，约定谁向谁交付什么、采用哪个版本及位置。处理循环或阻塞，说明失败时的通知与处理；等待对象明确不表示输入已可用。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "列输入输出和前置条件；约定交接者、位置与继续条件；处理循环或阻塞。",
+      "target_output": "可追踪依赖结构。",
+      "existing_completion_check": "每个关键步骤能指出等待对象和可继续条件。"
+    },
+    {
+      "id": "A-C9",
+      "transition": "行动未协调 → 可运作协调结构。",
+      "operators": [
+        "OP28",
+        "OP29",
+        "OP27"
+      ],
+      "previous_pattern_example": "〔各方活动〕怎样衔接？谁提供输入，谁执行或核验，缺口与冲突怎样处理，安排是否取得所需认可？",
+      "core_sentence": "接好任务与角色，试走正常和阻塞情境。",
+      "expansion": "“请将〔各方任务〕的责任、权限、依赖、交接和必要承诺组织成一份安排，核对成立依据。用正常和阻塞情境试走，补齐找不到下一责任的地方，并取得所需认可。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "组织任务、角色、依赖与必要承诺；试走正常与阻塞情境；核对成立依据。",
+      "target_output": "可运作协调结构。",
+      "existing_completion_check": "试走一个正常与一个阻塞情境能找到下一责任。"
+    },
+    {
+      "id": "A-C11",
+      "transition": "规则含混／非正式 → 可适用的规则。",
+      "operators": [
+        "OP31"
+      ],
+      "previous_pattern_example": "当〔适用情境〕出现时，应按〔规则〕怎样处理？规则依据、适用范围、例外及决定角色是什么？",
+      "core_sentence": "把条件、要求和例外写成可适用的规则。",
+      "expansion": "“针对〔重复情境〕，请写明触发条件下要求、禁止或允许什么，标出适用范围、例外及决定角色。核对制定来源与权限，用正常和边界例试走，再按规则确认生效。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "明确触发、要求或允许、角色与例外；核对来源；用边界例试走。",
+      "target_output": "可适用的规则。",
+      "existing_completion_check": "具体案例可判断适用、例外或需解释的地方。"
+    },
+    {
+      "id": "A-C12",
+      "transition": "规则存在但维护不明 → 治理与执行结构。",
+      "operators": [
+        "OP31",
+        "OP29"
+      ],
+      "previous_pattern_example": "〔规则〕有争议时谁解释和复核，怎样修改，执行问题报给谁？这些角色和程序依据什么成立？",
+      "core_sentence": "为规则确定解释、执行、复核和修订职责。",
+      "expansion": "“对于〔规则〕，请按有效依据明确谁解释、谁执行、谁复核和谁修订，约定争议及执行问题的处理程序。用争议例试走并取得所需确认，缺少的角色或依据另记。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "为解释、执行、争议、变更与复核绑定有效角色；检查冲突处理路径。",
+      "target_output": "治理与执行结构。",
+      "existing_completion_check": "可说明谁如何处理规则冲突和违规报告。"
+    },
+    {
+      "id": "A-C10",
+      "transition": "临时安排 → 可重复协调方式。",
+      "operators": [
+        "OP31",
+        "OP30",
+        "OP37"
+      ],
+      "previous_pattern_example": "在〔重复情境〕中，〔协调安排〕是否可靠执行？阻塞怎样处理，修订后有哪些重复执行的材料？",
+      "core_sentence": "依据反复执行的材料修正协调安排。",
+      "expansion": "“请收集〔协调安排〕在重复情境中的实际交接、阻塞与异常记录，核对哪里可靠、哪里需要修订。需要时按有效程序调整，继续取得重复执行材料；一次试走不表示已稳定。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "取得反复使用的实际材料；检查正常、异常与交接；据反馈修订并再次观察。",
+      "target_output": "可重复协调方式。",
+      "existing_completion_check": "正常、异常与交接情境可重复执行，问题有反馈。"
+    },
+    {
+      "id": "A-C13",
+      "transition": "有效安排出现异常／变更 → 有依据的更新状态。",
+      "operators": [
+        "OP30",
+        "OP29"
+      ],
+      "previous_pattern_example": "当〔新情况〕出现时，〔原安排〕的哪些关系需要修订？谁按什么依据确认更新，哪些义务与后续事项仍保留？",
+      "core_sentence": "根据新情况更新安排，保留未结束的义务。",
+      "expansion": "“因〔新情况〕，请定位〔原安排及版本〕中受影响的任务、角色、权限、依赖和承诺。提出修订并按规则取得确认，再记录新版本、生效、剩余义务及后续材料处理。”",
+      "author_alignment_review": "core cues an operation; expansion binds material, treatment, output/check to the existing transition; reader efficacy untested",
+      "existing_method": "定位异常与受影响关系；按权限提出或确认变更；记录剩余义务和下一责任。",
+      "target_output": "有依据的更新状态。",
+      "existing_completion_check": "记录事件、依据、受影响关系、剩余义务及下一责任。"
+    }
+  ],
+  "operator_patterns": [
+    {
+      "operator": "OP01",
+      "pattern": "LP01",
+      "previous_main_sentence": "如果 X 不存在，哪些结果可能仍出现？",
+      "core_sentence": "设想没有它，结果还能怎样发生？",
+      "expansion": "“请明确〔结果〕与待移除的〔对象或条件〕，在〔暂保持条件〕下生成没有它的候选路径。标出哪些关联条件也会改变，再写出什么现实材料可以核验这些依赖。”"
+    },
+    {
+      "operator": "OP02",
+      "pattern": "LP02",
+      "previous_main_sentence": "如果用另一种方式实现同一目的，会有什么不同？",
+      "core_sentence": "换一种手段实现同一目的，再比较变化。",
+      "expansion": "“为了〔同一目的〕，请将〔原手段〕换成〔替代手段〕，比较输入、成本、后果与失去的功能。若目的也改变，请另记新目的，不继续当作同一目的的替换。”"
+    },
+    {
+      "operator": "OP03",
+      "pattern": "LP03",
+      "previous_main_sentence": "如果相反判断成立，需要出现什么？",
+      "core_sentence": "反转这个判断，找出它依赖的条件。",
+      "expansion": "“请明确〔原命题〕，构造含义清楚的相反或反向可能。说明在哪些条件下它可能成立，据此找出原判断的前提与需查材料；不要把反转出的可能当作事实。”"
+    },
+    {
+      "operator": "OP04",
+      "pattern": "LP04",
+      "previous_main_sentence": "暂时不考虑这个限制，你希望达到什么状态？",
+      "core_sentence": "暂时解除这个限制，探索别的可能。",
+      "expansion": "“在设想中暂时解除〔约束〕，保留〔其他条件〕，生成不同的目标状态或实现方式。请检查原限制是否仍必要、新方案依赖什么；现实中解除限制需另查依据。”"
+    },
+    {
+      "operator": "OP05",
+      "pattern": "LP05",
+      "previous_main_sentence": "如果当时只改变这个条件，路径可能在哪处分叉？",
+      "core_sentence": "改变一个历史条件，推演另一条路径。",
+      "expansion": "“根据〔已知事件记录〕，设想当时的〔条件〕不同，推演〔候选路径与结果〕。标明哪些条件随之改变、哪些暂保持，区分历史观察与模拟，并写出需核验的差异。”"
+    },
+    {
+      "operator": "OP06",
+      "pattern": "LP06",
+      "previous_main_sentence": "A 与 B 在这个方面有什么不同？",
+      "core_sentence": "在同一方面找出差异，核对比较口径。",
+      "expansion": "“请将〔两个对象或状态〕放在〔比较情境与维度〕下，写出可指认差异及其材料。核对口径与条件；仅在本次任务需要时，再判断差异是否构成缺口、优势或问题。”"
+    },
+    {
+      "operator": "OP07",
+      "pattern": "LP07",
+      "previous_main_sentence": "它们相同的是特征、关系还是仅仅名字？",
+      "core_sentence": "找出共同点，保留不相似的部分。",
+      "expansion": "“请在〔比较维度〕上列出〔对象〕的共同特征或关系，再用不相似部分限制类比。需要推论共同原因时另查解释和证据；相似本身不证明同因。”"
+    },
+    {
+      "operator": "OP08",
+      "pattern": "LP08",
+      "previous_main_sentence": "你说好或差，是相对于什么？",
+      "core_sentence": "为这个评价选定合适的参照。",
+      "expansion": "“针对〔好坏或高低判断〕，请选择〔基线、目标或案例〕作参照，写出来源及适用范围。核对对象、时间和条件，再据此重述评价。”"
+    },
+    {
+      "operator": "OP09",
+      "pattern": "LP09",
+      "previous_main_sentence": "这里具体指哪个对象，在什么情况发生什么？",
+      "core_sentence": "把模糊处具体化到足以判断。",
+      "expansion": "“为〔当前用途〕，请定位〔表达〕中影响判断的模糊处，补必要对象、条件、事件或数量。用满足与不满足例子检查；未知细节保持未知。”"
+    },
+    {
+      "operator": "OP10",
+      "pattern": "LP10",
+      "previous_main_sentence": "这次处理什么范围？什么暂时不处理？",
+      "core_sentence": "划定处理范围，写出重开条件。",
+      "expansion": "“为〔任务与约束〕，请划出纳入、排除和暂缓范围及依据，用边界例核对。写明出现什么新信息或条件变化时，需要重开范围判断。”"
+    },
+    {
+      "operator": "OP11",
+      "pattern": "LP11",
+      "previous_main_sentence": "还有哪些实质不同的可能？",
+      "core_sentence": "再生成实质不同的候选。",
+      "expansion": "“为〔解释、实现或构造状态的用途〕，请从不同前提、手段或关系生成候选，说明会影响判断的差异或预测。合并同义项，保留可行性和事实状态的未知。”"
+    },
+    {
+      "operator": "OP12",
+      "pattern": "LP12",
+      "previous_main_sentence": "这个判断要成立，你默认了哪些条件？",
+      "core_sentence": "把判断依赖的前提写出来。",
+      "expansion": "“请定位〔判断及推理〕所依赖的条件，由主体确认哪些原已默认、哪些刚想到。逐项写出条件失效会影响哪一步，并标明来源或未知。”"
+    },
+    {
+      "operator": "OP13",
+      "pattern": "LP13",
+      "previous_main_sentence": "这份材料具体支持哪一步？还有什么不支持？",
+      "core_sentence": "把每项主张接到相应材料。",
+      "expansion": "“请将〔主张〕与〔可查材料〕逐项对应，记录支持、冲突、无关与未知，核对对象、时间和范围。材料缺失时只定位未知及取得材料的方法；必要时缩小主张。”"
+    },
+    {
+      "operator": "OP14",
+      "pattern": "LP14",
+      "previous_main_sentence": "什么具体情况会使它不成立？",
+      "core_sentence": "找一个真正针对这个判断的反例。",
+      "expansion": "“请固定〔命题与范围〕，生成具体反例或相反可能并核验。说明它是推翻全称、限定边界，还是概率主张允许的例外；未核实的反例保持候选。”"
+    },
+    {
+      "operator": "OP15",
+      "pattern": "LP15",
+      "previous_main_sentence": "在这些条件下，你更倾向哪个方向，为什么？",
+      "core_sentence": "比较这些方向，表达当前的倾向。",
+      "expansion": "“在〔主体与情境〕下，请比较候选，表达趋近、回避、冲突或无法比较及有关条件。检查问法和选项是否遗漏了重要方向，不强制形成排名。”"
+    },
+    {
+      "operator": "OP16",
+      "pattern": "LP16",
+      "previous_main_sentence": "如果这个变化发生，一天或系统会有什么不同？",
+      "core_sentence": "把希望的方向写成变化后的状态。",
+      "expansion": "“从〔趋近或回避方向〕出发，请描述变化后〔对象〕的有关特征，以及具体情境会有什么不同。把状态与实现手段分开，只补当前需要的条件，标出尚未验证的部分。”"
+    },
+    {
+      "operator": "OP17",
+      "pattern": "LP17",
+      "previous_main_sentence": "这是你准备投入资源追求的，还是暂时觉得不错？",
+      "core_sentence": "确认是否愿意投入去追求这个期望。",
+      "expansion": "“对于〔主体的期望〕，请由主体选择采纳、暂缓或不采纳，说明愿意投入的范围及竞争目标。将欣赏、探索与准备追求分别记录，不代替主体决定。”"
+    },
+    {
+      "operator": "OP18",
+      "pattern": "LP18",
+      "previous_main_sentence": "什么差异会让你改变评价？什么算满足？",
+      "core_sentence": "写出判断规则，用具体实例试判。",
+      "expansion": "“为〔评价对象与用途〕，从目标、约束、价值或既有规则提出标准，说明指标、规则和材料需求。用实例试判满足、不满足或材料不足，必要时修订。”"
+    },
+    {
+      "operator": "OP19",
+      "pattern": "LP19",
+      "previous_main_sentence": "各方案满足哪些条件，代价和未知分别是什么？",
+      "core_sentence": "按规则逐项评价，保留代价与未知。",
+      "expansion": "“请对〔候选〕先核对必须满足的条件与材料，再比较可取舍的方面。列出后果、代价、依据和冲突，保留不可比较或部分排序，并说明哪些材料可能改变评价。”"
+    },
+    {
+      "operator": "OP20",
+      "pattern": "LP20",
+      "previous_main_sentence": "现在选择、试验、暂缓还是退出？依据什么停止搜索？",
+      "core_sentence": "明确本轮选择，并说明何时重选。",
+      "expansion": "“请为〔选择问题〕明确最低要求与剩余未知，决定行动、试验、暂缓或退出。写出理由、停止搜索依据、重开触发及后续一步。”"
+    },
+    {
+      "operator": "OP21",
+      "pattern": "LP21",
+      "previous_main_sentence": "下一步是什么？需要什么输入、资源和检查点？",
+      "core_sentence": "从目标组织路径，落实可开始的下一步。",
+      "expansion": "“从〔目标或选择〕反推必要产物和条件，组织手段、资源、依赖与下一步。请试走失败或阻塞情境，明确检查点、回退及可调整部分。”"
+    },
+    {
+      "operator": "OP22",
+      "pattern": "LP22",
+      "previous_main_sentence": "我依据了什么？忽略了什么？哪些只是猜测？",
+      "core_sentence": "回看判断过程，依据材料决定是否修订。",
+      "expansion": "“请区分〔对象判断〕与对判断过程的自述，对照当时的材料、选择和错误，标出内省的不确定性。再依据可查材料保持或修订过程解释、对象判断或策略，说明理由。”"
+    },
+    {
+      "operator": "OP23",
+      "pattern": "LP23",
+      "previous_main_sentence": "请用自己的方式说明关键点，并给一个新例。",
+      "core_sentence": "用复述或新例检查我们共享到哪里。",
+      "expansion": "“请选择〔本任务须共享的内容及版本〕，请相关方复述、预测、判断新例或给出适当操作反馈。依据反馈修正并记录确认范围与残余未知；尚未收到材料时先处理传递。”"
+    },
+    {
+      "operator": "OP24",
+      "pattern": "LP24",
+      "previous_main_sentence": "我们各自说的 X 是什么？本次要共同处理哪一部分？",
+      "core_sentence": "把不同理解拿出来，形成共同工作解释。",
+      "expansion": "“请各方写出对〔表达或任务〕的含义、范围与框架，定位本次必须协调的部分。用具体例子协商共同解释或工作框架，取得确认，保留未统一部分。”"
+    },
+    {
+      "operator": "OP25",
+      "pattern": "LP25",
+      "previous_main_sentence": "我们争的是事实、解释、价值、标准还是行动？",
+      "core_sentence": "定位分歧，再确定怎样处理。",
+      "expansion": "“请记录各方对〔争议〕的原立场并核对表述，定位事实、解释、价值、标准或行动差异。然后协商查证、解决、保留分歧或暂停的状态，写出范围与重开方式。”"
+    },
+    {
+      "operator": "OP26",
+      "pattern": "LP26",
+      "previous_main_sentence": "请你在这些条件下做 X；能否接受，或需要调整什么？",
+      "core_sentence": "请你完成这件事，并给出响应。",
+      "expansion": "“请〔对象〕经〔渠道〕在〔条件〕下做〔行为〕，并给出接受、拒绝或调整条件的响应。核对到达和理解，记录响应及未知；发送不表示接受。”"
+    },
+    {
+      "operator": "OP27",
+      "pattern": "LP27",
+      "previous_main_sentence": "我承诺在条件 C 下完成 X；异常时按 Y 处理。",
+      "core_sentence": "我承诺按这些条件完成这件事。",
+      "expansion": "“我向〔相对方〕承诺在〔条件与期限〕下完成〔事项〕，异常按〔程序〕处理。请按适用规则核对成立依据，并记录履行、修改与解除条件。”"
+    },
+    {
+      "operator": "OP28",
+      "pattern": "LP28",
+      "previous_main_sentence": "明确目的、范围、交付、约束、验收、角色、依赖与异常处理。",
+      "core_sentence": "把任务补到能开始、能验收、能处理阻塞。",
+      "expansion": "“请为〔任务〕绑定必要的目的、范围、交付、约束、验收、角色与依赖，补明资源和异常处理。请执行方说明下一步及阻塞条件；只补关键缺口，未就绪时不宣称可执行。”"
+    },
+    {
+      "operator": "OP29",
+      "pattern": "LP29",
+      "previous_main_sentence": "谁执行、谁负责、谁有权决定和验收？依据与边界是什么？",
+      "core_sentence": "按有效依据明确角色、责任和权限边界。",
+      "expansion": "“请列〔关键执行、责任、决定与验收行为〕，逐项核对角色、来源、范围、期限和所需认可。另查技术访问，试走冲突或撤销情况，记录缺口；主张可以先记录，但有效关系另判。”"
+    },
+    {
+      "operator": "OP30",
+      "pattern": "LP30",
+      "previous_main_sentence": "原安排哪里不再成立？提议怎样改，影响谁，何时生效？",
+      "core_sentence": "提出修订，按规则确认新旧安排。",
+      "expansion": "“因〔变化〕，请定位〔旧安排及版本〕，提出〔修订〕并说明受影响者与剩余义务。按规则取得所需认可，再记录生效与新版本；未生效前按原规则处理旧安排。”"
+    },
+    {
+      "operator": "OP31",
+      "pattern": "LP31",
+      "previous_main_sentence": "什么条件触发什么要求？例外、解释、执行和修改由谁负责？",
+      "core_sentence": "把规则和处理规则的职责定清楚。",
+      "expansion": "“针对〔重复情境〕，请写出条件下的要求、禁止或允许，核对来源、制定权限及例外。用正常、边界和争议例试走，补明谁解释、执行、监测和修订，取得所需确认。”"
+    },
+    {
+      "operator": "OP32",
+      "pattern": "LP32",
+      "previous_main_sentence": "如果出现 Y，我就做 X；例外 E 下改为 Z。",
+      "core_sentence": "如果出现这个线索，我就执行这个动作。",
+      "expansion": "“为〔已采纳目标〕，我采纳：如果出现〔可识别线索〕，我就做〔具体可行动作〕。请明确第一步、例外、冲突和重复触发的处理；实际出现线索后再检查执行。”"
+    },
+    {
+      "operator": "OP33",
+      "pattern": "LP33",
+      "previous_main_sentence": "概括时保留哪些关键区别？展开时哪些有来源、哪些待查？",
+      "core_sentence": "按用途压缩或展开，保留区别与来源。",
+      "expansion": "“需要压缩〔材料〕时，请保留关键区别与条件，生成摘要后回查原文；需要展开〔标签〕时，请将来源内容、解释与新生成待查细节分开。根据本次缺口选择一个方向，不默认无损恢复。”"
+    },
+    {
+      "operator": "OP34",
+      "pattern": "LP34",
+      "previous_main_sentence": "这些例子的共同结构是什么？什么例子不属于？",
+      "core_sentence": "从实例组织概念或结构，用新例检验。",
+      "expansion": "“请为〔用途〕比较〔实例或要素〕，选择必要特征与区别，写出候选定义或关系结构。用反例、边界和新情境检验，必要时修订；仅需分类时明确归类依据，不强求共同因果或本质。”"
+    },
+    {
+      "operator": "OP35",
+      "pattern": "LP37",
+      "previous_main_sentence": "为了当前用途，先看什么？哪些特征会改变判断，哪些暂时略去？",
+      "core_sentence": "围绕当前对象，按用途选择特征。",
+      "expansion": "“为〔任务〕，请指定关注对象并处理一项有关问题；需要组织表征时，再列出描述方面、筛选任务相关特征，记录取值、来源和未知。分别检查关注是否聚焦与表征保留了什么。”"
+    },
+    {
+      "operator": "OP36",
+      "pattern": "LP38",
+      "previous_main_sentence": "我想表达的是X，在条件C下成立；依据是E，U仍未知。这样是否保留了原意？",
+      "core_sentence": "把要表达的内容写出来，再核对原意。",
+      "expansion": "“请辨认〔关键含义、关系与条件〕，写成适合〔用途〕的表达，保留来源和未知。逐项对照原材料及主体确认，修订遗漏或新增的含义。”"
+    },
+    {
+      "operator": "OP37",
+      "pattern": "LP39",
+      "previous_main_sentence": "按已约定规则，这份真实结果满足什么、未满足什么、哪些无法核验？由谁依据什么关闭？",
+      "core_sentence": "按规则核验真实结果，再处理关闭状态。",
+      "expansion": "“请取得〔真实结果及版本材料〕，按〔适用规则〕记录通过、未通过或无法核验及依据。涉及社会任务或承诺时，再按规则由相应角色或约定系统记录完成、履行或关闭；个人结果核验不必制造社会关系。”"
+    }
+  ],
+  "combination_patterns": [
+    "LP35",
+    "LP36"
+  ],
+  "critical_alignment_notes": {
+    "R-C1": "construct a definition from materials, test and revise; not just ask for an existing meaning",
+    "C-P2/C-P10": "current articulation does not prove formerly implicit contents",
+    "C-C11": "new materials must affect object judgment/scope/confidence, not only introspection",
+    "I-C1/I-C3/I-C4": "obtain relevant feedback and define shared scope, do not assert sharedness",
+    "A-P3/A-P8": "source validity and rule-required recognition distinguish claims from effective arrangements",
+    "A-P11/A-P5": "language organizes result verification and records; actual performance needs real execution and result material",
+    "A-C10": "repeated real execution material is required; one simulated walkthrough is insufficient",
+    "all": "core is a retrievable cue, expansion is conditional scaffolding; no requirement to perform every linked operator"
+  }
+}

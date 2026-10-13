@@ -1,0 +1,385 @@
+{
+  "version": "v0.7",
+  "date": "2026-10-03",
+  "scope": "final editorial polish; inherited audit records retained",
+  "records": [
+    {
+      "file": "docs/models/M1.md",
+      "reason": "版本、通用说明集中、操作入口与引号润色；移除重复说明 {'primitive': 7, 'composite': 1}",
+      "before_sha256": "c230b10fdebfada1cf4138f87d91558186ab835f13172a06b219150412cc40c3",
+      "after_sha256": "c3cc935c3aa0070a3dfecafe7431d9df0f568b6333d7b9689e215c0b4236df1b"
+    },
+    {
+      "file": "docs/models/M2.md",
+      "reason": "版本、通用说明集中、操作入口与引号润色；移除重复说明 {'primitive': 22, 'composite': 13}",
+      "before_sha256": "6dadd020ec66c57064af7c44f5daed09357748dffc43a238b02f9cc19a0f63c9",
+      "after_sha256": "3e57b8980dcdd31b80ba3c092d95505d16bfd3d1365bc17e6b3c9db54fafc086"
+    },
+    {
+      "file": "docs/models/M3.md",
+      "reason": "版本、通用说明集中、操作入口与引号润色；移除重复说明 {'primitive': 1, 'composite': 8}",
+      "before_sha256": "77c40c120c1df4b69dc36c00afeef5f4c8495fbe93fb739a5bbf632308f7c448",
+      "after_sha256": "fe307b6cd9724d990ac0a2ae68478c097ef4d7dbfb3db80519c20460fa5e9a15"
+    },
+    {
+      "file": "docs/models/M4.md",
+      "reason": "版本、通用说明集中、操作入口与引号润色；移除重复说明 {'primitive': 14, 'composite': 15}",
+      "before_sha256": "5d49025a5885f5a2b72235e9108a6036d4db310f331856408aebe7cb03a89588",
+      "after_sha256": "abb2fed099584d2c36a1eb0e13b3bb166581f7164f36506fbdadaea93e05d0b7"
+    },
+    {
+      "file": "docs/models/M1.md",
+      "reason": "特征—概念—表达的组织讲解分段",
+      "before_sha256": "c3cc935c3aa0070a3dfecafe7431d9df0f568b6333d7b9689e215c0b4236df1b",
+      "after_sha256": "57eaeae80d5504d0a8afa6197bbcbbafe6081be751bc90e1d89ba1fceec7811d"
+    },
+    {
+      "file": "docs/models/M2.md",
+      "reason": "七组关系按理解对象、形成方向、回看依据分段",
+      "before_sha256": "3e57b8980dcdd31b80ba3c092d95505d16bfd3d1365bc17e6b3c9db54fafc086",
+      "after_sha256": "6a7991d0881235d9e19df8282ffd98af590d3954b9ac4897691cc71998df78e6"
+    },
+    {
+      "file": "docs/models/M3.md",
+      "reason": "信息、对齐、分歧与背景反馈关系分段",
+      "before_sha256": "fe307b6cd9724d990ac0a2ae68478c097ef4d7dbfb3db80519c20460fa5e9a15",
+      "after_sha256": "9fc6127891e32277ce21a86d93e6b7ed8b7f8d3bc7444fec4fa189e7e36669e8"
+    },
+    {
+      "file": "docs/models/M3.md",
+      "reason": "消除代词指向不清，保留共享的成立依据",
+      "before_sha256": "9fc6127891e32277ce21a86d93e6b7ed8b7f8d3bc7444fec4fa189e7e36669e8",
+      "after_sha256": "c5821a8de2f6b4001e426dd082b377c485d4565e7c819db985a5c90fe93e5102"
+    },
+    {
+      "file": "docs/models/M4.md",
+      "reason": "请求、规格与任务同角色、承诺的关系分段",
+      "before_sha256": "abb2fed099584d2c36a1eb0e13b3bb166581f7164f36506fbdadaea93e05d0b7",
+      "after_sha256": "1cad1f6ee30f7d46a2e527c30d0145b1070478872907edee26d1bad211b2a35e"
+    },
+    {
+      "file": "docs/models/M4.md",
+      "reason": "协作关系另段讲解",
+      "before_sha256": "1cad1f6ee30f7d46a2e527c30d0145b1070478872907edee26d1bad211b2a35e",
+      "after_sha256": "536a56072c20388b7388945dfe9838f96cb6c01828c09fea562d34ea6fb3acd6"
+    },
+    {
+      "file": "docs/models/M4.md",
+      "reason": "明确接受的是任务而非文件版本",
+      "before_sha256": "536a56072c20388b7388945dfe9838f96cb6c01828c09fea562d34ea6fb3acd6",
+      "after_sha256": "b136ad8c2f5ff341c337a5c7b606829832541b3c446c08bd56aa57c5d73e42dc"
+    },
+    {
+      "file": "docs/engineering/OPERATORS.md",
+      "reason": "37算子通用前提与评价说明集中；34卡保留具体方法和检查、缩减重复",
+      "before_sha256": "b910ed3a46d777121dcdd3f2c8dbbfec376940ed01bc35797651a3bd020ac3b5",
+      "after_sha256": "c6c21e4bce7b9b84983ad94d149112fddf2adcd588b063094fc3692756cb14e0"
+    },
+    {
+      "file": "docs/CORE_SPEC.md",
+      "reason": "规范版本",
+      "before_sha256": "8581b9e1d3ff2bb874ef090227498bdd661896ee7e5368cb10a2634097c00e7b",
+      "after_sha256": "577d175c34badb5bf78d6619ce44d40e2a39d95e132d4c428e7128ce7d4fea1f"
+    },
+    {
+      "file": "docs/CORE_SPEC.md",
+      "reason": "发布状态及版本来源",
+      "before_sha256": "577d175c34badb5bf78d6619ce44d40e2a39d95e132d4c428e7128ce7d4fea1f",
+      "after_sha256": "4e6727bcc1e96af8386ce1e9566f67ff727e70b71c05473e5ba9ed4348e281c0"
+    },
+    {
+      "file": "docs/CORE_SPEC.md",
+      "reason": "正文去工作过程表述",
+      "before_sha256": "4e6727bcc1e96af8386ce1e9566f67ff727e70b71c05473e5ba9ed4348e281c0",
+      "after_sha256": "db71369455066e1fbfe645d777c0a488802e3a5668e0885c99bd9ceafa32ef14"
+    },
+    {
+      "file": "docs/CORE_SPEC.md",
+      "reason": "学习与应用保持分开",
+      "before_sha256": "db71369455066e1fbfe645d777c0a488802e3a5668e0885c99bd9ceafa32ef14",
+      "after_sha256": "370e926ea806ecdd92d8bd14c5aeb1db008ba7fc644bf7e25240aa6c4121b6f7"
+    },
+    {
+      "file": "docs/learning/MAINLINE.md",
+      "reason": "学习主线版本",
+      "before_sha256": "7ba29146cc280fda5a700535de64323b3748d3c8b9d746d6c5890d0e768f9389",
+      "after_sha256": "263e26ea18d54b63ed4a1dd6124ba064371576454b54f12f9b71e5dba0efcaf6"
+    },
+    {
+      "file": "docs/STATE_SPEC.md",
+      "reason": "状态约定版本",
+      "before_sha256": "b67650651f033b5a89bdd88945ab3f6c45b969adc98a25e2ee0db84d2f5e01fd",
+      "after_sha256": "a6bfd90da9a454c12c4ab431cfe7c9439693264d5578dedfa3a9a87c4a359895"
+    },
+    {
+      "file": "docs/engineering/PROTOCOLS.md",
+      "reason": "协议版本",
+      "before_sha256": "80b7bffb0444851316db6888b0f52302e58b9a9acfbe681122c58ac312bdd56b",
+      "after_sha256": "924743de696a3d1d9b5ea86d48d31b3f9cf3773c90c2b3bbf9a35cd870cbba7d"
+    },
+    {
+      "file": "docs/GLOSSARY.md",
+      "reason": "解释发布稿同工作版、冻结基线的区别",
+      "before_sha256": "668f9ea2cc0806a08a5317c16cf905c2066f76819ee11aa8dae44d45a9774a37",
+      "after_sha256": "c62efdfcafaedb7263c703386223d7061905c67f8a300e8ef0c38a51ea112536"
+    },
+    {
+      "file": "docs/learning/INTERFACE_PATHS.md",
+      "reason": "索引聚焦当前查找，历史统计移交已有审查记录",
+      "before_sha256": "cee233f9a409275425a5228b8808c9430085eb0fd995e77a998f78b9d4555433",
+      "after_sha256": "4795745fe185a07a76324f8668187e90665f2aa2d68b51f7c65e2dff7308e101"
+    },
+    {
+      "file": "docs/index.md",
+      "reason": "首页重写为读者入口，保持作者、主线和核心跳转；版本、历史与线上状态分开",
+      "before_sha256": "1fd86296a366d3c4b93f7d4cacf6879fe95a5b874d3a720eaebe8e92dd4e513a",
+      "after_sha256": "486f765e89d22d9e0072c10ab496b49ed62bfac22731a0dfac1783f50eae5f49"
+    },
+    {
+      "file": "README.md",
+      "reason": "项目说明简化为当前版本、检查与上传",
+      "before_sha256": "fd28a37fc27705d39cb03fc1c89a77b99ab646bcb62681592bb8e0e599c48e96",
+      "after_sha256": "0999c07d75d0622d5bdc958ca005b0c9e3899ba61deb7504eadeb97c43c108ff"
+    },
+    {
+      "file": "docs/project/STATUS.md",
+      "reason": "当前状态替代累积流水账，历史留在审查及变更记录",
+      "before_sha256": "a5db9f070bf9aa4af594f920d251b7011e94fe3be96b97b8b8b4379482bf69e0",
+      "after_sha256": "cee72e03a5c111f9c44b2bf53ed9045147dc28fd7008ac464dcc1a8cd662b80b"
+    },
+    {
+      "file": "docs/project/PUBLISHING.md",
+      "reason": "按用户自行上传重写发布页，具体步骤与成功判断相连",
+      "before_sha256": "8fe004931fa8f7c26b38541be549e3dd39015b0cb1511a3a4a59434f3f08b7dc",
+      "after_sha256": "f162e831684be0ca91ed4d963f044e920ee059f8d65e2a653969cde88d2db7bf"
+    },
+    {
+      "file": "AGENTS.md",
+      "reason": "维护版本",
+      "before_sha256": "a941de042736e9c26f0490e0f084df48fefa0f43f1c391a23d522e2e2e0de97c",
+      "after_sha256": "a9f43248f2db267728540966ec53ffeaadcc2bb654abf257f5d90be727406b25"
+    },
+    {
+      "file": "AGENTS.md",
+      "reason": "维护对象和冻结来源",
+      "before_sha256": "a9f43248f2db267728540966ec53ffeaadcc2bb654abf257f5d90be727406b25",
+      "after_sha256": "93dc2b0dd973c66360c2085cb3bbe594af198a5f96d09255ecb6a13cdf2fff65"
+    },
+    {
+      "file": "docs/project/MAINTENANCE.md",
+      "reason": "修复旧规范号残留",
+      "before_sha256": "ed52d58ff75474e85a8db0e26efc9c5ce247e92afd9bf9adfa6c6a7a10e266ef",
+      "after_sha256": "f6a4372468a08e344b3779f6070efcbd21f4301bf92d8396940e74bf6fea0415"
+    },
+    {
+      "file": "docs/project/MAINTENANCE.md",
+      "reason": "维护说明去历史工作版号",
+      "before_sha256": "f6a4372468a08e344b3779f6070efcbd21f4301bf92d8396940e74bf6fea0415",
+      "after_sha256": "e4336fa7aea7fff8a8f3203014419ecfdae85160f2fff94db63316719c1f810d"
+    },
+    {
+      "file": "docs/project/MAINTENANCE.md",
+      "reason": "维护当前版本",
+      "before_sha256": "e4336fa7aea7fff8a8f3203014419ecfdae85160f2fff94db63316719c1f810d",
+      "after_sha256": "269563d592c74732f929f18597bf207ba75c3589940816d821cc37c2ef4f07b2"
+    },
+    {
+      "file": "docs/project/MAINTENANCE.md",
+      "reason": "版本无关维护约定",
+      "before_sha256": "269563d592c74732f929f18597bf207ba75c3589940816d821cc37c2ef4f07b2",
+      "after_sha256": "e39d73d8f157d31bac1c39c5e30e4ca49d0233966555826f2fe35cb28dd850b4"
+    },
+    {
+      "file": "docs/project/MAINTENANCE.md",
+      "reason": "维护检查列表一致",
+      "before_sha256": "e39d73d8f157d31bac1c39c5e30e4ca49d0233966555826f2fe35cb28dd850b4",
+      "after_sha256": "d9fe8e8c808a479fe8d8eb11b1a91c88aa7f8ec88a497b756aa0df6b9783d283"
+    },
+    {
+      "file": "docs/project/BASELINE.md",
+      "reason": "保存末次工作稿并说明当前来源",
+      "before_sha256": "ea9b6b0d2512a3c62d9cc41d14d80bd8a961660b70a5005dc34636ee8c569b2e",
+      "after_sha256": "31d231c9a7a55fd24b4406735ff28f275bc53ac5f5f90e6f928900cf7b66742e"
+    },
+    {
+      "file": "docs/project/CONCEPT_AUDIT.md",
+      "reason": "历史审查与当前版本明确分开",
+      "before_sha256": "929b62853b6f05c641d8ef3e6ff3cb868b5bdf6712653ab7aeec6e40f07278bc",
+      "after_sha256": "a420866d525d8256ed81e91c5350129409e7cfb5af82cc200f77ead1aa21fd22"
+    },
+    {
+      "file": "docs/project/GROUNDING_AUDIT.md",
+      "reason": "历史审查与当前版本明确分开",
+      "before_sha256": "75ebb246a3c166114511466bb124aade132b7be9838ce06b1b0a1d0833ca9e2a",
+      "after_sha256": "8d61733a31d61fbf9a85f3271dc2540bc8f68857f54529cb9c29fc1d36248de4"
+    },
+    {
+      "file": "docs/project/REVIEW_REPORT.md",
+      "reason": "当前交付审查在前，v0.6历史完整保留",
+      "before_sha256": "0a2646d2fd1774963b3677b1508d239a3b46d78fb6e82c50e968aaacd7cbd8ff",
+      "after_sha256": "d4ade22d6caa252c1af721b986e6fe64e758bd8cce6ca4a877084f4a9ae1e5f3"
+    },
+    {
+      "file": "docs/project/CHANGELOG.md",
+      "reason": "追加本次版本记录，历史不改",
+      "before_sha256": "3e6b4652d3a349495a97c18cd5b0d4ef42fefe8ac4f6cbdac0a4758295ac8609",
+      "after_sha256": "07cb281c46a10128a8349a8f36f012f363a8a3b6527ea53a16ba04ecb2775168"
+    },
+    {
+      "file": "mkdocs.yml",
+      "reason": "站点版本",
+      "before_sha256": "690434d2e67b76d185491a688d71248783a9768fe7958afafe735b1e0f7dd053",
+      "after_sha256": "70ec405c8ceaf9ab6946c27288184a2cf72a9fa729db501e204bc938c1e1481f"
+    },
+    {
+      "file": "mkdocs.yml",
+      "reason": "导航版本",
+      "before_sha256": "70ec405c8ceaf9ab6946c27288184a2cf72a9fa729db501e204bc938c1e1481f",
+      "after_sha256": "ca3e9f2d9090993b3ebfaa463c8e87a111b37b2f814c700b4b8e613d045293a3"
+    },
+    {
+      "file": ".github/workflows/book.yml",
+      "reason": "部署前增加既有主线和派生一致性检查",
+      "before_sha256": "dfe2d86826155a4b7eba0a1b7057190ebb7b726a1590d5a47f1b0e1a1e90f58b",
+      "after_sha256": "098be84e3feb27bf1489ed0141676024f5554a024c8c15a19c50628e0ef5afda"
+    },
+    {
+      "file": "scripts/export_book.py",
+      "reason": "阅读副本状态读取规范，消除工作版硬编码",
+      "before_sha256": "b8adefb60c0ac039c0466b74ba1788d15f69b42cbd1b4d94d7a6548f3f438b31",
+      "after_sha256": "4f35bbf6a5d980b6e7174b8a5c8d0de19f087ecc5b48812d62cd9b72fd66caeb"
+    },
+    {
+      "file": "scripts/export_book.py",
+      "reason": "Markdown封面同源状态",
+      "before_sha256": "4f35bbf6a5d980b6e7174b8a5c8d0de19f087ecc5b48812d62cd9b72fd66caeb",
+      "after_sha256": "ce8c4636d7495d168a9eebf0aa316a1bd4a8144e8f8cc6c35b3b03439d27c9b0"
+    },
+    {
+      "file": "scripts/export_book.py",
+      "reason": "HTML封面同源状态",
+      "before_sha256": "ce8c4636d7495d168a9eebf0aa316a1bd4a8144e8f8cc6c35b3b03439d27c9b0",
+      "after_sha256": "df3347255f71568ad5ad78988b2862fce98535f3f7c406779a6e897eb88ecd05"
+    },
+    {
+      "file": "overrides/reading.html",
+      "reason": "HTML发布稿说明",
+      "before_sha256": "4c742b31129e598a086444b52e7a40a1c339dd6deba5da953dc34910111841fa",
+      "after_sha256": "f694bd55df4c847066d2294fc3280b26986921221cf9d98af3120f6c11bb6def"
+    }
+  ],
+  "final_changed_files": {
+    "mkdocs.yml": {
+      "before_sha256": "690434d2e67b76d185491a688d71248783a9768fe7958afafe735b1e0f7dd053",
+      "after_sha256": "ca3e9f2d9090993b3ebfaa463c8e87a111b37b2f814c700b4b8e613d045293a3"
+    },
+    "README.md": {
+      "before_sha256": "fd28a37fc27705d39cb03fc1c89a77b99ab646bcb62681592bb8e0e599c48e96",
+      "after_sha256": "3131c9d364f7ec9cea7f836b4b4041ffad0b89578313f78492bccd69d78a66ae"
+    },
+    "AGENTS.md": {
+      "before_sha256": "a941de042736e9c26f0490e0f084df48fefa0f43f1c391a23d522e2e2e0de97c",
+      "after_sha256": "93dc2b0dd973c66360c2085cb3bbe594af198a5f96d09255ecb6a13cdf2fff65"
+    },
+    "docs/GLOSSARY.md": {
+      "before_sha256": "668f9ea2cc0806a08a5317c16cf905c2066f76819ee11aa8dae44d45a9774a37",
+      "after_sha256": "c62efdfcafaedb7263c703386223d7061905c67f8a300e8ef0c38a51ea112536"
+    },
+    "docs/index.md": {
+      "before_sha256": "1fd86296a366d3c4b93f7d4cacf6879fe95a5b874d3a720eaebe8e92dd4e513a",
+      "after_sha256": "bf3bbc314dbd80f5476629df2f464e33337518ebb6898cef2a543b43419acb2a"
+    },
+    "docs/STATE_SPEC.md": {
+      "before_sha256": "b67650651f033b5a89bdd88945ab3f6c45b969adc98a25e2ee0db84d2f5e01fd",
+      "after_sha256": "a6bfd90da9a454c12c4ab431cfe7c9439693264d5578dedfa3a9a87c4a359895"
+    },
+    "docs/CORE_SPEC.md": {
+      "before_sha256": "8581b9e1d3ff2bb874ef090227498bdd661896ee7e5368cb10a2634097c00e7b",
+      "after_sha256": "d17c9ee3c8fdacef976ac6b8c23b720e117b7c8dee7092f203458ce06178ee17"
+    },
+    "archive/CLE_v0.6_末次工作稿快照.zip": {
+      "before_sha256": null,
+      "after_sha256": "0e08ffb4a6047f12612e5eae301a76da6b51a3f7c3acd3239b2fe66bf9f7f6fa"
+    },
+    "scripts/verification-v0.7.json": {
+      "before_sha256": null,
+      "after_sha256": "d84fd1b2373834d7665c3df0c23be7f68bddf89323f56990fe4fc37cbeb13776"
+    },
+    "scripts/export_book.py": {
+      "before_sha256": "b8adefb60c0ac039c0466b74ba1788d15f69b42cbd1b4d94d7a6548f3f438b31",
+      "after_sha256": "df3347255f71568ad5ad78988b2862fce98535f3f7c406779a6e897eb88ecd05"
+    },
+    "overrides/reading.html": {
+      "before_sha256": "4c742b31129e598a086444b52e7a40a1c339dd6deba5da953dc34910111841fa",
+      "after_sha256": "f694bd55df4c847066d2294fc3280b26986921221cf9d98af3120f6c11bb6def"
+    },
+    "docs/learning/INTERFACE_PATHS.md": {
+      "before_sha256": "cee233f9a409275425a5228b8808c9430085eb0fd995e77a998f78b9d4555433",
+      "after_sha256": "4795745fe185a07a76324f8668187e90665f2aa2d68b51f7c65e2dff7308e101"
+    },
+    "docs/learning/MAINLINE.md": {
+      "before_sha256": "7ba29146cc280fda5a700535de64323b3748d3c8b9d746d6c5890d0e768f9389",
+      "after_sha256": "6d99cc5b21b4bd47ab05848c08a1d48cfdc68aa73be439780450317eb1baf947"
+    },
+    "docs/engineering/PROTOCOLS.md": {
+      "before_sha256": "80b7bffb0444851316db6888b0f52302e58b9a9acfbe681122c58ac312bdd56b",
+      "after_sha256": "924743de696a3d1d9b5ea86d48d31b3f9cf3773c90c2b3bbf9a35cd870cbba7d"
+    },
+    "docs/engineering/OPERATORS.md": {
+      "before_sha256": "b910ed3a46d777121dcdd3f2c8dbbfec376940ed01bc35797651a3bd020ac3b5",
+      "after_sha256": "c6c21e4bce7b9b84983ad94d149112fddf2adcd588b063094fc3692756cb14e0"
+    },
+    "docs/project/GROUNDING_AUDIT.md": {
+      "before_sha256": "75ebb246a3c166114511466bb124aade132b7be9838ce06b1b0a1d0833ca9e2a",
+      "after_sha256": "8d61733a31d61fbf9a85f3271dc2540bc8f68857f54529cb9c29fc1d36248de4"
+    },
+    "docs/project/BASELINE.md": {
+      "before_sha256": "ea9b6b0d2512a3c62d9cc41d14d80bd8a961660b70a5005dc34636ee8c569b2e",
+      "after_sha256": "31d231c9a7a55fd24b4406735ff28f275bc53ac5f5f90e6f928900cf7b66742e"
+    },
+    "docs/project/CONCEPT_AUDIT.md": {
+      "before_sha256": "929b62853b6f05c641d8ef3e6ff3cb868b5bdf6712653ab7aeec6e40f07278bc",
+      "after_sha256": "a420866d525d8256ed81e91c5350129409e7cfb5af82cc200f77ead1aa21fd22"
+    },
+    "docs/project/PUBLISHING.md": {
+      "before_sha256": "8fe004931fa8f7c26b38541be549e3dd39015b0cb1511a3a4a59434f3f08b7dc",
+      "after_sha256": "f162e831684be0ca91ed4d963f044e920ee059f8d65e2a653969cde88d2db7bf"
+    },
+    "docs/project/STATUS.md": {
+      "before_sha256": "a5db9f070bf9aa4af594f920d251b7011e94fe3be96b97b8b8b4379482bf69e0",
+      "after_sha256": "40b69979c7fb80930bff39dcfdd23f3a92f3dd96d613b139f9c90f1fea6bd4df"
+    },
+    "docs/project/MAINTENANCE.md": {
+      "before_sha256": "ed52d58ff75474e85a8db0e26efc9c5ce247e92afd9bf9adfa6c6a7a10e266ef",
+      "after_sha256": "d9fe8e8c808a479fe8d8eb11b1a91c88aa7f8ec88a497b756aa0df6b9783d283"
+    },
+    "docs/project/REVIEW_REPORT.md": {
+      "before_sha256": "0a2646d2fd1774963b3677b1508d239a3b46d78fb6e82c50e968aaacd7cbd8ff",
+      "after_sha256": "2e58afd7201f3d2f37b76804362c1a59f890dba820b3223bac14b22c2a2c1e98"
+    },
+    "docs/project/CHANGELOG.md": {
+      "before_sha256": "3e6b4652d3a349495a97c18cd5b0d4ef42fefe8ac4f6cbdac0a4758295ac8609",
+      "after_sha256": "0d0126a10c9fd058924e9675634e8e90d5c2c5036d2f13f4270c5237c8113ed8"
+    },
+    "docs/models/M1.md": {
+      "before_sha256": "c230b10fdebfada1cf4138f87d91558186ab835f13172a06b219150412cc40c3",
+      "after_sha256": "57eaeae80d5504d0a8afa6197bbcbbafe6081be751bc90e1d89ba1fceec7811d"
+    },
+    "docs/models/M3.md": {
+      "before_sha256": "77c40c120c1df4b69dc36c00afeef5f4c8495fbe93fb739a5bbf632308f7c448",
+      "after_sha256": "c5821a8de2f6b4001e426dd082b377c485d4565e7c819db985a5c90fe93e5102"
+    },
+    "docs/models/M4.md": {
+      "before_sha256": "5d49025a5885f5a2b72235e9108a6036d4db310f331856408aebe7cb03a89588",
+      "after_sha256": "b136ad8c2f5ff341c337a5c7b606829832541b3c446c08bd56aa57c5d73e42dc"
+    },
+    "docs/models/M2.md": {
+      "before_sha256": "6dadd020ec66c57064af7c44f5daed09357748dffc43a238b02f9cc19a0f63c9",
+      "after_sha256": "6a7991d0881235d9e19df8282ffd98af590d3954b9ac4897691cc71998df78e6"
+    },
+    ".github/workflows/book.yml": {
+      "before_sha256": "dfe2d86826155a4b7eba0a1b7057190ebb7b726a1590d5a47f1b0e1a1e90f58b",
+      "after_sha256": "098be84e3feb27bf1489ed0141676024f5554a024c8c15a19c50628e0ef5afda"
+    }
+  }
+}

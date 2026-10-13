@@ -1,0 +1,115 @@
+site_url: https://liamamilin.github.io/cognitive-language-engineering/
+repo_url: https://github.com/liamamilin/cognitive-language-engineering
+site_name: 认知语言工程 v0.7
+site_description: 让语言更有效地服务于思考、表达、协作与行动
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+theme:
+  name: material
+  custom_dir: overrides
+  language: zh
+  font: false
+  features:
+  - navigation.sections
+  - navigation.footer
+  - navigation.top
+  - toc.follow
+  - search.suggest
+  - search.highlight
+  - content.code.copy
+  palette:
+  - scheme: default
+    primary: indigo
+    accent: teal
+    toggle:
+      icon: material/weather-night
+      name: 切换深色模式
+  - scheme: slate
+    primary: indigo
+    accent: teal
+    toggle:
+      icon: material/weather-sunny
+      name: 切换浅色模式
+plugins:
+- search:
+    lang: zh
+extra_css:
+- assets/stylesheets/reader.css
+extra_javascript:
+- assets/javascripts/reader.js
+markdown_extensions:
+- admonition
+- tables
+- fenced_code
+- attr_list
+- md_in_html
+- toc:
+    permalink: true
+- pymdownx.superfences
+- pymdownx.details
+nav:
+- 开始阅读: index.md
+- 学习主线: learning/MAINLINE.md
+- 1 Principle 原则:
+  - 七项原则: learning/PRINCIPLES.md
+  - 核心目的: PURPOSE.md
+  - 核心规范 v0.7: CORE_SPEC.md
+- 2 Model 模型:
+  - 四模型导读: learning/MODEL_GUIDE.md
+- 3 接口:
+  - 完整学习连接: learning/INTERFACE_PATHS.md
+  - M1 表征: models/M1.md
+  - M2 个体认知: models/M2.md
+  - M3 共享互动: models/M3.md
+  - M4 语言行动: models/M4.md
+- 4 算子:
+  - 可调用方法: engineering/OPERATORS.md
+- 5 语言模式:
+  - 模式与语境: engineering/PATTERNS.md
+- 理解与解释:
+  - 机制家族: MECHANISMS.md
+  - 辅助心智模型: MENTAL_MODELS.md
+  - 状态与变化: STATE_SPEC.md
+  - 术语表: GLOSSARY.md
+  - 跨模型连接: BRIDGES.md
+  - 现实结果与反馈: OUTCOMES.md
+- 应用与练习:
+  - 掌握后的应用指南: START_HERE.md
+  - 使用规格与演练: engineering/RUN_SPEC.md
+  - 组件规范: engineering/COMPONENT_SPEC.md
+  - 任务协议: engineering/PROTOCOLS.md
+  - 能力训练: learning/TRAINING.md
+  - 应用与主线示范: applications/CASES.md
+- 检查与证据:
+  - 评估规范: evaluation/EVALUATION.md
+  - 边界案例: evaluation/BOUNDARY_CASES.md
+  - 证据规范: EVIDENCE_SPEC.md
+  - 失效诊断: evaluation/FAILURE_ANALYSIS.md
+- 已冻结的结构核心:
+  - 结构核心 v0.2（基于v0.5）: essentials/index.md
+  - 核心筛选审计: essentials/SELECTION.md
+- 来源:
+  - 来源管理: sources/index.md
+  - 核验文献: sources/VERIFIED_SOURCES.md
+  - 旧引文审计: sources/conversation-citations.md
+- 项目维护:
+  - 当前状态: project/STATUS.md
+  - 整合审查: project/REVIEW_REPORT.md
+  - 概念审查: project/CONCEPT_AUDIT.md
+  - 隐藏知识审查: project/GROUNDING_AUDIT.md
+  - 基线追溯: project/BASELINE.md
+  - 维护约定: project/MAINTENANCE.md
+  - 变更记录: project/CHANGELOG.md
+  - 在线发布: project/PUBLISHING.md
+- 决策记录:
+  - 001 决策 001：文档项目与在线电子书: decisions/001-document-and-book.md
+  - 002 002｜模型、接口粒度与行动边界: decisions/002-model-and-state-boundaries.md
+  - 003 003｜完整工程组件与证据范围: decisions/003-engineering-and-evidence.md
+  - 004 004｜观察、达成与使用闭环: decisions/004-observation-and-use.md
+  - 005 决策005｜冻结母体系，抽取少而实用的核心: decisions/005-practical-core.md
+  - 006 决策006｜核心版必须保留母体系结构: decisions/006-structural-core.md
+  - 007 007｜冻结结构核心版 v0.2: decisions/007-freeze-structural-core.md
+  - 008 学习主线与完整连接: decisions/008-learning-mainline.md
+  - 009 补入指认入口: decisions/009-identification-entry.md
+  - 010 从已有输入开始: decisions/010-entry-audit.md

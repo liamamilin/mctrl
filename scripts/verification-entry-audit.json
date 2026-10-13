@@ -1,0 +1,101 @@
+{
+  "version": "project-v0.7.8",
+  "date": "2026-10-11",
+  "checks": {
+    "registry": "Registry matches source: 82 interfaces, all fields.",
+    "mainline": {
+      "interfaces": 82,
+      "reviewed_additions": [
+        "R-C2"
+      ],
+      "operators": 37,
+      "principal_patterns": 37,
+      "all_interfaces_have_methods_core_expansion_checks": true,
+      "baseline_definitions_and_archives_preserved": true,
+      "errors": []
+    },
+    "docs": {
+      "pages": 52,
+      "local_links": 1939,
+      "models": {
+        "M1": 9,
+        "M2": 35,
+        "M3": 9,
+        "M4": 29
+      },
+      "registry_interfaces": 82,
+      "snapshot_matches_source": true,
+      "operators": 37,
+      "protocols": 13,
+      "patterns": 39,
+      "mechanisms": 12,
+      "bridges": 8,
+      "outcomes": 3,
+      "sources": 12,
+      "errors": []
+    },
+    "core": {
+      "model_candidates": 81,
+      "primary_interfaces": 23,
+      "support_interfaces": 8,
+      "retained_interfaces": 31,
+      "retained_by_model": {
+        "M3": 4,
+        "M2": 17,
+        "M4": 6,
+        "M1": 4
+      },
+      "mechanism_candidates": 12,
+      "core_mechanisms": 7,
+      "operator_candidates": 34,
+      "core_operators_and_principal_patterns": 15,
+      "protocol_candidates": 13,
+      "fully_retained_protocols": [
+        "PR05"
+      ],
+      "errors": []
+    }
+  },
+  "strict_build_passed": true,
+  "site_checks": {
+    "html_pages": 53,
+    "local_urls_checked": 6715,
+    "errors": []
+  },
+  "interfaces_reviewed": 82,
+  "interfaces_revised": 40,
+  "interfaces_retained": 42,
+  "operators_reviewed": 37,
+  "operators_revised": 21,
+  "patterns_reviewed": 39,
+  "boundary_design_reviews": 12,
+  "definition_fields_preserved": true,
+  "unchanged_files": 60,
+  "retained_methods_preserved": true,
+  "browser_checks": [
+    "M1 1440: description-first core, method, result boundary and new/legacy group anchors",
+    "M2 1440: criteria and plan entry, distinction wording and layout",
+    "M3 1440: concrete examples before meaning alignment",
+    "M4 1440: deliverable entry and preserved performative expressions",
+    "Patterns 1440: LP36 and R-C2 synchronization",
+    "Book 1440: revision marker, identification, current/legacy anchors and internal targets",
+    "M1 390: description-first core, method, result boundary and new/legacy group anchors",
+    "M2 390: criteria and plan entry, distinction wording and layout",
+    "M3 390: concrete examples before meaning alignment",
+    "M4 390: deliverable entry and preserved performative expressions",
+    "Patterns 390: LP36 and R-C2 synchronization",
+    "Book 390: revision marker, identification, current/legacy anchors and internal targets"
+  ],
+  "browser_errors": [],
+  "reading_checks": {
+    "static_ids": 769,
+    "internal_links": 1987,
+    "duplicate_ids": 0,
+    "missing_targets": 0
+  },
+  "screenshots_visually_checked": [
+    "M1 desktop1440",
+    "M1 mobile390",
+    "M2 criteria mobile390"
+  ]
+}
