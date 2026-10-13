@@ -55,6 +55,7 @@
 .terminal-output-dialog h2 { margin: 0; font-size: 1rem; }
 .terminal-output-dialog .copy-text-output textarea { height: clamp(150px, 30dvh, 300px); }
 .draft-help { color: var(--muted); font-size: .62rem; margin-bottom: 5px; }
+.prompt-dock[hidden] { display: none; }
 .draft-send-return { display: block; margin: 5px 0 0 auto; font-size: .65rem; }
 .draft-notice { margin: 5px 0 0; color: var(--text-soft); font-size: .65rem; line-height: 1.4; }
 @media (max-width: 360px) {

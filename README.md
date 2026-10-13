@@ -212,7 +212,12 @@ on the Mac. Runner detection confirms installation, not account availability.
 Home offers **Continue last session** when its live identity still matches. The
 Session page puts recent output before folded process details and termination.
 
-In Terminal, tap **Copy** to select output or copy the current path. **Use
+In Terminal, tap **编辑** to compose Chinese, numbers and symbols in a visible
+text editor, including in FULL. Confirm an IME candidate before **Insert**, then
+press **⏎** separately; **完成** closes the editor without discarding its draft.
+Direct typing in the terminal remains available.
+
+Tap **Copy** to select output or copy the current path. **Use
 selection in draft** inserts at the draft caret or replaces its selection while
 preserving surrounding text; **Prepare cd command** quotes a selected directory
 for a supported Shell. Review the draft, tap **Insert**, then press **⏎** when
@@ -385,12 +390,12 @@ scripts/               build and release scripts
 `1.0.0` · V1 stable baseline
 
 The real-iPhone Trusted-LAN path has been exercised. All three workflows above
-are implemented. Workflow validation passed `make release-check` and
-48 Chromium/WebKit tests, covering desktop continuation, mobile launch/input,
+are implemented. Latest validation passed `make release-check` and
+54 Chromium/WebKit tests (four opt-in Agent probes skipped), covering native
+Chinese text editing, desktop continuation, mobile launch/input,
 recovery, durability, reconnect and Prompt uncertainty. Lost Work can be reviewed
 and archived in Settings without inventing an exit result or blocking its Project
-indefinitely. Stable-hostname pairing passed four additional Chromium/WebKit
-checks. Detailed evidence and dates are in [`VALIDATION.md`](VALIDATION.md).
+indefinitely. Detailed evidence and dates are in [`VALIDATION.md`](VALIDATION.md).
 
 Final TLS/WSS deployment, fresh physical-iPhone copy/keyboard/IME checks, and
 authenticated Codex/OpenCode provider integration remain release gates. The

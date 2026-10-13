@@ -1,11 +1,11 @@
-// Terminals want half-width ASCII, and a Chinese IME does not send it.
+// Normalize width only for characters delivered through xterm's direct-key
+// stream. The native text editor preserves its draft literally and inserts it
+// through the existing paste path instead.
 //
-// Measured on the phone, with the daemon recording every frame the browser
-// sends: a Chinese keyboard delivers letters and Return and delivers nothing at
-// all for the digit row or for punctuation. Those keys never produce a DOM
-// event, so no conversion here can help and none is attempted for them. The
-// English keyboard sends `1` as 0x31 and `,` as 0x2C, which is why switching
-// keyboards works.
+// Earlier daemon-only traces showed missing digits/punctuation under a Chinese
+// keyboard, but did not record DOM events. That does not establish that iOS
+// produced no event, or that the problem cannot be fixed in the page. Width
+// conversion cannot recover characters missing before this function is called.
 //
 // What this does fix is the text that does arrive in the wrong width. A Chinese
 // keyboard with an English layout active, a paste, or a hardware keyboard

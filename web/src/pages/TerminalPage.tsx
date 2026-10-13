@@ -147,13 +147,15 @@ function clearPendingPrompt(key: string): void {
 export function TerminalPage({ sessionId }: { sessionId: string }) {
   const terminalHost = useRef<HTMLDivElement>(null);
   const draftField = useRef<HTMLTextAreaElement>(null);
+  const draftDock = useRef<HTMLFormElement>(null);
+  const composingDraft = useRef(false);
+  const draftInsertion = useRef(false);
   const draftRange = useRef({ start: 0, end: 0 });
   const refreshFacts = useRef<() => void>(() => undefined);
   const sendRaw = useRef<(data: string) => boolean>(() => false);
   const insertText = useRef<(text: string, programPasteReady?: boolean) => string>(() => 'Reconnect before inserting text.');
   const workInputReady = useRef(false);
   const setInputEnabled = useRef<(ready: boolean) => void>(() => undefined);
-  const focusTerminal = useRef<() => void>(() => undefined);
   const toggleOverview = useRef<() => void>(() => undefined);
   // The terminal instance itself stays inside the effect; only the one
   // operation the page needs from outside is published here.
@@ -182,6 +184,8 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [outputOpen, setOutputOpen] = useState(false);
   const [draftNotice, setDraftNotice] = useState('');
+  const [draftEditorOpen, setDraftEditorOpen] = useState(false);
+  const [draftComposing, setDraftComposing] = useState(false);
   const [bracketedPaste, setBracketedPaste] = useState(false);
   const [programPasteReady, setProgramPasteReady] = useState(false);
   const [insertingDraft, setInsertingDraft] = useState(false);
@@ -209,6 +213,9 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     promptRequest.current = pending;
     setPrompt('');
     setDraftNotice('');
+    setDraftEditorOpen(false);
+    composingDraft.current = false;
+    setDraftComposing(false);
     setOutputOpen(false);
     setBracketedPaste(false);
     setOverview(false);
@@ -342,13 +349,6 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       terminal.options.disableStdin = !ready || inputIsBlocked || socket?.readyState !== WebSocket.OPEN || stopped;
     };
 
-    // The 编辑 button must reach the terminal's own hidden input, otherwise iOS
-    // keeps the software keyboard aimed at another field.
-    focusTerminal.current = () => {
-      terminal.focus();
-      terminal.textarea?.focus({ preventScroll: true });
-    };
-
     const blockInput = (message: string) => {
       inputIsBlocked = true;
       terminal.options.disableStdin = true;
@@ -437,6 +437,8 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
 
     const setOverviewMode = async (enabled: boolean) => {
       if (enabled === overviewMode || disposed) return;
+      draftField.current?.blur();
+      setDraftEditorOpen(false);
       setOverviewBusy(true);
       setOverviewError('');
       try {
@@ -953,7 +955,6 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
       host.removeEventListener('gesturestart', preventOverviewPageZoom);
       host.removeEventListener('gesturechange', preventOverviewPageZoom);
       toggleOverview.current = () => undefined;
-      focusTerminal.current = () => undefined;
       rawDisposable.dispose();
       window.clearInterval(pasteModeTimer);
       binaryDisposable.dispose();
@@ -995,9 +996,12 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   }, [sessionId, needsMultilinePaste, connection, inputReady]);
 
   const insertDraft = async () => {
-    if (insertingDraft) return;
-    const text = prompt;
+    if (draftInsertion.current || composingDraft.current) return;
+    const text = draftField.current?.value ?? prompt;
+    if (!text.trim()) return;
+    draftInsertion.current = true;
     setInsertingDraft(true);
+    const insert = insertText.current;
     let ready = false;
     try {
       if (/[\r\n\t]/u.test(text)) {
@@ -1008,15 +1012,19 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           return;
         }
       }
-      const error = insertText.current(text, ready);
+      const error = insert(text, ready);
       setDraftNotice(error || 'Inserted. Press ⏎ in the terminal when ready.');
-      if (!error) setPrompt('');
+      if (!error) {
+        setPrompt('');
+        if (draftField.current) draftField.current.value = '';
+      }
     } catch {
       setDraftNotice('Could not confirm paste support. Your draft has not been sent.');
-    } finally { setInsertingDraft(false); }
+    } finally { draftInsertion.current = false; setInsertingDraft(false); }
   };
 
   const pressKey = (data: string) => {
+    if (composingDraft.current) return;
     if (!sendRaw.current(halfWidth ? normalizeHalfWidth(data) : data)) return;
     controlArmed.current = false;
     setControlArmedState(false);
@@ -1041,8 +1049,8 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
 
   const submitPrompt = async (event: Event) => {
     event.preventDefault();
-    const text = prompt.trim();
-    if (!text || sendingPrompt || connection !== 'connected') return;
+    const text = (draftField.current?.value ?? prompt).trim();
+    if (!text || composingDraft.current || sendingPrompt || connection !== 'connected') return;
 
     const requestId = promptRequest.current ?? makeRequestId();
     promptRequest.current = requestId;
@@ -1080,6 +1088,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   };
 
   const terminalInputDisabled = connection !== 'connected' || inputBlocked || !inputReady;
+  const terminalKeysDisabled = terminalInputDisabled || draftComposing;
   const associated = sessionFacts?.managed_work ?? sessionFacts?.work;
   const project = projects.find(item => item.id === associated?.project_id);
   const currentCommand = sessionFacts?.active_command || sessionFacts?.active_pane?.command || '';
@@ -1090,11 +1099,26 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
   const promptUncertain = promptNotice?.kind === 'uncertain';
   const multilineBlocked = needsMultilinePaste && (!bracketedPaste || !programPasteReady);
   const promptDisabled =
-    terminalInputDisabled || overview || sendingPrompt || insertingDraft || promptUncertain;
-  // FULL is a whole-Session view; the Structured Prompt dock would only take
-  // space there. An unconfirmed prompt still has to stay reachable, because it
-  // is the one thing in that dock the user may have to act on.
-  const showPromptDock = !overview || promptUncertain;
+    terminalInputDisabled || sendingPrompt || insertingDraft || promptUncertain;
+  const showPromptDock = !overview || promptUncertain || draftEditorOpen;
+
+  const setDraftComposition = (active: boolean) => {
+    composingDraft.current = active;
+    setDraftComposing(active);
+  };
+  const openDraftEditor = () => {
+    if (promptDisabled) return;
+    setDraftEditorOpen(true);
+    // Keep the textarea mounted in FULL and reveal/focus it in this user
+    // gesture; an effect or timer can lose iOS's permission to open the keyboard.
+    if (draftDock.current) draftDock.current.hidden = false;
+    draftField.current?.focus({ preventScroll: true });
+  };
+  const closeDraftEditor = () => {
+    if (composingDraft.current) return;
+    draftField.current?.blur();
+    setDraftEditorOpen(false);
+  };
 
   const rememberDraftRange = () => {
     const element = draftField.current;
@@ -1111,11 +1135,10 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
     draftRange.current = { start: caret, end: caret };
     setDraftNotice('Added at your cursor. Review the draft before inserting.');
     setOutputOpen(false);
-    if (overview) toggleOverview.current();
     const element = draftField.current;
     if (element) {
       element.value = next;
-      element.focus({ preventScroll: true });
+      openDraftEditor();
       element.setSelectionRange(caret, caret);
     }
   };
@@ -1262,14 +1285,14 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             <button
               type="button"
               onClick={() => pressKey('\x1b')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
             >
               ESC
             </button>
             <button
               type="button"
               onClick={() => pressKey('\t')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
             >
               TAB
             </button>
@@ -1278,7 +1301,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               type="button"
               aria-pressed={controlArmedState}
               onClick={toggleControl}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
             >
               CTRL
             </button>
@@ -1287,19 +1310,20 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               type="button"
               aria-pressed={overview}
               onClick={() => toggleOverview.current()}
-              disabled={overviewBusy || (!overview && connection !== 'connected')}
+              disabled={overviewBusy || draftComposing || (!overview && connection !== 'connected')}
             >
               {overviewBusy ? '…' : overview ? 'LOCAL' : 'FULL'}
             </button>
             <button
-              class="keyboard-button"
+              class={draftEditorOpen ? 'keyboard-button armed' : 'keyboard-button'}
               type="button"
-              onClick={() => focusTerminal.current()}
-              disabled={terminalInputDisabled}
-              aria-label="Show terminal keyboard for editing"
+              onClick={() => draftEditorOpen ? closeDraftEditor() : openDraftEditor()}
+              disabled={promptDisabled || draftComposing}
+              aria-pressed={draftEditorOpen}
+              aria-label={draftEditorOpen ? 'Close text editor' : 'Edit terminal text'}
             >
               <span aria-hidden="true">⌨</span>
-              <span>编辑</span>
+              <span>{draftEditorOpen ? '完成' : '编辑'}</span>
             </button>
           </div>
           <div
@@ -1310,7 +1334,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             <button
               type="button"
               onClick={() => pressKey('\x1b[A')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
               aria-label="Arrow up"
             >
               ↑
@@ -1318,7 +1342,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             <button
               type="button"
               onClick={() => pressKey('\x1b[B')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
               aria-label="Arrow down"
             >
               ↓
@@ -1326,7 +1350,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             <button
               type="button"
               onClick={() => pressKey('\x1b[D')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
               aria-label="Arrow left"
             >
               ←
@@ -1334,7 +1358,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
             <button
               type="button"
               onClick={() => pressKey('\x1b[C')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
               aria-label="Arrow right"
             >
               →
@@ -1343,7 +1367,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               class="return-button"
               type="button"
               onClick={() => pressKey('\r')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
               aria-label="Send Return"
               title="Send Return"
             >
@@ -1358,7 +1382,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               class="page-button"
               type="button"
               onClick={() => pressKey('\x1b[5~')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
               aria-label="Page Up"
               title="Page Up"
             >
@@ -1368,7 +1392,7 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               class="page-button"
               type="button"
               onClick={() => pressKey('\x1b[6~')}
-              disabled={terminalInputDisabled}
+              disabled={terminalKeysDisabled}
               aria-label="Page Down"
               title="Page Down"
             >
@@ -1377,9 +1401,8 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
           </div>
         </div>
 
-        {showPromptDock && (
-          <form class="prompt-dock" onSubmit={(event) => event.preventDefault()}>
-            <div class="draft-help">{inputReady ? 'Compose here, insert into the terminal, then press ⏎.' : 'Waiting for the session to finish starting. No input is queued.'}</div>
+          <form ref={draftDock} class="prompt-dock" hidden={!showPromptDock} onSubmit={(event) => event.preventDefault()}>
+            <div class="draft-help">{draftComposing ? 'Finish selecting your text before inserting.' : inputReady ? 'Chinese, numbers and symbols: compose here, Insert, then ⏎.' : 'Waiting for the session to finish starting. No input is queued.'}</div>
             {promptNotice && (
               <div
                 class={`prompt-notice prompt-notice-${promptNotice.kind}`}
@@ -1417,20 +1440,28 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
                 ref={draftField}
                 value={prompt}
                 onInput={(event) => {
+                  const composing = (event as unknown as InputEvent).isComposing;
+                  if (typeof composing === 'boolean') setDraftComposition(composing);
                   setPrompt(event.currentTarget.value);
                   setDraftNotice('');
                   draftRange.current = { start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd };
                 }}
+                onFocus={() => setDraftEditorOpen(true)}
+                onCompositionStart={() => setDraftComposition(true)}
+                onCompositionEnd={(event) => {
+                  setDraftComposition(false);
+                  setPrompt(event.currentTarget.value);
+                  rememberDraftRange();
+                }}
                 onSelect={rememberDraftRange}
+                inputMode="text"
                 spellcheck={false}
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="none"
                 rows={2}
                 placeholder={
-                  overview
-                    ? 'Switch to LOCAL to insert text'
-                    : connection === 'connected'
+                  connection === 'connected'
                       ? 'Command or message…'
                       : 'Reconnect to insert text'
                 }
@@ -1440,17 +1471,16 @@ export function TerminalPage({ sessionId }: { sessionId: string }) {
               <button
                 class="prompt-send"
                 type="button"
-                disabled={promptDisabled || !prompt.trim() || multilineBlocked}
+                disabled={promptDisabled || draftComposing || !prompt.trim() || multilineBlocked}
                 onClick={() => void insertDraft()}
               >
                 Insert
               </button>
             </div>
             {multilineBlocked && <p class="draft-notice" role="status">This program does not accept a multiline paste safely. Insert a single line, or use the terminal keyboard.</p>}
-            {shellSendSupported && <button class="text-button draft-send-return" type="button" disabled={promptDisabled || !prompt.trim()} onClick={(event) => void submitPrompt(event)}>Send to shell + Return</button>}
+            {shellSendSupported && !overview && <button class="text-button draft-send-return" type="button" disabled={promptDisabled || draftComposing || !prompt.trim()} onClick={(event) => void submitPrompt(event)}>Send to shell + Return</button>}
             {draftNotice && <p class="draft-notice" role="status">{draftNotice}</p>}
           </form>
-        )}
       </main>
       {outputOpen && <TerminalOutput sessionId={sessionId} onClose={() => setOutputOpen(false)} onUse={useOutputText} onDirectory={shellSendSupported ? text => useOutputText(`cd -- '${text.replaceAll("'", "'\\''")}'`) : undefined} />}
     </div>

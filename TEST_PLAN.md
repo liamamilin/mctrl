@@ -141,9 +141,13 @@ Required:
 - the terminal keybar's ⏎ control sends Return unchanged
 - the terminal keybar's PgUp and PgDn send `ESC [ 5 ~` and `ESC [ 6 ~`, and a
   full-screen program's own history pages with them from the phone
-- a Chinese keyboard delivers letters and Return and delivers nothing for the
-  digit row or for punctuation, while an English keyboard delivers `1` and `,`;
-  measured at the daemon, not inferred
+- 编辑 focuses the visible native text editor in the same gesture in LOCAL/FULL
+- native composition keeps candidates local and blocks Insert/Return until confirmed
+- confirmed Chinese, digits and punctuation are inserted once, literally, without implicit Return
+- closing/reopening the FULL editor preserves its unsent draft and canonical terminal size
+- reconnect retains the draft without queueing or replaying it
+- physical iPhone Chinese keyboard: candidate commit, 123/symbol layout, delete,
+  keyboard switching, and native editor focus; daemon bytes alone cannot establish DOM events
 - `。` and `、` are converted to `.` and `,` when text does arrive in that form,
   and CJK brackets, `—`, `…` and circled digits are left alone
 - `web/scripts/check-normalizer.mjs` passes in `make test-web`
@@ -158,7 +162,7 @@ Required:
   history rather than one per connection
 - the software keyboard does not cover the terminal, and the keybar stays above it
 - the FULL hint stays on one line
-- FULL hides the Structured Prompt dock, except while a send is uncertain
+- FULL hides the draft dock by default; 编辑 reveals native editing, and uncertain Prompt notices remain reachable; structured Shell send stays LOCAL
 - a long Session name wraps to two lines instead of being silently truncated
 - FULL asks the Mac for max(canonical full size, current pane size) and shows the
   whole Session scaled to fit

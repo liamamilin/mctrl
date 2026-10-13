@@ -1,5 +1,56 @@
 # Validation Record
 
+## Native text editing for Chinese mobile input — 2026-10-13
+
+Reported symptom: 编辑 raises the phone keyboard, but digits/symbols fail with
+a Chinese keyboard and work after switching to English. The operator believes
+this is the system keyboard; its exact identity/event sequence was not remotely
+observable. Code inspection confirmed 编辑 focused xterm's hidden textarea.
+The installed xterm 5.5 fallback gates input using event type and key handling.
+This is a plausible compatibility boundary; daemon-only missing bytes do not
+prove that iOS produced no DOM event. Earlier contrary claims in UX,
+Troubleshooting, tests and this record are corrected.
+
+Implemented: 编辑 opens a visible native textarea synchronously within the tap,
+including in FULL. Composition/input handlers read its actual value and keep
+unconfirmed candidates local. Insert and terminal keys are blocked during
+composition. Confirmed drafts use the existing literal paste path, without
+width/CTRL conversion or appended Return. Rapid Insert taps do not duplicate
+the payload. 完成 blurs/hides the editor without clearing the draft. FULL size,
+pan/zoom and LOCAL-only structured Shell send are preserved. Copy/output
+transfer can reveal the mounted editor without changing FULL to LOCAL.
+
+Validation:
+
+- `npm --prefix web run test:browser -- ime.spec.ts`: **6 passed**, three per
+  Chromium/WebKit. Simulated composition/input sequences verify a native focus
+  target, a same-gesture FULL focus, candidate/Return guards (including before
+  rerender), Chinese/ASCII/full-width literals, a double Insert producing one
+  payload, explicit Return, draft retention and no replay after reconnect.
+- `make release-check`: passed, including Go tests/vet/race, real tmux/PTY
+  integration, frontend build/typecheck, 18 normalization conversions and 23
+  untouched cases, CLI smoke, embedded assets, Pair.app and binary checksums.
+- `npm --prefix web run test:browser`: **54 passed, 4 skipped**, 58 total.
+  The skips are opt-in installed Codex/OpenCode startup probes; no provider
+  account acceptance is claimed. Existing startup, copy, launch, durability,
+  raw-input/Prompt uncertainty and pairing cases pass alongside native editing.
+- Both FULL/native-editor screenshots at 393 × 852 were visually reviewed.
+  The editor, Insert and 完成 are visible, with no horizontal page overflow;
+  opening/closing retains canonical pane size and unsent text.
+- Deployed `1.0.0 / 6592731-dirty / 2026-10-13T06:33:57Z`. Health returned 200;
+  page/JS/CSS/SW match embedded resources and both Pair.app binaries match `bin/`.
+  All eight Work identity/state/archive/exit records, three panes and four live
+  baseline processes remained unchanged.
+
+Cache: `mctrl-shell-a8a2acb5bf76ce74`; JS: `index-DABs3HMD.js`.
+Evidence: `bin/native-editor-preview/` and `web/test-results/` (isolated fixtures).
+
+Exit criterion met for the implementation and browser contracts. Desktop WebKit
+does not reproduce an iPhone system IME or its software keyboard: physical-device
+Chinese candidate commit, 123/symbol switching, deletion and keyboard focus still
+need confirmation after refreshing the phone page. No new product-boundary or
+input-replay conflict was introduced; the direct terminal path is retained.
+
 ## Stable LAN phone entry after DHCP changes — 2026-10-09
 
 Reported failure: the phone still opened `192.168.2.105:17681`, while the Mac's
@@ -465,17 +516,15 @@ The preview bound is the API's; the paging is in the page.
 
 What is evidence and what is not:
 
-- **Evidence.** The cause of the dropped punctuation was read out of the installed
-  xterm 5.5 source, not guessed: `Keyboard.ts` gates printable keys on
-  `keyCode >= 48`, the same switch carries a `case 0` for iOS `UIKeyInput*` arrows,
-  and `Terminal.ts` discards an `input` event when `composed === true` and a
-  keydown was seen. iOS is documented not to populate `keyCode` for its
-  on-screen keyboard. Letters and committed phrases use the two paths that are
-  not gated, which is why they worked and punctuation did not.
+- **Evidence about code, not this phone's events.** Installed xterm 5.5 has
+  printable-key gates and an input fallback conditioned on insertText, composed
+  and prior key handling. These identify a possible conversion failure, not the
+  actual cause on a device without a DOM event trace. `Event.composed` describes
+  event propagation, not IME composition; `InputEvent.isComposing` is separate.
 - **Not evidence.** That iOS fires `beforeinput` for this case, and that
-  `input.composed` is true for it. Both were plausible and both are now known to
-  be wrong: the interception built on them changed nothing on the phone, which
-  means the character never reaches a `beforeinput` at all.
+  `input.composed` is true for it. Neither was captured on the phone; an
+  unsuccessful interception did not establish whether the browser emitted or
+  consumed those events.
 - **Not evidence.** That a Chinese keyboard's number row consumes digits as
   candidate selection on this phone. That is the operating system's design and it
   matches what was observed, but it was observed as "nothing happened", not as an
@@ -484,8 +533,11 @@ What is evidence and what is not:
   iOS keyboard, so the layout consuming `--keyboard-inset` is the only thing that
   has been checked.
 
-The Chinese-keyboard question is settled, by measurement rather than inference,
-and the answer is that it is not a defect mctrl can fix.
+Correction recorded 2026-10-13: the historical conclusion below that the
+browser produced no event, and that mctrl could not fix the issue, is withdrawn.
+Only daemon input was captured. An absent WebSocket payload cannot distinguish
+an OS/DOM omission from a frontend or xterm conversion failure. The historical
+byte observations remain useful, but do not establish the device's event path.
 
 Measured at the daemon's input boundary, which sees every byte the phone sends:
 
@@ -496,13 +548,11 @@ Measured at the daemon's input boundary, which sees every byte the phone sends:
 | `1` | nothing | `0x31` arrives |
 | `，` | nothing | `0x2c` arrives |
 
-So the transport is sound and the browser produces no event for the digit row or
-for punctuation under a Chinese keyboard. Nothing in the page can intercept a
-character that is never dispatched. Two earlier conclusions were wrong, and the
-reason is worth keeping: xterm's source was read as showing the character being
-delivered and then discarded, and an interception built on that reading changed
-nothing on the phone. Reading a library's control flow tells you what a browser
-*would* do with an event, not what iOS *delivers*.
+These observations locate the missing bytes before the daemon receives input.
+They do not establish whether browser events were produced or consumed. Source
+inspection and an unsuccessful interception likewise cannot substitute for a
+current physical-iPhone DOM trace. The 2026-10-13 native-editor change addresses
+this boundary without requiring per-key xterm conversion.
 
 The measurement itself is gone. It was a temporary recorder in the terminal
 bridge, gated behind a flag file so nothing was written during normal use, and it

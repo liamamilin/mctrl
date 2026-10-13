@@ -81,7 +81,7 @@ test('terminal reconnect never replays raw input and FULL keeps usable controls'
   const session = items[0].session_id;
   await page.goto(runtime.url + '/#/sessions/' + encodeURIComponent(session) + '/terminal');
   await expect(page.getByText('Live', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Show terminal keyboard for editing' }).click();
+  await page.getByRole('button', { name: 'Edit terminal text', exact: true }).click();
   await page.locator('.xterm-helper-textarea').pressSequentially("printf 'MCTRL_RAW_ONCE\\n'");
   await page.getByRole('button', { name: 'Send Return' }).click();
   const outputCount = () => runtime.tmux('capture-pane', '-p', '-t', session, '-S', '-500').split('\n').filter(line => line.trim() === 'MCTRL_RAW_ONCE').length;

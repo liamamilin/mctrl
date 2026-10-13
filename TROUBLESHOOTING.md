@@ -238,39 +238,34 @@ current size.
 
 ## The Chinese keyboard cannot type numbers or symbols into a program
 
-**This is not fixable in the terminal, and the cause is measured rather than
-guessed.** With the daemon recording every input frame the phone sends:
+Previously, **编辑** focused xterm's hidden textarea. Mobile Chinese input can
+produce a different key/composition/input sequence from an English keyboard;
+xterm 5.5 gates its fallback input path using `inputType`, prior keydown and
+handled-key state. That is a compatibility risk before bytes reach WebSocket.
+The exact event sequence on a particular iPhone still requires a device trace.
 
-| Key | Chinese keyboard | English keyboard |
-| --- | --- | --- |
-| `a` | `hex=61` arrives | `hex=61` arrives |
-| Return | `hex=0d` arrives | `hex=0d` arrives |
-| `1` | **nothing** | `hex=31` arrives |
-| `，` | **nothing** | `hex=2c` arrives |
+Earlier daemon-only measurements showed no bytes for some digits/punctuation.
+They did not record browser events, so the previous claim that iOS produced no
+DOM event, or that mctrl could not fix the problem, was not established.
 
-The transport is sound: every character the browser produces reaches the Mac. A
-Chinese keyboard simply produces no event at all for the digit row or for
-punctuation, so there is nothing for the page to intercept, forward, or convert.
-On a Chinese keyboard the number row is the candidate selector, which is the
-operating system's design.
+Tap **编辑** to use the visible native text editor, including in FULL mode.
+Type Chinese, switch to the keyboard's **123/symbols** layout when needed, confirm
+the selected candidate, and tap **Insert**. Press **⏎** separately when ready.
+The editor reads the actual textarea value, keeps composing text local, preserves
+literal punctuation and never automatically sends or replays its draft.
+**完成** hides the keyboard/editor without discarding unsent text.
 
-Switch to a Latin keyboard to type digits and punctuation. If the character
-appears on screen but the program ignores it, that is the program's input
-handling, not mctrl: use a shell rather than a full-screen TUI to tell them
-apart.
-
-Two wrong conclusions came out of this before it was measured. Reading xterm's
-source showed the character being delivered and then discarded, and an
-interception built on that reading changed nothing on the phone. The lesson is
-recorded because it is the trap: reading a library's control flow tells you what
-a browser *would* do with an event, not what iOS *delivers*. Measure at the
-boundary the data actually crosses.
+For direct terminal keystrokes, tapping the terminal still uses xterm; switching
+to an English keyboard remains a temporary workaround for that path. If a number
+key selects a pinyin candidate, finish selecting the word before switching to
+the numeric layout. To distinguish a program's own key binding from an input
+failure, test a plain Shell before a full-screen TUI.
 
 To confirm the full-width conversion is what you are seeing, set
 `mctrl-terminal-half-width` to `off` in the page's `localStorage` and reload; the
 raw full-width characters then reach the program unchanged.
 
-CJK text itself is never altered by the conversion. What it does cover, beyond
+CJK text itself is never altered by the direct-key conversion. What it covers, beyond
 the full-width block, is the ideographic punctuation a Chinese keyboard sends
 when an English layout is active or when text is pasted: `。` (U+3002) and `、`
 (U+3001) become `.` and `,`, which the previous version missed because those

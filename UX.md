@@ -193,39 +193,37 @@ Recent output on the card is the last two lines after trailing blank rows are
 removed, which is enough to recognise a
 Session and not enough to pretend it is a log.
 
-**编辑** raises the software keyboard on the terminal itself. **⏎** sends the
-same Return the keyboard sends, so submitting never depends on which Return the
-phone shows.
+**编辑** reveals and focuses the visible native text editor in the same user
+gesture, in LOCAL or FULL. It accepts Chinese, digits and symbols as text;
+confirm the candidate, tap Insert, then press **⏎** separately. **完成** blurs
+the editor and hides it in FULL while retaining the unsent draft. Direct terminal
+keystrokes remain available by focusing the terminal itself.
 
 The keybar order is `LOCAL` → **编辑** → `↑ ↓ ← →`, and nothing is inserted into
 it. **PgUp** and **PgDn** follow the arrows because they are not cursor movement:
 they page whatever view the running program keeps for itself.
 
-### What a Chinese keyboard can and cannot send
+### Chinese text, digits and symbols
 
-The phone keyboard has digits and symbols. The failures are narrower than they
-look, and they have different causes.
+The default 编辑 path uses a visible native textarea. It reads the textarea's
+actual value rather than requiring a printable keyCode or per-character xterm
+callback. InputEvent and composition events keep unconfirmed candidates local;
+Insert, Return and structured Shell send are blocked while composing. Insert
+uses the existing literal paste path and does not apply the direct-key width
+conversion or CTRL modifier. It adds no Return and never queues/replays a draft.
 
-**Digits never reach the page.** On a Chinese keyboard the number row is the
-candidate selector, so `1`–`5` choose a word instead of typing a digit. That
-decision is made by the operating system, outside the page, and no terminal-side
-handling recovers it. Switching to a Latin keyboard is the only native way to
-type a digit.
+The field stays mounted while hidden in FULL, so 编辑 can reveal and focus it
+synchronously inside the tap. Opening it preserves FULL's canonical size and
+pan/zoom mode. Closing/reopening retains text. The Structured Shell send action
+stays in LOCAL; FULL's requested editor offers literal Insert only.
 
-**Digits and punctuation cannot be sent from a Chinese keyboard, and mctrl
-cannot fix that.** Measured on the phone by recording every frame the browser
-sends to the Mac: a Chinese keyboard delivers letters (`a` → `0x61`) and Return
-(`0x0d`), and delivers *nothing at all* for the digit row or for punctuation. No
-DOM event is produced, so there is nothing for the page to intercept. The same
-keys on an English keyboard arrive normally (`1` → `0x31`, `,` → `0x2C`), which is
-why switching keyboards works. The digit row of a Chinese keyboard is the
-candidate selector; that is the operating system's design.
-
-Two wrong conclusions came out of this before it was measured, and are recorded
-because they are the trap: reading xterm's source suggested the character was
-delivered and then discarded, and an interception built on that changed nothing
-on the phone. Reading a library's control flow tells you what a browser *would*
-do with an event, not what iOS *delivers*.
+Earlier daemon-only traces recorded no digits/punctuation for a Chinese keyboard
+while an English keyboard delivered them. That locates missing bytes before the
+daemon, but cannot establish that the browser generated no DOM event or that the
+issue was outside mctrl. xterm's event conversion is a compatibility risk;
+confirming the exact current iPhone event sequence still requires device evidence.
+A pinyin candidate number row and the keyboard's 123/symbol layout are different
+states and must not be treated as one universal limitation.
 
 **Width is still corrected for text that does arrive.** A Chinese keyboard with
 an English layout, a paste, or a hardware keyboard produce real characters, and
@@ -338,10 +336,10 @@ The size is editable in **Settings → Full Session size**. Widen it if a progra
 still drops panels, because programs lay themselves out by width and mctrl cannot
 know their thresholds. See `CONFIG_SCHEMA.md`.
 
-`FULL` hides the Structured Prompt dock, because a whole-Session view does not
-need it and the dock costs about 90px. The one exception is an unconfirmed
-Prompt: while a send is uncertain, the dock stays visible, because "Clear
-prompt" is the only way out of that state.
+`FULL` hides the draft dock by default. 编辑 reveals a native text editor
+without leaving FULL; 完成 hides it again. An unconfirmed Prompt also keeps its
+notice reachable because "Clear prompt" resolves that state. Structured Shell
+send remains restricted to LOCAL.
 
 The `FULL` hint is a single line (`Full 240×60 · Editable · pinch · pan`).
 A hint that wraps into three lines costs more terminal than the instruction is
